@@ -7,6 +7,7 @@ import pytest
 from stock_advisor.validation import (
     MetricDefinition,
     classify_series,
+    current_signal_table,
     evaluate_metrics,
     rank_metrics,
 )
@@ -105,3 +106,18 @@ def test_rank_metrics_requires_minimum_sample_size():
     ranked = rank_metrics(summary, min_samples=30, min_abs_t_stat=2.0)
 
     assert ranked.loc["tiny_sample_metric", "good_indicator"] == False  # noqa: E712
+
+
+def test_current_signal_table_has_value_and_signal_per_metric():
+    closes = _mean_reverting_series(length=400)
+    close_prices = pd.DataFrame({"SYN": closes})
+    zscore_metric = MetricDefinition("zscore_test", lambda c: c.rolling(100).apply(
+        lambda w: (w[-1] - w.mean()) / w.std(), raw=True
+    ), -1.0, 1.0)
+
+    table = current_signal_table(close_prices, metrics=(zscore_metric,))
+
+    assert list(table.index) == ["SYN"]
+    assert "zscore_test_value" in table.columns
+    assert "zscore_test_signal" in table.columns
+    assert table.loc["SYN", "zscore_test_signal"] in ("BUY", "SELL", "HOLD")

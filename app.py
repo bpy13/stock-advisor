@@ -101,3 +101,38 @@ if selected_symbol:
     col2.metric("Z-score", f"{row['zscore']:+.2f}")
     col3.metric("Percentile", f"{row['percentile_rank']:.0f}th")
     st.caption(row["rationale"])
+
+st.subheader("Compare methods")
+st.caption(
+    "See what each valuation method says about the same stocks right now, and "
+    "whether that method has actually predicted forward returns historically."
+)
+
+metric_names = [m.name for m in DEFAULT_METRICS]
+selected_metric_names = st.multiselect("Metrics to compare", metric_names, default=metric_names)
+chosen_metrics = [m for m in DEFAULT_METRICS if m.name in selected_metric_names]
+
+if chosen_metrics:
+    symbols_key = tuple(report.index)
+    close_prices = _load_close_prices(symbols_key, period)
+
+    st.markdown("**Current signal per symbol, per method**")
+    current_table = current_signal_table(close_prices, metrics=chosen_metrics)
+    st.dataframe(current_table.round(4), use_container_width=True)
+
+    st.markdown("**Backtested historical edge** (does each method actually predict forward returns?)")
+    col1, col2 = st.columns(2)
+    forward_window = col1.slider("Forward window (trading days)", 5, 60, 20, step=5)
+    backtest_period = col2.selectbox("Backtest history length", ["2y", "5y", "10y"], index=1)
+
+    summary = _backtest_metrics(
+        symbols_key, backtest_period, forward_window, tuple(selected_metric_names)
+    )
+    ranked = rank_metrics(summary)
+    st.dataframe(ranked.round(4), use_container_width=True)
+    st.caption(
+        "`good_indicator` = enough BUY/SELL samples, a correctly-signed spread, and "
+        "|t-stat| >= 2 (a rule-of-thumb bar for \"probably not just noise\")."
+    )
+else:
+    st.info("Select at least one metric above to compare.")

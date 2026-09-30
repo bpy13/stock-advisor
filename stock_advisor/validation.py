@@ -166,3 +166,26 @@ def rank_metrics(
         & (summary["t_stat"].abs() >= min_abs_t_stat)
     )
     return summary.assign(good_indicator=qualifies).sort_values("t_stat", ascending=False)
+
+
+def current_signal_table(
+    close_prices: pd.DataFrame,
+    metrics: Iterable[MetricDefinition] = DEFAULT_METRICS,
+) -> pd.DataFrame:
+    """Today's value + BUY/SELL/HOLD signal for every symbol, under every metric.
+
+    Lets you compare what each method says about the same stock right now,
+    e.g. one symbol might be SELL under RSI but HOLD under `pct_from_ma_200d`.
+    """
+    rows = {}
+    for symbol in close_prices.columns:
+        closes = close_prices[symbol].dropna()
+        row = {}
+        for definition in metrics:
+            values = definition.compute(closes)
+            signal = classify_series(values, definition)
+            row[f"{definition.name}_value"] = float(values.iloc[-1]) if len(values) else float("nan")
+            row[f"{definition.name}_signal"] = signal.iloc[-1] if len(signal) else None
+        rows[symbol] = row
+
+    return pd.DataFrame.from_dict(rows, orient="index").rename_axis("symbol")
