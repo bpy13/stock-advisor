@@ -7,21 +7,56 @@ from typing import Iterable, Optional, Union
 
 import pandas as pd
 
-from .config import DEFAULT_CONFIG, AnalysisConfig
+from .config import DEFAULT_CONFIG, DEFAULT_HK_UNIVERSE, AnalysisConfig
 from .correlation import build_peer_map
 from .market_data import fetch_close_prices, missing_symbols, normalize_symbol
-from .portfolio import Portfolio, load_portfolio
+from .portfolio import Portfolio, load_portfolio, resolve_portfolio_path
 from .price_analysis import analyze_valuations
 from .recommendation import Recommendation, build_recommendation
+from .transactions import build_portfolio_from_transactions
+
+
+def resolve_symbols_and_portfolio(
+    symbols: Optional[Iterable[str]] = None,
+    portfolio_path: Optional[Union[str, Path]] = None,
+) -> tuple[list[str], Optional[Portfolio]]:
+    """Resolve the (symbols-to-analyze, portfolio) pair shared by the report and
+    the metric-validation CLI.
+
+    If `symbols` is omitted, defaults to the resolved portfolio's holdings, or
+    to `DEFAULT_HK_UNIVERSE` if no portfolio is available either.
+    """
+    resolved_portfolio_path = resolve_portfolio_path(portfolio_path)
+    portfolio: Optional[Portfolio] = None
+    if resolved_portfolio_path is not None:
+        if resolved_portfolio_path.suffix.lower() == ".csv":
+            portfolio = build_portfolio_from_transactions(resolved_portfolio_path)
+        else:
+            portfolio = load_portfolio(resolved_portfolio_path)
+
+    if symbols is not None:
+        requested = list(symbols)
+    elif portfolio is not None and portfolio.positions:
+        requested = list(portfolio.positions.keys())
+    else:
+        requested = list(DEFAULT_HK_UNIVERSE)
+
+    return requested, portfolio
 
 
 def generate_report(
-    symbols: Iterable[str],
+    symbols: Optional[Iterable[str]] = None,
     portfolio_path: Optional[Union[str, Path]] = None,
     config: AnalysisConfig = DEFAULT_CONFIG,
 ) -> pd.DataFrame:
-    """Fetch data, run the full analysis pipeline, and return a report DataFrame."""
-    requested = list(symbols)
+    """Fetch data, run the full analysis pipeline, and return a report DataFrame.
+
+    If `symbols` is omitted, the analysis universe defaults to the resolved
+    portfolio's holdings (see `resolve_portfolio_path`), or to
+    `DEFAULT_HK_UNIVERSE` if no portfolio is available either.
+    """
+    requested, portfolio = resolve_symbols_and_portfolio(symbols, portfolio_path)
+
     close_prices = fetch_close_prices(requested, period=config.period, interval=config.interval)
 
     skipped = missing_symbols(requested, {c: close_prices[c] for c in close_prices.columns})
@@ -31,8 +66,6 @@ def generate_report(
     valuations = analyze_valuations(close_prices, config)
     peer_map = build_peer_map(close_prices, config)
     current_prices = {symbol: metrics.current_price for symbol, metrics in valuations.items()}
-
-    portfolio: Optional[Portfolio] = load_portfolio(portfolio_path) if portfolio_path else None
 
     rows = []
     for symbol, valuation in valuations.items():

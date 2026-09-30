@@ -24,6 +24,7 @@ def test_generate_report_produces_expected_columns_and_signals(monkeypatch, tmp_
     monkeypatch.setattr(
         report_module, "fetch_close_prices", lambda symbols, period, interval: prices
     )
+    monkeypatch.setattr(report_module, "resolve_portfolio_path", lambda explicit_path: None)
 
     result = report_module.generate_report(["AAPL", "MSFT"])
 
@@ -59,9 +60,51 @@ def test_format_report_includes_rationale_section(monkeypatch):
     monkeypatch.setattr(
         report_module, "fetch_close_prices", lambda symbols, period, interval: prices
     )
+    monkeypatch.setattr(report_module, "resolve_portfolio_path", lambda explicit_path: None)
 
     result = report_module.generate_report(["AAPL", "MSFT"])
     text = report_module.format_report(result)
 
     assert "Rationale:" in text
     assert "AAPL" in text and "MSFT" in text
+
+
+def test_generate_report_defaults_to_portfolio_holdings_when_symbols_omitted(
+    monkeypatch, tmp_path
+):
+    prices = _synthetic_close_prices()
+    captured_requests = []
+
+    def fake_fetch(symbols, period, interval):
+        captured_requests.append(list(symbols))
+        return prices
+
+    monkeypatch.setattr(report_module, "fetch_close_prices", fake_fetch)
+
+    portfolio_path = tmp_path / "portfolio.json"
+    portfolio_path.write_text(
+        '{"cash": 0.0, "positions": [{"symbol": "MSFT", "shares": 5, "cost_basis": 300.0}]}',
+        encoding="utf-8",
+    )
+
+    report_module.generate_report(symbols=None, portfolio_path=portfolio_path)
+
+    assert captured_requests == [["MSFT"]]
+
+
+def test_generate_report_defaults_to_hk_universe_when_no_symbols_and_no_portfolio(
+    monkeypatch,
+):
+    prices = _synthetic_close_prices().rename(columns={"AAPL": "0700.HK", "MSFT": "9988.HK"})
+    captured_requests = []
+
+    def fake_fetch(symbols, period, interval):
+        captured_requests.append(list(symbols))
+        return prices
+
+    monkeypatch.setattr(report_module, "fetch_close_prices", fake_fetch)
+    monkeypatch.setattr(report_module, "resolve_portfolio_path", lambda explicit_path: None)
+
+    report_module.generate_report(symbols=None, portfolio_path=None)
+
+    assert captured_requests == [list(report_module.DEFAULT_HK_UNIVERSE)]
