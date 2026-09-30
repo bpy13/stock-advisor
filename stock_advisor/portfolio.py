@@ -5,9 +5,14 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Union
+from typing import Dict, Optional, Union
 
 from .market_data import normalize_symbol
+
+_REPO_ROOT = Path(__file__).resolve().parent.parent
+DATA_TRANSACTIONS_PATH = _REPO_ROOT / "data" / "transaction.csv"
+DATA_PORTFOLIO_PATH = _REPO_ROOT / "data" / "portfolio.json"
+SAMPLE_PORTFOLIO_PATH = _REPO_ROOT / "sample_data" / "portfolio.json"
 
 
 @dataclass(frozen=True)
@@ -44,6 +49,28 @@ class Portfolio:
             return 0.0
         price = current_prices.get(position.symbol, position.cost_basis)
         return (position.shares * price) / total_value
+
+
+def resolve_portfolio_path(explicit_path: Optional[Union[str, Path]] = None) -> Optional[Path]:
+    """Pick which portfolio source file to load.
+
+    An explicit path always wins. Otherwise prefer the real, gitignored
+    `data/transaction.csv` (raw fills, aggregated into positions) over
+    `data/portfolio.json` (a plain snapshot), and fall back to the tracked
+    `sample_data/portfolio.json` demo if neither real file exists. Returns
+    None if nothing is available. Callers should dispatch on `.suffix` to
+    pick between `load_portfolio` (JSON) and `build_portfolio_from_transactions`
+    (CSV).
+    """
+    if explicit_path is not None:
+        return Path(explicit_path)
+    if DATA_TRANSACTIONS_PATH.exists():
+        return DATA_TRANSACTIONS_PATH
+    if DATA_PORTFOLIO_PATH.exists():
+        return DATA_PORTFOLIO_PATH
+    if SAMPLE_PORTFOLIO_PATH.exists():
+        return SAMPLE_PORTFOLIO_PATH
+    return None
 
 
 def load_portfolio(path: Union[str, Path]) -> Portfolio:

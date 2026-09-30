@@ -4,7 +4,8 @@ import json
 
 import pytest
 
-from stock_advisor.portfolio import Portfolio, Position, load_portfolio
+import stock_advisor.portfolio as portfolio_module
+from stock_advisor.portfolio import Portfolio, Position, load_portfolio, resolve_portfolio_path
 
 
 @pytest.fixture
@@ -59,3 +60,59 @@ def test_position_weight_for_held_and_unheld_symbol(portfolio_path):
 def test_position_weight_zero_when_total_value_zero():
     portfolio = Portfolio(positions={"AAPL": Position("AAPL", 0, 0.0)}, cash=0.0)
     assert portfolio.position_weight("AAPL", {}) == 0.0
+
+
+def test_resolve_portfolio_path_explicit_wins(monkeypatch, tmp_path):
+    data_path = tmp_path / "data_portfolio.json"
+    sample_path = tmp_path / "sample_portfolio.json"
+    data_path.write_text("{}", encoding="utf-8")
+    sample_path.write_text("{}", encoding="utf-8")
+    monkeypatch.setattr(portfolio_module, "DATA_TRANSACTIONS_PATH", tmp_path / "nope.csv")
+    monkeypatch.setattr(portfolio_module, "DATA_PORTFOLIO_PATH", data_path)
+    monkeypatch.setattr(portfolio_module, "SAMPLE_PORTFOLIO_PATH", sample_path)
+
+    explicit_path = tmp_path / "explicit.json"
+    assert resolve_portfolio_path(explicit_path) == explicit_path
+
+
+def test_resolve_portfolio_path_prefers_transactions_csv(monkeypatch, tmp_path):
+    transactions_path = tmp_path / "transaction.csv"
+    data_path = tmp_path / "data_portfolio.json"
+    transactions_path.write_text("#date,name,ticker,currency,price,quantity\n", encoding="utf-8")
+    data_path.write_text("{}", encoding="utf-8")
+    monkeypatch.setattr(portfolio_module, "DATA_TRANSACTIONS_PATH", transactions_path)
+    monkeypatch.setattr(portfolio_module, "DATA_PORTFOLIO_PATH", data_path)
+    monkeypatch.setattr(portfolio_module, "SAMPLE_PORTFOLIO_PATH", tmp_path / "nope.json")
+
+    assert resolve_portfolio_path(None) == transactions_path
+
+
+def test_resolve_portfolio_path_prefers_data_over_sample(monkeypatch, tmp_path):
+    data_path = tmp_path / "data_portfolio.json"
+    sample_path = tmp_path / "sample_portfolio.json"
+    data_path.write_text("{}", encoding="utf-8")
+    sample_path.write_text("{}", encoding="utf-8")
+    monkeypatch.setattr(portfolio_module, "DATA_TRANSACTIONS_PATH", tmp_path / "nope.csv")
+    monkeypatch.setattr(portfolio_module, "DATA_PORTFOLIO_PATH", data_path)
+    monkeypatch.setattr(portfolio_module, "SAMPLE_PORTFOLIO_PATH", sample_path)
+
+    assert resolve_portfolio_path(None) == data_path
+
+
+def test_resolve_portfolio_path_falls_back_to_sample_when_no_data(monkeypatch, tmp_path):
+    data_path = tmp_path / "missing_data_portfolio.json"
+    sample_path = tmp_path / "sample_portfolio.json"
+    sample_path.write_text("{}", encoding="utf-8")
+    monkeypatch.setattr(portfolio_module, "DATA_TRANSACTIONS_PATH", tmp_path / "nope.csv")
+    monkeypatch.setattr(portfolio_module, "DATA_PORTFOLIO_PATH", data_path)
+    monkeypatch.setattr(portfolio_module, "SAMPLE_PORTFOLIO_PATH", sample_path)
+
+    assert resolve_portfolio_path(None) == sample_path
+
+
+def test_resolve_portfolio_path_none_when_nothing_available(monkeypatch, tmp_path):
+    monkeypatch.setattr(portfolio_module, "DATA_TRANSACTIONS_PATH", tmp_path / "nope0.csv")
+    monkeypatch.setattr(portfolio_module, "DATA_PORTFOLIO_PATH", tmp_path / "nope1.json")
+    monkeypatch.setattr(portfolio_module, "SAMPLE_PORTFOLIO_PATH", tmp_path / "nope2.json")
+
+    assert resolve_portfolio_path(None) is None

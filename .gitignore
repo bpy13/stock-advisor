@@ -5,3 +5,8 @@ __pycache__/
 .venv/
 venv/
 .env
+
+# Real user data (portfolio, etc). Preferred over sample_data/ when present,
+# but never committed since it may contain real holdings.
+data/*
+!data/.gitkeep
