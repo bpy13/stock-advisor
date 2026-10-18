@@ -175,3 +175,7 @@ pytest
 ```
 
 Tests use synthetic price data (no live network calls to Yahoo Finance).
+
+## License
+
+MIT; see [LICENSE](LICENSE).
