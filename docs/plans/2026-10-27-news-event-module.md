@@ -278,8 +278,9 @@ report the item count and the earliest date reachable.
   - Done when: test passes with fake store/model; live run prints current events (last 24 h by
     default), top 5 similar past events each, predicted move per target and horizon with a
     range, a suggested action and its profitable window (Task 4.5); `--watch` polls EDGAR,
-    RSS, yfinance and GDELT every 60 s (CISA feed at most every 15 min), Guardian and NYT
-    every 15 min, and prints only new high-impact events.
+    RSS and yfinance every 60 s (CISA feed at most every 15 min), Guardian, NYT and GDELT
+    every 15 min (GDELT locks out for a minute or more after bursts; never run two GDELT
+    callers at once), and prints only new high-impact events.
   - Notes: action rule: predicted 1-day move ≤ −1.5% → "reduce", ≥ +1.5% → "add", else
     "hold". Shown as a warning ("⚠ unproven") unless `proven` for that target and horizon.
     Thresholds live in `config.py` as `NEWS_ACTION_THRESHOLD_PCT`. Guardian items display
