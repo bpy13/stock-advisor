@@ -63,6 +63,27 @@ HEADLINES = [
 ]
 
 
+# Written before the single-stock overrides. Single-stock and listicle headlines must not become
+# a macro category; real market-wide headlines must stay macro.
+SINGLE_STOCK_HEADLINES = [
+    ("Why is Nvidia stock down today?", "other"),
+    ("Is AT&T Stock a Great Dividend Investment or a Value Trap?", "other"),
+    ("Tesla shares jump after strong delivery numbers", "other"),
+    ("3 stocks to buy now before the next rally", "other"),
+    ("Is Palantir stock a buy right now?", "other"),
+    ("Boeing stock plunges after quarterly earnings miss", "company_results"),
+    ("Ford shares fall as full-year guidance disappoints", "company_results"),
+    ("Intel stock slides after dividend cut", "company_corporate_action"),
+    ("Why are Carnival shares crashing after the layoffs announcement?", "other"),
+]
+MACRO_STOCK_HEADLINES = [
+    ("Stocks crash as recession fears grip Wall Street", "financial_crisis"),
+    ("Global stocks plunge after regional bank failure sparks contagion fears", "financial_crisis"),
+    ("Bank stocks tumble as SVB collapses", "financial_crisis"),
+    ("Asian shares tumble as debt default fears spread", "financial_crisis"),
+]
+
+
 class FakeEmbedder:
     """Maps a text to a fixed one-hot-ish vector chosen by a keyword, so logic is predictable."""
 
@@ -152,6 +173,23 @@ def test_categorize_pending_fills_only_missing(tmp_path):
 def test_seeds_do_not_contain_test_headlines():
     seeds = {s.lower() for group in categories.SEEDS.values() for s in group}
     assert not seeds & {h.lower() for h, _ in HEADLINES}
+
+
+def test_single_stock_headlines_are_not_macro():
+    # Overrides run before the centroid match, so zero vectors prove no embedding is needed.
+    titles = [h for h, _ in SINGLE_STOCK_HEADLINES]
+    got = categorize(titles, embeddings=np.zeros((len(titles), 384), np.float32))
+    wrong = [(h, want, g) for (h, want), g in zip(SINGLE_STOCK_HEADLINES, got) if want != g]
+    assert not wrong, wrong
+    assert not set(got) & set(MACRO_CATEGORIES)
+
+
+@pytest.mark.slow
+def test_market_wide_stock_headlines_stay_macro():
+    titles = [h for h, _ in MACRO_STOCK_HEADLINES]
+    got = categorize(titles)
+    wrong = [(h, want, g) for (h, want), g in zip(MACRO_STOCK_HEADLINES, got) if want != g]
+    assert not wrong, wrong
 
 
 @pytest.mark.slow

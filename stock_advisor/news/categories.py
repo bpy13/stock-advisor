@@ -207,6 +207,62 @@ _OVERRIDES = [
     ),
 ]
 
+# Single-stock and commentary headlines ("Why is X stock down?", "3 stocks to buy") are not
+# market-wide events, but the embedding reads "stock down" as a crash. "stock"/"shares" must not be
+# followed by "market", and a leading market-wide word (Global, Asian, Bank...) skips the rules.
+_NOT_MARKET_WIDE = (
+    r"^(?!\s*(?:global|asian|asia|european|world|us|u\.s\.|wall street|bank|banks|tech|china|"
+    r"chinese|hong kong|emerging)\b)"
+)
+_SHARE = r"\b(?:stock|shares)\b(?!\s+market)"
+_OVERRIDES += [
+    # Commentary and listicles: no event at all.
+    (re.compile(r"\bwhy\s+(?:is|are|did|does|has|have)\b[^.?]{0,60}" + _SHARE, re.IGNORECASE), "other"),
+    (re.compile(r"\bstocks?\s+to\s+(?:buy|sell|watch|own|avoid|hold)\b", re.IGNORECASE), "other"),
+    (re.compile(r"^\s*is\b[^.?]{0,60}" + _SHARE + r"[^.?]{0,60}\?", re.IGNORECASE), "other"),
+    (re.compile(r"^\s*is\b[^.?]{0,60}\ba\s+(?:[\w-]+\s+){0,2}(?:buy|sell)\b", re.IGNORECASE), "other"),
+    (re.compile(r"\bwhy\s+(?:did|do|does)\b[^.?]{0,60}\bstocks\b", re.IGNORECASE), "other"),
+    (re.compile(r"^\s*what\b[^.?]{0,60}" + _SHARE + r"[^.?]{0,40}\?", re.IGNORECASE), "other"),
+    (re.compile(r"\bshould\s+you\s+(?:buy|sell)\b|\bworth\s+buying\b", re.IGNORECASE), "other"),
+    # One company's earnings or guidance, then one company's dividend, buyback or deal.
+    (
+        re.compile(
+            _NOT_MARKET_WIDE + r".{0,80}" + _SHARE
+            + r".{0,60}\b(?:earnings|guidance|outlook|quarterly results|revenue|profit)\b",
+            re.IGNORECASE,
+        ),
+        "company_results",
+    ),
+    (
+        re.compile(
+            _NOT_MARKET_WIDE + r".{0,80}" + _SHARE
+            + r".{0,60}\b(?:dividends?|buybacks?|layoffs?|acquisition|acquires?|merger)\b",
+            re.IGNORECASE,
+        ),
+        "company_corporate_action",
+    ),
+    # A price move on one company with no stated cause.
+    (
+        re.compile(
+            _NOT_MARKET_WIDE + r".{0,50}\b(?:stock|shares)\s+(?:jump|surge|soar|rally|rise|climb|gain|"
+            r"fall|drop|slide|slump|sink|tumble|plunge|dip|crash)\w*\b",
+            re.IGNORECASE,
+        ),
+        "other",
+    ),
+    # "<Company> Stocks Slump 5%": plural, so allowed only with no macro cause in the headline.
+    (
+        re.compile(
+            _NOT_MARKET_WIDE + r"(?!.*\b(?:recession|war|fears?|crisis|collapses?|default|contagion|"
+            r"tariffs?|fed|rates?|inflation|sanctions)\b)(?:\S+\s+){1,4}stocks\s+"
+            r"(?:jump|surge|soar|rally|rebound|rise|climb|gain|fall|drop|slide|slump|sink|tumble|"
+            r"plunge|dip|crash)\w*\b",
+            re.IGNORECASE,
+        ),
+        "other",
+    ),
+]
+
 _centroids: Optional[np.ndarray] = None
 _centroid_names = [c for c in CATEGORIES if c != "other"]
 
