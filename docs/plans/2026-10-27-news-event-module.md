@@ -248,7 +248,7 @@ report the item count and the earliest date reachable.
   - Notes: uses 1m bars where cached, 60m bars within ~730 days, daily otherwise. Stocks also
     get a market-adjusted return (minus the matching index return: ^HSI for .HK, ^GSPC else).
     The 1m, 1h and 1-day points are the headline horizons; the full path feeds Task 4.5.
-- [ ] **Task 4.3: analog and regression model** (fable)
+- [x] **Task 4.3: analog and regression model** (fable)
   - Files: create `stock_advisor/news/model.py`; test `tests/news/test_model.py`.
   - Done when: tests pass on synthetic events with a planted effect (model finds it) and with
     pure noise (model reports not proven).
