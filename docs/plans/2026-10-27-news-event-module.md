@@ -120,7 +120,7 @@ report the item count and the earliest date reachable.
 - [x] **Task 1.2: Wikipedia Current events** `[parallel-ok]` — `sources/wikipedia_events.py`.
   History via the MediaWiki API, one page per day ("Portal:Current events/<YYYY Month D>"),
   each bullet becomes an item. Report the earliest year with daily pages.
-- [ ] **Task 1.3: GDELT** `[parallel-ok]` — `sources/gdelt.py`. DOC 2.0 API (artlist,
+- [x] **Task 1.3: GDELT** `[parallel-ok]` — `sources/gdelt.py`. DOC 2.0 API (artlist,
   English, market/policy/war/cyber queries) for recent items; report the history the API
   actually allows.
 - [x] **Task 1.4: Guardian Open Platform** `[parallel-ok]` — `sources/guardian.py`. Sections
