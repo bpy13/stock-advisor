@@ -7,6 +7,9 @@ here; a limit or trap we live with goes in `known-issues.md`. Each item in one p
 
 ## Waiting on the user
 
+- Telegram bot token in `.env` as `TELEGRAM_BOT_TOKEN=` (create the bot with @BotFather, then
+  send the bot one message). Task 5.4's setup and phone test wait for it.
+
 - Guardian and NYT API keys in `.env` (`GUARDIAN_API_KEY`, `NYT_API_KEY`). Until then those
   two sources are built and tested from fixtures, but not backfilled.
   - NYT: done 2026-10-27 (live archive and Top Stories, real fixtures; old months use
@@ -57,6 +60,17 @@ here; a limit or trap we live with goes in `known-issues.md`. Each item in one p
   query, batch save.
 - Cluster parameters chosen on real data: similarity ≥ 0.60, 12 h window (same day for
   date-only items), events span at most 48 h. The plan's 0.75 merged too little.
+
+- Backfill (Task 4.1) running since 2026-10-27 18:55 HKT (pid 20636). Check:
+  `conda run -n stock_advisor python scripts\backfill_news.py --status`. Sources take
+  30-minute turns; Guardian and NYT stop at 480 calls a day; GDELT history from 2017 needs
+  ~2 calls per day-window, so it takes a day or more. Wikipedia, NYT and EDGAR adapters
+  swallow some per-page download errors, so history may have gaps: check the status file's
+  last-error column after the first full pass. `fetch_high_impact_bodies` has no retry cap.
+- CPU is shared with other projects' long jobs (hk-estate backfill, holdem benchmark), so
+  FinBERT scoring of the backfill runs slower than the measured 24 headlines/s.
+- Full live backtest (Task 4.4) and window check (Task 4.5) wait for the backfill to score
+  and cluster events; rerun `python -m stock_advisor.news_backtest_cli` then.
 
 ## Later
 
