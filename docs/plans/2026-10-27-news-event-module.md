@@ -173,7 +173,7 @@ report the item count and the earliest date reachable.
 
 ## Phase 2 – Intraday prices and minute recorder (sonnet)
 
-- [ ] **Task 2.1: intraday price fetch with cache** `[parallel-ok]`
+- [x] **Task 2.1: intraday price fetch with cache** `[parallel-ok]`
   - Files: modify `stock_advisor/market_data.py`; test `tests/test_market_data.py`.
   - Done when: new tests pass: `fetch_intraday(symbol, interval)` for `1m` and `60m` reads
     and merges a parquet cache at `data/cache/prices_intraday/<interval>/<symbol>.parquet`.
