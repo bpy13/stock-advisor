@@ -51,6 +51,10 @@ rather than deleting them). Nothing Brian didn't say is recorded as his decision
   the Hang Seng or the S&P 500 with a predicted move of at least 1.5%; no quiet hours (24/7);
   the watcher runs on Brian's PC, started at login by a Windows task (cloud later).
 
+- 2026-10-27 (Claude's default): add a `geopolitical_tension` category (diplomatic disputes,
+  sanctions, US–China and cross-strait friction short of war); it counts as macro. Real
+  headlines like "China condemns US designation…" fell into "other" without it.
+
 ## UI
 
 - 2026-10-27 (Brian, Guardian key application): Guardian content is displayed only as the

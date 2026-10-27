@@ -45,6 +45,19 @@ here; a limit or trap we live with goes in `known-issues.md`. Each item in one p
 - Yahoo has 2828.HK daily prices only from 2024-04-24 (the ETF listed in 2003), so its
   backtest sample is short. Goes into known-issues in Phase 6.
 
+- Category thresholds (0.50 strong / 0.30 minimum) and seeds are untuned on real data. Known
+  borderline: "Society for Hong Kong Studies to disband" → geopolitical_tension. Revisit after
+  the backfill, using which categories the backtest shows actually move prices.
+
+- Events (Task 3.3): 19% of events are high impact on the live sample, mostly lone headlines
+  with strong tone; financial_crisis is over-assigned. Alerts still filter on a predicted move
+  of at least 1.5%; tighten the rule with the `market_moving` hook once the backtest shows
+  which categories move prices. Syndicated GDELT copies inflate source counts. `events.py`
+  runs its own SQL; store methods to add later: event_members, pending query, event-context
+  query, batch save.
+- Cluster parameters chosen on real data: similarity ≥ 0.60, 12 h window (same day for
+  date-only items), events span at most 48 h. The plan's 0.75 merged too little.
+
 ## Later
 
 - NYT business/world RSS feeds need no key and could join the RSS adapter. (Top Stories is
