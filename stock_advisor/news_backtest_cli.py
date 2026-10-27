@@ -43,6 +43,7 @@ from stock_advisor.news.model import (
 )
 from stock_advisor.news.reactions import HORIZONS, PriceLoader, build_reaction_table
 from stock_advisor.news.settings import DEFAULT_DB_PATH, NEWS_CACHE_DIR
+from stock_advisor.news.window import HOLD_HORIZON, evaluate_window_rule, window_cases
 
 MODEL_CACHE_DIR = NEWS_CACHE_DIR / "model"
 REACTIONS_FILE = "reactions.parquet"
@@ -286,13 +287,51 @@ class WindowSection:
     data: object
 
 
-def window_section(run: BacktestRun) -> Optional[WindowSection]:
-    """TASK 4.5 HOOK: return the profitable-window section for this run, or None.
+WINDOW_DIRECTION_HORIZON = "1d"  # the headline prediction whose sign sets the direction
 
-    Task 4.5 (news/window.py) replaces this body. Whatever it returns is printed after the
-    category summary and saved under "window" in results.json.
+
+def window_section(run: BacktestRun) -> Optional[WindowSection]:
+    """Profitable-window check (Task 4.5): per target, exiting at each held-out event's window
+    (its median peak horizon) versus holding to day 10, both signed by the 1d prediction.
+
+    Windows use only analogs whose whole path had finished before each event (no look-ahead).
+    Printed after the category summary and saved under "window" in results.json. None when no
+    target has a 1d walk-forward result.
     """
-    return None
+    by_target = {r.target: r for r in run.results
+                 if r.horizon == WINDOW_DIRECTION_HORIZON and r.predictions is not None}
+    if not by_target:
+        return None
+    rows = []
+    for target in run.targets:
+        result = by_target.get(target)
+        if result is None:
+            continue
+        cases = window_cases(run.model, target, result.predictions, HORIZONS)
+        ev = evaluate_window_rule(cases, HOLD_HORIZON)
+        rows.append({
+            "target": target, "events": len(cases),
+            "windows": sum(1 for c in cases if c.window.usable), "n": ev.n,
+            "mean_window": ev.mean_window, "mean_hold": ev.mean_hold,
+            "mean_diff": ev.mean_diff, "t_stat": ev.t_stat, "beat_rate": ev.beat_rate,
+        })
+    table = pd.DataFrame([{
+        "target": r["target"], "events": r["events"], "windows": r["windows"], "n": r["n"],
+        "follow_window": _pct(r["mean_window"], 3), f"hold_{HOLD_HORIZON}": _pct(r["mean_hold"], 3),
+        "mean_diff": _pct(r["mean_diff"], 3),
+        "t_stat": "" if r["t_stat"] != r["t_stat"] else f"{r['t_stat']:+.2f}",
+        "beat_rate": "" if r["beat_rate"] != r["beat_rate"] else f"{r['beat_rate']:.3f}",
+    } for r in rows])
+    text = (
+        f"Profitable window (direction = sign of the {WINDOW_DIRECTION_HORIZON} prediction; "
+        f"out-of-sample events only)\n"
+        f"Exit at the window's median peak vs hold to {HOLD_HORIZON}; returns signed by the "
+        "direction. events = held-out events, windows = events with enough finished analogs,\n"
+        f"n = events with both returns known, t_stat = paired t of (window - hold), "
+        f"beat_rate = share where the window beat holding.\n"
+        + table.to_string(index=False)
+    )
+    return WindowSection(text, [{k: _clean(v) for k, v in r.items()} for r in rows])
 
 
 # ---- results file ------------------------------------------------------------------------------

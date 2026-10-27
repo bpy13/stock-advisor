@@ -264,7 +264,8 @@ report the item count and the earliest date reachable.
     t-stat, `proven`; results saved to `data/cache/news/model/results.json`.
   - Notes: expanding window by year. `proven` = n ≥ 30 out-of-sample events, |t| ≥ 2 and hit
     rate > 0.5, matching the bar in `validation.py`.
-- [ ] **Task 4.5: profitable-window estimate** (fable; after 4.2, 4.3)
+- [x] **Task 4.5: profitable-window estimate** (fable; after 4.2, 4.3) — live window output
+  waits for the backfill (synthetic CLI run checked)
   - Files: create `stock_advisor/news/window.py`; test `tests/news/test_window.py`; add a
     window section to `news_backtest_cli.py` output.
   - Done when: tests pass on synthetic paths (a planted peak at day 2 gives a window ending

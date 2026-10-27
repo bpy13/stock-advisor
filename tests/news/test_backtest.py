@@ -113,7 +113,9 @@ def test_cli_prints_table_saves_results_and_finds_planted_effect(tmp_path, capsy
     assert gspc["years"][0] == 2017  # the first year only trains
     assert not by_pair[("XLK", "1d")]["proven"]
     assert set(saved["market_moving"]) == {"war_conflict", "monetary_policy"}
-    assert saved["window"] is None  # Task 4.5 slot
+    # Only 1d has values, so no analog has a finished 10d path: no window is usable.
+    assert [w["target"] for w in saved["window"]] == ["^GSPC", "XLK"]
+    assert all(w["windows"] == 0 and w["n"] == 0 for w in saved["window"])
 
     results = B.load_results(tmp_path / "model" / "results.json")
     assert results.is_proven("^GSPC", "1d")
@@ -212,3 +214,37 @@ def test_results_json_has_no_nan(tmp_path):
     assert [r["n"] for r in saved["results"]] == [0, 0]
     assert all(r["hit_rate"] is None and r["t_stat"] is None for r in saved["results"])
     assert len(saved["skipped"]) == 2
+
+
+class PathBuilder(FakeBuilder):
+    """Full reaction paths for ^GSPC: the category effect peaks at day 2, then reverses to
+    minus half the effect by day 10 (so exiting at the window beats holding)."""
+
+    SHAPE = {"1m": 0.05, "5m": 0.1, "15m": 0.15, "1h": 0.2, "4h": 0.3, "1d": 0.8, "2d": 1.0,
+             "3d": 0.8, "5d": 0.4, "10d": -0.5}
+
+    def __call__(self, events, targets, price_loader=None):
+        rows = []
+        for target in targets:
+            for e in events:
+                rng = np.random.default_rng(zlib.crc32(f"{e.id}|{target}".encode()))
+                effect = EFFECT[self.categories[e.id]]
+                for horizon in HORIZONS:
+                    v = effect * self.SHAPE[horizon] + rng.normal(0, 0.002)
+                    rows.append((e.id, target, horizon, v, v, pd.Timestamp(e.started_at), "1m"))
+        return pd.DataFrame(rows, columns=["event_id", "target", "horizon", "raw",
+                                           "adjusted", "start_ts", "start_source"])
+
+
+def test_window_section_beats_holding_when_moves_reverse(tmp_path, capsys):
+    categories = build_store(tmp_path / "news.db", n=400)
+    argv = ["--db", str(tmp_path / "news.db"), "--cache-dir", str(tmp_path / "model"),
+            "--targets", "^GSPC", "--horizons", "1d"]
+    assert B.main(argv, price_loader=no_prices, reaction_builder=PathBuilder(categories)) == 0
+    out = capsys.readouterr().out
+    assert "Profitable window" in out and "follow_window" in out and "hold_10d" in out
+    saved = json.loads((tmp_path / "model" / "results.json").read_text(encoding="utf-8"))
+    (row,) = saved["window"]
+    assert row["target"] == "^GSPC" and row["n"] > 100 and row["windows"] >= row["n"]
+    assert row["mean_window"] > 0.005 and row["mean_hold"] < 0
+    assert row["mean_diff"] > 0 and row["t_stat"] > 2 and row["beat_rate"] > 0.5
