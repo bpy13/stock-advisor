@@ -201,7 +201,7 @@ report the item count and the earliest date reachable.
   - Notes: FinBERT `ProsusAI/finbert` (tone = p_pos − p_neg); embeddings
     `sentence-transformers/all-MiniLM-L6-v2`. Batch size 64, CPU. Models load lazily once;
     tests never download models. `score_pending(store)` scores unscored items in batches.
-- [ ] **Task 3.2: event categories**
+- [x] **Task 3.2: event categories**
   - Files: create `stock_advisor/news/categories.py`; test `tests/news/test_categories.py`.
   - Done when: tests pass on 30 hand-written headlines (at least 2 per category) with ≥ 80%
     correct.
