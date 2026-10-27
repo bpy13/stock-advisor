@@ -185,7 +185,7 @@ report the item count and the earliest date reachable.
   - Notes: `NEWS_TARGETS`: `^HSI`, `^GSPC`, US sector ETFs (XLK, XLF, XLE, XLV, XLI, XLY,
     XLP, XLU, XLB, XLRE, XLC), HK proxies (2800.HK, 3033.HK, 2828.HK), plus holdings at run
     time. Drop any that fail the live check and report them.
-- [ ] **Task 2.3: minute recorder and scheduled task** (after 2.1, 2.2)
+- [x] **Task 2.3: minute recorder and scheduled task** (after 2.1, 2.2)
   - Files: create `scripts/record_minutes.py`, `scripts/register_recorder_task.ps1`.
   - Done when: `python scripts/record_minutes.py` run live appends today's 1m bars for every
     target and prints rows added; re-running adds 0 duplicates.
