@@ -90,6 +90,15 @@ here; a limit or trap we live with goes in `known-issues.md`. Each item in one p
   table and "⚠ unproven" badge are untested on real data until predictions exist.
   `SimilarEvent` should carry a URL (app.py looks links up itself for now).
 
+- Re-categorize after the backfill ends: the backfill process started before the
+  single-stock category fix (commit 0fbfdf1), so its stored categories use the old rules.
+  Steps: back up news.db; dry run that prints old→new counts; write only changed rows via
+  `store.set_category` (not `update_scores`, which resets high_impact); recompute high_impact
+  for changed events.
+- Task 5.4 (Telegram) is built but unticked: run `python -m stock_advisor.news.notify --setup`
+  then `--test` once TELEGRAM_BOT_TOKEN is in `.env`, and tick after Brian confirms the
+  message on his phone.
+
 ## Later
 
 - NYT business/world RSS feeds need no key and could join the RSS adapter. (Top Stories is
