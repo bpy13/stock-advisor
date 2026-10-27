@@ -132,13 +132,16 @@ report the item count and the earliest date reachable.
   week; report how many results one query returns and how far back it works.
 - [x] **Task 1.7: yfinance news** `[parallel-ok]` — `sources/yahoo.py`. Per-symbol headlines
   for indices, sector proxies and holdings.
-- [ ] **Task 1.8: HKEXnews** `[parallel-ok]` — `sources/hkex.py`. Latest listed-company
+- [-] **Task 1.8: HKEXnews** `[parallel-ok]` — SKIPPED 2026-10-27: the HKEX Terms of Use
+  (section 5) forbid "programmatic, scripted or other mechanical means" of access and data
+  mining. HK company news comes from yfinance and RSS feeds instead. Reopen only with written
+  permission from HKEX. — `sources/hkex.py`. Latest listed-company
   announcements (live) and title search by date range (history); map stock codes to Yahoo
   `NNNN.HK` symbols with `market_data.normalize_symbol`.
-- [ ] **Task 1.9: SEC EDGAR** `[parallel-ok]` — `sources/edgar.py`. Latest 8-K Atom feed
+- [x] **Task 1.9: SEC EDGAR** `[parallel-ok]` — `sources/edgar.py`. Latest 8-K Atom feed
   (live) and full-text/submissions APIs (history); User-Agent `stock_advisor <email>` with the
   email from `SEC_CONTACT_EMAIL`; at most 10 requests per second.
-- [ ] **Task 1.10: public RSS feeds** `[parallel-ok]` — `sources/rss_feeds.py`. A list of
+- [x] **Task 1.10: public RSS feeds** `[parallel-ok]` — `sources/rss_feeds.py`. A list of
   feed URLs in the module (Yahoo Finance, Nasdaq, RTHK business, SCMP business, CNBC, BBC
   business, MarketWatch, Investing.com); keep only feeds that load and allow access.
 - [ ] **Task 1.11: collector CLI**
