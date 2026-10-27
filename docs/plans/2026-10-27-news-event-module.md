@@ -67,6 +67,10 @@ The aim is to react before ordinary investors do, not to compete with profession
   the dashboard gains a News tab. Unproven predictions show as warnings only.
 - A8. README, `docs/architecture.md` and `docs/known-issues.md` describe the module, sources,
   limits and commands.
+- A9. (added 2026-10-27) Each suggested action carries an estimated profitable window (e.g.
+  "exit within 1–3 days"), derived from the price paths of similar past events.
+- A10. (added 2026-10-27) Qualifying alerts reach Brian's phone via a Telegram bot; the
+  watcher starts at Windows login.
 
 ## Shared resources (never use in parallel)
 - Conda env `stock_advisor`: one install at a time. Only Phase 0 installs packages; a later
@@ -150,7 +154,10 @@ report the item count and the earliest date reachable.
     run live stores items from every working source and prints a count per source.
   - Notes: `--recent` calls every adapter's `fetch_recent`; `--backfill --source X --start
     YYYY-MM-DD` runs `fetch_range` and resumes from the latest stored date for that source.
-    One failing source logs and continues.
+    One failing source logs and continues. Also (decisions 2026-10-27): add
+    `time_precision` ("exact" | "day") to `NewsItem` and the `items` table (default "exact";
+    Wikipedia and EDGAR items without an acceptance time set "day"); the live EDGAR feed
+    is filtered to the allowlist plus holdings.
 
 ## Phase 2 – Intraday prices and minute recorder (sonnet)
 
@@ -211,16 +218,19 @@ report the item count and the earliest date reachable.
   - Done when: started in the background, writing progress to
     `data/cache/news/backfill_status.json`; the check command
     `python scripts/backfill_news.py --status` prints per-source date reached and item count.
-  - Notes: runs sources one after another (Wikipedia, Google News, HKEX, EDGAR, GDELT, then
+  - Notes: runs sources one after another (Wikipedia, EDGAR, GDELT, then
     Guardian and NYT once keys exist), then scoring and clustering. Resumable. Expected to
     take hours; the helper hands back once it is running.
 - [ ] **Task 4.2: reaction table** (sonnet)
   - Files: create `stock_advisor/news/reactions.py`; test `tests/news/test_reactions.py`.
-  - Done when: tests pass on synthetic prices: for an event at time t, return from the last
-    price at or before t to t+1 minute, t+1 hour and the next close (1 day); events outside
-    trading hours use the next session's open as the start; missing data gives NaN, not 0.
+  - Done when: tests pass on synthetic prices: for an event at time t, the cumulative return
+    path from the last price at or before t to t+1m, 5m, 15m, 1h, 4h and the 1st, 2nd, 3rd,
+    5th and 10th close after t; events outside trading hours use the next session's open as
+    the start; missing data gives NaN, not 0; `time_precision="day"` items get only the
+    daily horizons.
   - Notes: uses 1m bars where cached, 60m bars within ~730 days, daily otherwise. Stocks also
     get a market-adjusted return (minus the matching index return: ^HSI for .HK, ^GSPC else).
+    The 1m, 1h and 1-day points are the headline horizons; the full path feeds Task 4.5.
 - [ ] **Task 4.3: analog and regression model** (fable)
   - Files: create `stock_advisor/news/model.py`; test `tests/news/test_model.py`.
   - Done when: tests pass on synthetic events with a planted effect (model finds it) and with
@@ -236,6 +246,15 @@ report the item count and the earliest date reachable.
     t-stat, `proven`; results saved to `data/cache/news/model/results.json`.
   - Notes: expanding window by year. `proven` = n ≥ 30 out-of-sample events, |t| ≥ 2 and hit
     rate > 0.5, matching the bar in `validation.py`.
+- [ ] **Task 4.5: profitable-window estimate** (fable; after 4.2, 4.3)
+  - Files: create `stock_advisor/news/window.py`; test `tests/news/test_window.py`; add a
+    window section to `news_backtest_cli.py` output.
+  - Done when: tests pass on synthetic paths (a planted peak at day 2 gives a window ending
+    near day 2; a path that never reverses gives "no reversal within 10 days"); the live
+    backtest prints, per target, how often following the window beat holding to day 10.
+  - Notes: from the k most similar earlier events' cumulative paths (signed by the predicted
+    direction), estimate the peak time (median and interquartile range across analogs) and
+    express the window as "exit within <p25>–<p75>". No look-ahead. Output feeds 5.1 and 5.4.
 
 ## Phase 5 – Live monitor and output (sonnet)
 
@@ -243,11 +262,13 @@ report the item count and the earliest date reachable.
   - Files: create `stock_advisor/news_cli.py`; test `tests/news/test_news_cli.py`.
   - Done when: test passes with fake store/model; live run prints current events (last 24 h by
     default), top 5 similar past events each, predicted move per target and horizon with a
-    range, and a suggested action; `--watch` polls HKEX, EDGAR, Google News and RSS every 60 s,
-    the others every 15 min, and prints only new high-impact events.
+    range, a suggested action and its profitable window (Task 4.5); `--watch` polls EDGAR,
+    RSS, yfinance and GDELT every 60 s (CISA feed at most every 15 min), Guardian and NYT
+    every 15 min, and prints only new high-impact events.
   - Notes: action rule: predicted 1-day move ≤ −1.5% → "reduce", ≥ +1.5% → "add", else
     "hold". Shown as a warning ("⚠ unproven") unless `proven` for that target and horizon.
-    Thresholds live in `config.py` as `NEWS_ACTION_THRESHOLD_PCT`.
+    Thresholds live in `config.py` as `NEWS_ACTION_THRESHOLD_PCT`. Guardian items display
+    as headline + link only, never the summary (applies to 5.1–5.4).
 - [ ] **Task 5.2: CLI report news column**
   - Files: modify `stock_advisor/report.py`, `stock_advisor/cli.py`; test
     `tests/test_report.py`.
@@ -259,6 +280,22 @@ report the item count and the earliest date reachable.
   - Done when: `streamlit run app.py` in the background on 8501 loads; the News tab shows
     events, similar past events, predicted moves and backtest results; checked in a real
     browser; server stopped by port afterwards.
+- [ ] **Task 5.4: Telegram alerts**
+  - Files: create `stock_advisor/news/notify.py`; test `tests/news/test_notify.py`; hook
+    into `news_cli.py --watch`; add `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` to `.env.example`.
+  - Done when: tests pass with a mocked Telegram API; `python -m stock_advisor.news.notify
+    --setup` finds the chat id from the bot's latest update and saves it to `.env`;
+    `--test` delivers one message that Brian confirms on his phone.
+  - Notes: Telegram Bot API `sendMessage` only (plus `getUpdates` once at setup). Alert rule
+    (decision): high-impact event affecting a holding, ^HSI or ^GSPC with a predicted move
+    ≥ 1.5%; 24/7. Message: event headline + link, category, target, predicted move per
+    horizon, action, window, "⚠ unproven" when applicable. Never alert the same event twice
+    (record sent event ids in the store). The token never appears in logs.
+- [ ] **Task 5.5: watcher autostart**
+  - Files: create `scripts/register_watcher_task.ps1`.
+  - Done when: the script registers a Windows scheduled task `stock_advisor_news_watcher`
+    that runs `news_cli --watch` at user login and restarts on failure. The coordinator runs
+    it in Phase 6.
 
 ## Phase 6 – Docs, scheduled task, end-to-end check
 
@@ -266,13 +303,14 @@ report the item count and the earliest date reachable.
   - Files: modify `README.md`; create `docs/architecture.md`, `docs/known-issues.md`.
   - Done when: each command in the README runs as written.
 - [ ] **Task 6.2: register recorder and end-to-end run** (coordinator)
-  - Done when: `Get-ScheduledTask stock_advisor_minute_recorder` shows it Ready; one full
-    live pass (collect → score → news_cli) completes and its output is quoted in the report.
+  - Done when: `Get-ScheduledTask stock_advisor_minute_recorder` and
+    `Get-ScheduledTask stock_advisor_news_watcher` show both Ready; one full live pass
+    (collect → score → news_cli) completes and its output is quoted in the report.
 - [ ] **Task 6.3: pre-release review, fixes, wrap-up, ship** (coordinator)
 
 ## Self-review
 - A1→0.1; A2→1.1–1.11; A3→2.1–2.3, 6.2; A4→3.1–3.3; A5→4.1, 4.2; A6→4.3, 4.4;
-  A7→5.1–5.3; A8→6.1.
+  A7→5.1–5.3; A8→6.1; A9→4.2, 4.5, 5.1; A10→5.4, 5.5, 6.2.
 - Parallel groups touch disjoint files; `config.py` only in 2.2 (Phase 2) and read-only
   afterwards except 5.1 adding one constant (Phase 5, serial with 5.2/5.3? 5.1–5.3 run in
   sequence because 5.2 and 5.3 use 5.1's functions).

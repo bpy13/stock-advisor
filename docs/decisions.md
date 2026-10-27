@@ -37,7 +37,25 @@ rather than deleting them). Nothing Brian didn't say is recorded as his decision
 - 2026-10-27 (Brian): score headlines only; fetch and read the full article only when a
   headline is high impact.
 
+- 2026-10-27 (Claude's default): the live EDGAR feed keeps only allowlisted companies
+  (megacaps plus holdings); filings from thousands of small companies would drown the event
+  signal.
+- 2026-10-27 (Claude's default): items with date-only times (Wikipedia, pre-2000s EDGAR) are
+  flagged with `time_precision="day"` and used only for the 1-day horizon, never for minute
+  or hour reactions.
+
+- 2026-10-27 (Brian): each suggested action also estimates how long it stays profitable
+  (when similar past events' price paths usually peaked and reversed).
+- 2026-10-27 (Brian): alerts go to Brian's phone via a Telegram bot.
+- 2026-10-27 (Brian, accepted default): alert only on high-impact events that affect a holding,
+  the Hang Seng or the S&P 500 with a predicted move of at least 1.5%; no quiet hours (24/7);
+  the watcher runs on Brian's PC, started at login by a Windows task (cloud later).
+
 ## UI
+
+- 2026-10-27 (Brian, Guardian key application): Guardian content is displayed only as the
+  headline plus a link back to the Guardian. The stored trailText summary is used for scoring
+  only and never shown in the CLI, dashboard or alerts.
 
 - 2026-10-27 (Brian): news output appears in both the CLI report and the Streamlit dashboard.
 
