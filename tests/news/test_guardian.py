@@ -32,12 +32,19 @@ class FakeHttp:
 
 def test_parse_fixture():
     items = parse_response(_payload())
-    assert len(items) == 2  # the blank-title live blog is skipped
+    assert len(items) == 5
     first = items[0]
     assert first.source == "guardian"
-    assert first.published_at == datetime(2020, 3, 9, 6, 12, 45, tzinfo=timezone.utc)
+    assert first.published_at == datetime(2020, 3, 9, 0, 1, 48, tzinfo=timezone.utc)
     assert first.url.startswith("https://www.theguardian.com/business/")
-    assert items[1].summary == "Coronavirus fears and the oil rout hit markets & investors."
+    assert first.summary.startswith("Severe rain in February")
+    assert not first.summary.endswith(" ")  # trailing space in the real trailText is stripped
+
+
+def test_parse_skips_rows_without_title():
+    payload = _payload()
+    payload["response"]["results"][0]["webTitle"] = ""
+    assert len(parse_response(payload)) == 4
 
 
 def test_fetch_range_pages_and_trims():
@@ -45,16 +52,17 @@ def test_fetch_range_pages_and_trims():
     page1["response"]["pages"] = 2
     page2 = _payload()
     page2["response"]["currentPage"] = 2
+    page2["response"]["pages"] = 2
     http = FakeHttp([page1, page2])
     source = GuardianSource(api_key="k", session=http)
-    start = datetime(2020, 3, 9, 8, 0, tzinfo=timezone.utc)
+    start = datetime(2020, 3, 9, 5, 0, tzinfo=timezone.utc)
     end = datetime(2020, 3, 10, tzinfo=timezone.utc)
     items = list(source.fetch_range(start, end))
     assert [c["page"] for c in http.calls] == [1, 2]
     assert http.calls[0]["order-by"] == "oldest"
     assert http.calls[0]["page-size"] == 200
     assert "us-news" in http.calls[0]["section"]
-    assert len(items) == 2  # one 09:30 item per page; 06:12 trimmed
+    assert len(items) == 6  # three items after 05:00 per page; 00:01 and 03:00 trimmed
     assert all(i.published_at >= start for i in items)
 
 
@@ -73,6 +81,6 @@ def test_fetch_recent_single_page():
     page["response"]["pages"] = 5
     http = FakeHttp([page])
     items = GuardianSource(api_key="k", session=http).fetch_recent()
-    assert len(items) == 2
+    assert len(items) == 5
     assert len(http.calls) == 1
     assert http.calls[0]["order-by"] == "newest"

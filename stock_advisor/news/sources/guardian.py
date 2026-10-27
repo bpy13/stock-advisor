@@ -1,6 +1,8 @@
 """Guardian Open Platform adapter (content API `/search`).
 
-Developer keys allow about 12 calls/s and 5,000 calls/day; we stay at ~1 call/s. One query
+Developer key limits (read from response headers 2026-10-27): 60 calls/minute and 500
+calls/day; we stay at one call per 1.2 s. The daily cap is not enforced here: a long backfill
+must stop after ~480 calls and resume the next day from the last seen date. One query
 covers all wanted sections (`section=a|b|c`), so `fetch_range` yields items in publication
 order and a caller can resume by passing the last seen date as the new `start`.
 """
@@ -61,7 +63,7 @@ class GuardianSource:
         sections=SECTIONS,
     ) -> None:
         self._api_key = guardian_api_key() if api_key is None else api_key
-        self._http = session or PoliteSession(min_delay=1.0)
+        self._http = session or PoliteSession(min_delay=1.2)
         self._sections = "|".join(sections)
         self._warned = False
 
