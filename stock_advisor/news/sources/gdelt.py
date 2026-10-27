@@ -1,6 +1,6 @@
 """GDELT DOC 2.0 API adapter (article list mode, English only).
 
-Endpoint: https://api.gdeltproject.org/api/v2/doc/doc. One request per theme query. GDELT
+Endpoint: https://api.gdeltproject.org/api/v2/doc/doc. One request per query and window. GDELT
 allows about one request per 5 seconds per IP; when it is exceeded it answers HTTP 429 or a
 plain-text "Please limit requests..." body instead of JSON. Both cases are handled here by
 waiting and retrying. Each call returns at most 250 articles, so `fetch_range` splits a window
@@ -18,27 +18,31 @@ from typing import Callable, Dict, Iterator, List, Optional
 
 import requests
 
-from stock_advisor.news.models import NewsItem, ensure_utc
+from stock_advisor.news.models import NewsItem, SourceLimitReached, ensure_utc
 from stock_advisor.news.sources import PoliteSession
 
 logger = logging.getLogger(__name__)
 
 API_URL = "https://api.gdeltproject.org/api/v2/doc/doc"
 MAX_RECORDS = 250  # hard cap of the DOC API per call
-RECENT_SLICES = 4  # fetch_recent asks for the last 24 hours as four 6-hour windows
+MIN_SPLIT = timedelta(hours=6)  # a full window is split in half only while longer than this
+RECENT_SLICES = 4 # fetch_recent asks for the last 24 hours as four 6-hour windows
 
-# Market-moving themes. Each is a GDELT query; " sourcelang:english" is appended.
+# Market-moving themes, joined with OR into two queries. GDELT rejects a query longer than
+# about 400 characters ("Your query was too short or too long": 416 failed, 204 and 229 work),
+# so one query per call for all ten themes does not fit; two do. " sourcelang:english" is
+# appended. Fewer calls matter because GDELT locks out clients that send many requests.
 THEME_QUERIES: Dict[str, str] = {
-    "tariffs": '(tariffs OR "trade war")',
-    "central_bank": '("central bank" OR "interest rates" OR "rate cut" OR "rate hike")',
-    "war": '(war OR "military strike" OR invasion)',
-    "cyber": '(cyberattack OR vulnerability OR "data breach" OR outage)',
-    "pandemic": "(pandemic OR outbreak OR epidemic)",
-    "disaster": "(earthquake OR hurricane OR typhoon)",
-    "bank_default": '("bank collapse" OR "bank failure" OR default OR bankruptcy)',
-    "sanctions": "(sanctions OR embargo)",
-    "election": "(election OR referendum)",
-    "oil": '("oil price" OR "crude oil" OR OPEC)',
+    "macro_and_conflict": (
+        '(tariffs OR "trade war" OR "central bank" OR "interest rates" OR "rate cut" '
+        'OR "rate hike" OR war OR "military strike" OR invasion OR cyberattack '
+        'OR "data breach" OR outage OR pandemic)'
+    ),
+    "disaster_credit_politics_oil": (
+        '(outbreak OR epidemic OR earthquake OR hurricane OR typhoon OR "bank collapse" '
+        'OR "bank failure" OR default OR bankruptcy OR sanctions OR embargo OR election '
+        'OR referendum OR "oil price" OR "crude oil" OR OPEC)'
+    ),
 }
 
 
@@ -64,11 +68,12 @@ class GdeltSource:
         self,
         session: Optional[PoliteSession] = None,
         queries: Optional[Dict[str, str]] = None,
-        window: timedelta = timedelta(days=7),
+        window: timedelta = timedelta(days=1),
         rate_limit_wait: float = 30.0,
         rate_limit_tries: int = 3,
         sleep: Callable[[float], None] = time.sleep,
         clock: Callable[[], datetime] = lambda: datetime.now(timezone.utc),
+        strict: bool = False,
     ) -> None:
         self._clock = clock
         # 5.5 s between requests keeps us just under GDELT's one-per-5-seconds limit.
@@ -78,6 +83,7 @@ class GdeltSource:
         self.rate_limit_wait = rate_limit_wait
         self.rate_limit_tries = rate_limit_tries
         self._sleep = sleep
+        self.strict = strict  # True: raise SourceLimitReached instead of skipping a window
 
     # -- public API ---------------------------------------------------------------------
     def fetch_recent(self) -> List[NewsItem]:
@@ -119,7 +125,7 @@ class GdeltSource:
             query, {"startdatetime": _format_dt(start), "enddatetime": _format_dt(end)}
         )
         # A full page means older/newer articles were cut off: split the window and retry.
-        if len(articles) >= MAX_RECORDS and (end - start) > timedelta(hours=1):
+        if len(articles) >= MAX_RECORDS and (end - start) > MIN_SPLIT:
             middle = start + (end - start) / 2
             return self._fetch_window(query, start, middle) + self._fetch_window(
                 query, middle, end
@@ -161,6 +167,9 @@ class GdeltSource:
                 logger.warning("gdelt non-JSON reply for %r: %s", query, text[:120])
             return []
         logger.warning("gdelt gave up on %r after repeated rate limits", query)
+        if self.strict:
+            # A backfill must not move its cursor past a window that was never fetched.
+            raise SourceLimitReached("gdelt rate limit: gave up after repeated waits")
         return []
 
     @staticmethod

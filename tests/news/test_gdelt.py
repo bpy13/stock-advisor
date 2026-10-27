@@ -90,6 +90,29 @@ def test_fetch_recent_keeps_distinct_seendates_across_the_day():
     assert calls[-1]["enddatetime"] == "20261027120000"
 
 
+def test_default_queries_are_few_and_short_enough_for_gdelt():
+    from stock_advisor.news.sources.gdelt import THEME_QUERIES
+
+    assert len(THEME_QUERIES) == 2
+    assert all(len(q) + len(" sourcelang:english") < 300 for q in THEME_QUERIES.values())
+    now = datetime(2026, 10, 27, 12, 0, tzinfo=timezone.utc)
+    source = GdeltSource(session=FakeSession([]), sleep=lambda _: None, clock=lambda: now)
+    source.fetch_recent()
+    assert len(source.session.calls) == 8  # 2 queries x four 6-hour windows
+
+
+def test_strict_mode_raises_when_rate_limit_persists():
+    import pytest
+
+    from stock_advisor.news.models import SourceLimitReached
+
+    source = GdeltSource(session=FakeSession([RATE_LIMIT_TEXT] * 3), queries={"t": "x"},
+                         sleep=lambda _: None, strict=True)
+    start = datetime(2024, 1, 1, tzinfo=timezone.utc)
+    with pytest.raises(SourceLimitReached):
+        list(source.fetch_range(start, start + timedelta(days=1)))
+
+
 def test_title_spacing_is_normalised():
     assert clean_title("Stocks fall  , oil rises .") == "Stocks fall, oil rises."
     assert clean_title("  Fed   holds rates ; markets calm ! ") == "Fed holds rates; markets calm!"
