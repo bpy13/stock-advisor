@@ -42,6 +42,9 @@ here; a limit or trap we live with goes in `known-issues.md`. Each item in one p
 - EDGAR `fetch_range` reads quarterly indexes in form-type order, so an interrupted
   mid-quarter backfill could skip filings; Task 4.1 must keep EDGAR's cursor per quarter.
 
+- Yahoo has 2828.HK daily prices only from 2024-04-24 (the ETF listed in 2003), so its
+  backtest sample is short. Goes into known-issues in Phase 6.
+
 ## Later
 
 - NYT business/world RSS feeds need no key and could join the RSS adapter. (Top Stories is
