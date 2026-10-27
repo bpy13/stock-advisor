@@ -87,7 +87,8 @@ def embed(texts: Sequence[str], model=None) -> np.ndarray:
     if len(texts) == 0:
         return np.zeros((0, EMBED_DIM), dtype=np.float32)
     model = model or get_embedder()
-    vectors = np.asarray(model.encode(list(texts)), dtype=np.float32)
+    # No progress bar: the watcher and backfill logs would fill with one bar per batch.
+    vectors = np.asarray(model.encode(list(texts), show_progress_bar=False), dtype=np.float32)
     norms = np.linalg.norm(vectors, axis=1, keepdims=True)
     return (vectors / np.maximum(norms, 1e-12)).astype(np.float32)
 

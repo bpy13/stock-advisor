@@ -68,7 +68,7 @@ class FakeEmbedder:
 
     KEYS = ["tariff", "rate", "war", "oil", "zzz"]
 
-    def encode(self, texts):
+    def encode(self, texts, **kwargs):
         out = np.zeros((len(texts), 384), dtype=np.float32)
         for i, text in enumerate(texts):
             hit = next((j for j, k in enumerate(self.KEYS) if k in text.lower()), len(self.KEYS))

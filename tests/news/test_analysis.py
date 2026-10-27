@@ -187,7 +187,7 @@ class FakeFinBert:
 class FakeEmbedder:
     """Same direction for every title, so all headlines fall into one event."""
 
-    def encode(self, texts):
+    def encode(self, texts, **kwargs):
         return np.tile(np.ones(EMBED_DIM, dtype=np.float32), (len(texts), 1))
 
 

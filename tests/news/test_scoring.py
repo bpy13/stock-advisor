@@ -30,7 +30,7 @@ class FakeFinBert:
 
 
 class FakeEmbedder:
-    def encode(self, texts):
+    def encode(self, texts, **kwargs):
         rng_rows = [
             np.random.default_rng(abs(hash(t)) % (2**32)).normal(size=384) * 3
             for t in texts
