@@ -1,98 +1,102 @@
 {
-  "copyright": "Copyright (c) 2026 The New York Times Company. All Rights Reserved.",
-  "response": {
-    "meta": {"hits": 6},
-    "docs": [
-      {
-        "abstract": "Stocks fell as bond yields climbed after a hot inflation report.",
-        "web_url": "https://www.nytimes.com/2026/10/26/business/stocks-yields.html",
-        "snippet": "Stocks fell as bond yields climbed.",
-        "print_page": "1",
-        "source": "The New York Times",
-        "headline": {"main": "Stocks Slide as Yields Climb", "kicker": null, "print_headline": "Stocks Slide as Yields Climb"},
-        "pub_date": "2026-10-26T14:05:00+0000",
-        "document_type": "article",
-        "news_desk": "Business",
-        "section_name": "Business Day",
-        "type_of_material": "News",
-        "_id": "nyt://article/0001",
-        "word_count": 910
-      },
-      {
-        "abstract": "Leaders met to discuss a ceasefire proposal.",
-        "web_url": "https://www.nytimes.com/2026/10/26/world/europe/ceasefire-talks.html",
-        "snippet": "Leaders met to discuss a ceasefire.",
-        "print_page": "8",
-        "source": "The New York Times",
-        "headline": {"main": "Ceasefire Talks Open in Geneva", "kicker": null, "print_headline": "Ceasefire Talks Open in Geneva"},
-        "pub_date": "2026-10-26T09:30:00+0000",
-        "document_type": "article",
-        "news_desk": "Foreign",
-        "section_name": "World",
-        "type_of_material": "News",
-        "_id": "nyt://article/0002",
-        "word_count": 1200
-      },
-      {
-        "abstract": "A chip maker said export limits would cut next year's sales.",
-        "web_url": "https://www.nytimes.com/2026/10/20/technology/chip-export-limits.html",
-        "snippet": "A chip maker warned on sales.",
-        "print_page": "3",
-        "source": "The New York Times",
-        "headline": {"main": "Chip Maker Warns on Export Limits", "kicker": null, "print_headline": "Chip Maker Warns"},
-        "pub_date": "2026-10-20T21:12:00+0000",
-        "document_type": "article",
-        "news_desk": "Business",
-        "section_name": "Technology",
-        "type_of_material": "News",
-        "_id": "nyt://article/0003",
-        "word_count": 780
-      },
-      {
-        "abstract": "Congress returns to a deadlock over the spending bill.",
-        "web_url": "https://www.nytimes.com/2026/10/05/us/politics/spending-bill.html",
-        "snippet": "Congress returns to a deadlock.",
-        "print_page": "15",
-        "source": "The New York Times",
-        "headline": {"main": "Spending Bill Stalls in Senate", "kicker": null, "print_headline": "Spending Bill Stalls"},
-        "pub_date": "2026-10-05T16:45:00+0000",
-        "document_type": "article",
-        "news_desk": "National",
-        "section_name": "U.S.",
-        "type_of_material": "News",
-        "_id": "nyt://article/0004",
-        "word_count": 1050
-      },
-      {
-        "abstract": "A new restaurant opens in Brooklyn.",
-        "web_url": "https://www.nytimes.com/2026/10/10/dining/brooklyn-restaurant.html",
-        "snippet": "A new restaurant opens.",
-        "print_page": "2",
-        "source": "The New York Times",
-        "headline": {"main": "A Brooklyn Newcomer Worth the Wait", "kicker": null, "print_headline": "A Brooklyn Newcomer"},
-        "pub_date": "2026-10-10T12:00:00+0000",
-        "document_type": "article",
-        "news_desk": "Dining",
-        "section_name": "Food",
-        "type_of_material": "Review",
-        "_id": "nyt://article/0005",
-        "word_count": 1500
-      },
-      {
-        "abstract": "A front-page profile of a retiring mayor.",
-        "web_url": "https://www.nytimes.com/2026/10/12/nyregion/mayor-profile.html",
-        "snippet": "A profile of a retiring mayor.",
-        "print_page": "1",
-        "source": "The New York Times",
-        "headline": {"main": "The Mayor's Last Lap", "kicker": null, "print_headline": "The Mayor's Last Lap"},
-        "pub_date": "2026-10-12T04:00:00+0000",
-        "document_type": "article",
-        "news_desk": "Metropolitan",
-        "section_name": "New York",
-        "type_of_material": "News",
-        "_id": "nyt://article/0006",
-        "word_count": 2100
-      }
-    ]
-  }
+ "response": {
+  "docs": [
+   {
+    "abstract": "Times reporters and editors discuss items that have shaped our coverage, including Dean Baquet on the \u201cMadam President\u201d front page that never was.",
+    "document_type": "Article",
+    "headline": {
+     "main": "The Objects Our Journalists Can\u2019t Forget"
+    },
+    "news_desk": "Projects and Initiatives",
+    "print_page": "12",
+    "pub_date": "2026-10-01T09:00:45Z",
+    "section_name": "Business",
+    "snippet": "",
+    "type_of_material": "News",
+    "uri": "nyt://article/955a7ad0-a981-5c11-a2f0-1b9279a4a2f9",
+    "web_url": "https://www.nytimes.com/2026/10/01/business/new-york-times-journalism-reporting-objects.html",
+    "word_count": 5131
+   },
+   {
+    "abstract": "A passenger on a flight to Tel Aviv on Wednesday said he watched in horror as the plane\u2019s pilots tumbled out of the cockpit, locked in a bloody brawl.",
+    "document_type": "Article",
+    "headline": {
+     "main": "A FlyDubai Passenger Details All-Out Effort to Restrain Attacking Pilot"
+    },
+    "news_desk": "Foreign",
+    "print_page": "",
+    "pub_date": "2026-10-01T00:15:52Z",
+    "section_name": "World",
+    "snippet": "",
+    "type_of_material": "News",
+    "uri": "nyt://article/49d56a80-60f3-5c00-9d90-1144d6156217",
+    "web_url": "https://www.nytimes.com/2026/09/30/world/middleeast/israel-plane-flydubai-passenger-eyewitness-account.html",
+    "word_count": 540
+   },
+   {
+    "abstract": "",
+    "document_type": "Article",
+    "headline": {
+     "main": "Here\u2019s the latest."
+    },
+    "news_desk": "National",
+    "print_page": "",
+    "pub_date": "2026-10-01T00:00:49Z",
+    "section_name": "U.S.",
+    "snippet": "",
+    "type_of_material": "News",
+    "uri": "nyt://article/ee4f7de4-89c5-5a16-ba88-40281c0d2293",
+    "web_url": "https://www.nytimes.com/2026/09/30/us/elections/heres-the-latest.html",
+    "word_count": 394
+   },
+   {
+    "abstract": "Many think artificial intelligence companies should be held liable for their runaway technology. But legal scholars say applying existing law could be messy.",
+    "document_type": "Article",
+    "headline": {
+     "main": "A.I. Is Going Rogue. Who Should Be Held Responsible?"
+    },
+    "news_desk": "Business",
+    "print_page": "",
+    "pub_date": "2026-10-01T15:25:45Z",
+    "section_name": "Technology",
+    "snippet": "",
+    "type_of_material": "News",
+    "uri": "nyt://article/4c8a647e-8da0-5492-b0fc-17bb05cab508",
+    "web_url": "https://www.nytimes.com/2026/10/01/technology/ai-rogue-agents-liability.html",
+    "word_count": 1326
+   },
+   {
+    "abstract": "The woman known as \u201cJane Doe\u201d was initially embarrassed about what happened at a fraternity party in 2024, but soon concluded: \u201cI was assaulted.\u201d",
+    "document_type": "Article",
+    "headline": {
+     "main": "How a Cornell Student Went From Shame to Action"
+    },
+    "news_desk": "Metro",
+    "print_page": "1",
+    "pub_date": "2026-10-01T04:15:51Z",
+    "section_name": "New York",
+    "snippet": "",
+    "type_of_material": "News",
+    "uri": "nyt://article/2d82dae9-ac2b-590d-991a-95d2f55085bf",
+    "web_url": "https://www.nytimes.com/2026/10/01/nyregion/cornell-rape-accusation-reporting.html",
+    "word_count": 1794
+   },
+   {
+    "abstract": "\u201cSure, we don\u2019t need laws! I\u2019m sure we could trust these guys,\u201d Jordan Klepper said of technology executives on \u201cThe Daily Show,\u201d after Trump asked them to police themselves.",
+    "document_type": "Article",
+    "headline": {
+     "main": "Late Night Is Skeptical of A.I. Leaders Self-Regulating"
+    },
+    "news_desk": "Culture",
+    "print_page": "",
+    "pub_date": "2026-10-01T06:12:55Z",
+    "section_name": "Arts",
+    "snippet": "",
+    "type_of_material": "News",
+    "uri": "nyt://article/8e3bf7bb-2097-5f76-83c5-6f28bab6a04a",
+    "web_url": "https://www.nytimes.com/2026/10/01/arts/television/late-night-trump-ai-leaders-regulation.html",
+    "word_count": 482
+   }
+  ]
+ }
 }

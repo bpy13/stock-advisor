@@ -1,5 +1,7 @@
-"""New York Times Archive API adapter (history back to 1851, one call per month).
+"""New York Times adapter: Top Stories for live polling, Archive API for history.
 
+fetch_recent: GET https://api.nytimes.com/svc/topstories/v2/{section}.json (5 sections).
+fetch_range (history back to 1851, one call per month):
 GET https://api.nytimes.com/svc/archive/v1/{year}/{month}.json?api-key=...
 A month response holds every article (several MB to tens of MB), so the adapter keeps only
 the sections in `KEEP_SECTIONS` plus anything printed on page 1, and drops the rest at once.
@@ -8,7 +10,7 @@ the sections in `KEEP_SECTIONS` plus anything printed on page 1, and drops the r
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import datetime
 from typing import Iterator, List, Optional
 
 import requests
@@ -20,7 +22,9 @@ from stock_advisor.news.sources import PoliteSession
 logger = logging.getLogger(__name__)
 
 ARCHIVE_URL = "https://api.nytimes.com/svc/archive/v1/{year}/{month}.json"
-KEEP_SECTIONS = frozenset({"business", "business day", "world", "technology", "u.s."})
+TOP_STORIES_URL = "https://api.nytimes.com/svc/topstories/v2/{section}.json"
+TOP_SECTIONS = ("home", "business", "world", "technology", "us")
+KEEP_SECTIONS =frozenset({"business", "business day", "world", "technology", "u.s."})
 FRONT_PAGE = "1"
 NYT_MIN_DELAY = 12.0  # NYT allows 5 calls/minute and 500/day; 12 s keeps us at the limit
 NYT_TIMEOUT = 120.0  # month files are large
@@ -68,6 +72,27 @@ def parse_archive(payload: dict) -> List[NewsItem]:
     return items
 
 
+def parse_top_stories(payload: dict) -> List[NewsItem]:
+    """Turn one Top Stories response into NewsItems (published_date is the publication time)."""
+    items: List[NewsItem] = []
+    for row in payload.get("results") or []:
+        title = (row.get("title") or "").strip()
+        published = _parse_pub_date(row.get("published_date", ""))
+        url = row.get("url") or ""
+        if not title or not url or published is None:
+            continue
+        items.append(
+            NewsItem(
+                source="nyt",
+                published_at=published,
+                title=title,
+                url=url,
+                summary=(row.get("abstract") or "").strip(),
+            )
+        )
+    return items
+
+
 class NytSource:
     name = "nyt"
 
@@ -97,19 +122,31 @@ class NytSource:
             logger.warning("NYT archive %d-%02d failed (%s)", year, month, type(exc).__name__)
             return []
 
+    def _fetch_section(self, section: str, key: str) -> List[NewsItem]:
+        url = TOP_STORIES_URL.format(section=section)
+        try:
+            response = self._session.get(url, params={"api-key": key})
+            return parse_top_stories(response.json())
+        except (requests.RequestException, ValueError) as exc:
+            logger.warning("NYT top stories %s failed (%s)", section, type(exc).__name__)
+            return []
+
     def fetch_recent(self) -> List[NewsItem]:
-        """Current month, filtered to the last 24 hours (and the previous month on the 1st)."""
+        """Top Stories for each section in `TOP_SECTIONS`, de-duplicated by url.
+
+        One call per section (5 calls, 12 s apart). The Archive API is only used for history.
+        """
         key = self._key()
         if not key:
             return []
-        now = datetime.now(timezone.utc)
-        cutoff = now - timedelta(hours=24)
-        months = [(now.year, now.month)]
-        if (cutoff.year, cutoff.month) != (now.year, now.month):
-            months.insert(0, (cutoff.year, cutoff.month))
+        seen = set()
         items: List[NewsItem] = []
-        for year, month in months:
-            items.extend(i for i in self._fetch_month(year, month, key) if i.published_at >= cutoff)
+        for section in TOP_SECTIONS:
+            for item in self._fetch_section(section, key):
+                if item.url in seen:
+                    continue
+                seen.add(item.url)
+                items.append(item)
         return items
 
     def fetch_range(self, start: datetime, end: datetime) -> Iterator[NewsItem]:

@@ -1,0 +1,45 @@
+{
+ "status": "OK",
+ "section": "business",
+ "results": [
+  {
+   "section": "business",
+   "subsection": "",
+   "title": "In Anthropic I.P.O., Goldman and Morgan Stanley Slug It Out for Top Bank",
+   "abstract": "Anthropic named the Wall Street firms lead underwriters on its upcoming public offering, a role that will generate generous fees and enormous prestige.",
+   "url": "https://www.nytimes.com/2026/10/27/business/in-anthropic-ipo-goldman-and-morgan-stanley-slug-it-out-for-top-bank.html",
+   "uri": "nyt://article/62140249-6be6-51bd-ad4f-f7c1ebd679c9",
+   "published_date": "2026-10-27T05:05:33-04:00",
+   "created_date": "2026-10-27T05:05:33-04:00",
+   "updated_date": "2026-10-27T05:05:33-04:00",
+   "item_type": "Article",
+   "kicker": ""
+  },
+  {
+   "section": "business",
+   "subsection": "",
+   "title": "The Fed Is Expected to Hold Rates Steady. Warsh Will Have to Explain Why.",
+   "abstract": "Inflation is moving in the wrong direction and the labor market remains stable, a combination that bolsters the case for higher interest rates.",
+   "url": "https://www.nytimes.com/2026/10/27/business/the-fed-is-expected-to-hold-rates-steady-warsh-will-have-to-explain-why.html",
+   "uri": "nyt://article/853b497b-cda4-5abd-a06d-bf7af92bd627",
+   "published_date": "2026-10-27T05:03:47-04:00",
+   "created_date": "2026-10-27T05:03:47-04:00",
+   "updated_date": "2026-10-27T05:03:47-04:00",
+   "item_type": "Article",
+   "kicker": ""
+  },
+  {
+   "section": "dining",
+   "subsection": "",
+   "title": "The Scariest Part of Halloween This Year? The Candy Prices.",
+   "abstract": "The average cost of a 100-piece bag has jumped 71 percent in the last five years. Consumers are thinking twice about what they\u2019ll spend.",
+   "url": "https://www.nytimes.com/2026/10/27/dining/halloween-candy-prices.html",
+   "uri": "nyt://article/e4d8c5a3-aa1f-58f8-9bab-96c91304045d",
+   "published_date": "2026-10-27T05:03:08-04:00",
+   "created_date": "2026-10-27T05:03:08-04:00",
+   "updated_date": "2026-10-27T05:03:08-04:00",
+   "item_type": "Article",
+   "kicker": ""
+  }
+ ]
+}

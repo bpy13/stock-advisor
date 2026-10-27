@@ -1,0 +1,45 @@
+{
+ "status": "OK",
+ "section": "home",
+ "results": [
+  {
+   "section": "world",
+   "subsection": "middleeast",
+   "title": "Two Visions, Two Israels, One Nation in the Balance",
+   "abstract": "As Israel votes, hard-right nationalism competes with the country\u2019s founding ideals. The outcome could shape Israel\u2019s identity for years.",
+   "url": "https://www.nytimes.com/2026/10/27/world/middleeast/israel-election-identity.html",
+   "uri": "nyt://article/3447378a-8c46-5652-ac9b-60d5ae788c93",
+   "published_date": "2026-10-27T00:01:18-04:00",
+   "created_date": "2026-10-27T00:01:18-04:00",
+   "updated_date": "2026-10-27T05:06:46-04:00",
+   "item_type": "Article",
+   "kicker": ""
+  },
+  {
+   "section": "world",
+   "subsection": "middleeast",
+   "title": "Netanyahu Pushed for Attack on Iran Ahead of Israeli Election, Officials Say",
+   "abstract": "Israel\u2019s military chief resisted the prime minister, who then pressed in recent days for a separate action, short of an overt strike, according to an official and a person briefed on the matter.",
+   "url": "https://www.nytimes.com/2026/10/26/world/middleeast/netanyahu-iran-israel-election.html",
+   "uri": "nyt://article/d282f0bc-2353-5889-a647-c132d3fcdffa",
+   "published_date": "2026-10-26T17:44:15-04:00",
+   "created_date": "2026-10-26T17:44:15-04:00",
+   "updated_date": "2026-10-26T23:40:02-04:00",
+   "item_type": "Article",
+   "kicker": ""
+  },
+  {
+   "section": "world",
+   "subsection": "middleeast",
+   "title": "Israel Has Committed Genocidal Acts in Gaza Since Cease-Fire, U.N. Human Rights Panel Says",
+   "abstract": "The panel also accuses Israel of committing crimes against humanity in the West Bank. Israel condemned the report.",
+   "url": "https://www.nytimes.com/2026/10/26/world/middleeast/un-human-rights-panel-israel-palestinians.html",
+   "uri": "nyt://article/e3316658-d521-5eaa-865e-6892cc0774e7",
+   "published_date": "2026-10-26T16:30:07-04:00",
+   "created_date": "2026-10-26T16:30:07-04:00",
+   "updated_date": "2026-10-26T16:30:07-04:00",
+   "item_type": "Article",
+   "kicker": ""
+  }
+ ]
+}
