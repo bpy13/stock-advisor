@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass
 
 
@@ -63,3 +64,41 @@ DEFAULT_HK_UNIVERSE: tuple[str, ...] = (
     "9633.HK", "9888.HK", "9901.HK", "9961.HK", "9988.HK", "9999.HK",
 )
 
+# Price/news targets tracked besides the user's holdings. kind is "index" or "sector".
+# Every symbol was confirmed live to return daily Yahoo data on 2026-10-27.
+NEWS_TARGETS: dict[str, dict[str, str]] = {
+    "^HSI": {"label": "Hang Seng Index", "kind": "index"},
+    "^GSPC": {"label": "S&P 500", "kind": "index"},
+    "XLK": {"label": "US technology", "kind": "sector"},
+    "XLF": {"label": "US financials", "kind": "sector"},
+    "XLE": {"label": "US energy", "kind": "sector"},
+    "XLV": {"label": "US health care", "kind": "sector"},
+    "XLI": {"label": "US industrials", "kind": "sector"},
+    "XLY": {"label": "US consumer discretionary", "kind": "sector"},
+    "XLP": {"label": "US consumer staples", "kind": "sector"},
+    "XLU": {"label": "US utilities", "kind": "sector"},
+    "XLB": {"label": "US materials", "kind": "sector"},
+    "XLRE": {"label": "US real estate", "kind": "sector"},
+    "XLC": {"label": "US communication services", "kind": "sector"},
+    # HK proxies: prices work, but Yahoo returns few headlines for them.
+    "2800.HK": {"label": "Tracker Fund of Hong Kong", "kind": "index"},
+    "3033.HK": {"label": "CSOP Hang Seng TECH ETF", "kind": "sector"},
+    "2828.HK": {"label": "Hang Seng China Enterprises ETF", "kind": "index"},
+}
+
+
+def news_targets(holdings: Iterable[str]) -> list[str]:
+    """Return the fixed targets followed by holdings (upper-cased, de-duplicated)."""
+    result = list(NEWS_TARGETS)
+    seen = set(result)
+    for symbol in holdings:
+        normalized = symbol.strip().upper()
+        if normalized and normalized not in seen:
+            seen.add(normalized)
+            result.append(normalized)
+    return result
+
+
+def MARKET_INDEX_FOR(symbol: str) -> str:  # noqa: N802 - name fixed by the plan
+    """Return the benchmark index for a symbol: ^HSI for .HK tickers, else ^GSPC."""
+    return "^HSI" if symbol.strip().upper().endswith(".HK") else "^GSPC"

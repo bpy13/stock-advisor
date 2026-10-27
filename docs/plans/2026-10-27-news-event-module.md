@@ -179,7 +179,7 @@ report the item count and the earliest date reachable.
     and merges a parquet cache at `data/cache/prices_intraday/<interval>/<symbol>.parquet`.
   - Notes: Yahoo limits: 1m about the last 30 days (7 days per request), 60m about 730 days.
     Fetch in allowed chunks; timestamps stored tz-aware UTC.
-- [ ] **Task 2.2: target list** `[parallel-ok]`
+- [x] **Task 2.2: target list** `[parallel-ok]`
   - Files: modify `stock_advisor/config.py`; test `tests/test_config.py` (create).
   - Done when: test passes; each symbol was confirmed live to return daily data from Yahoo.
   - Notes: `NEWS_TARGETS`: `^HSI`, `^GSPC`, US sector ETFs (XLK, XLF, XLE, XLV, XLI, XLY,
