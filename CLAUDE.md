@@ -17,7 +17,10 @@ Read these before substantial changes:
 - Conda env `stock_advisor` (python 3.12): `conda env create -f environment.yml`
   (pip-only alternative: `pip install -r requirements.txt`; install CPU torch first)
 - Run: `conda run -n stock_advisor python -m stock_advisor.cli` (report),
-  `streamlit run app.py` (dashboard), `python -m stock_advisor.validate_cli` (metric backtest)
+  `streamlit run app.py` (dashboard), `python -m stock_advisor.validate_cli` (metric backtest),
+  `python -m stock_advisor.news_cli` (news events; `--watch` to poll),
+  `python -m stock_advisor.news_backtest_cli` (news backtest),
+  `python scripts/backfill_news.py --status` (backfill progress)
 - Tests: `conda run -n stock_advisor python -m pytest -q`
 - Lint: `conda run -n stock_advisor ruff check .` (config in `ruff.toml`)
 - Secrets: copy `.env.example` to `.env` (gitignored)

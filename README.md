@@ -148,11 +148,152 @@ class, spread, t-stat, and a `good_indicator` flag) so you can see which
 metrics have real predictive power on your symbols vs. which just look
 plausible but don't actually beat noise.
 
+## News event module
+
+A separate module that watches the news for market-moving events (new government policies,
+wars, security vulnerabilities, crashes). For each event it:
+
+1. finds similar past events (nearest neighbours by meaning of the headlines);
+2. measures how markets reacted to them (1 minute, 1 hour and 1 day, plus a path out to 10 days);
+3. predicts today's move for `^HSI`, `^GSPC`, sector funds and your holdings at the 1-minute,
+   1-hour and 1-day horizons, with an 80% range;
+4. suggests an action (reduce, add or hold) and a profitable window, such as "exit within 1-3 days";
+5. sends a Telegram alert for high-impact events that need attention.
+
+Headlines are scored for tone with FinBERT and for meaning with a small sentence-embedding model,
+both running on the CPU. Headlines about one story merge into one event. Full articles are
+fetched only for high-impact events.
+
+**Honest caveat.** News effects on prices are small, and professionals price most of them in
+within seconds. The aim is to beat ordinary investors who read the news late, not trading
+algorithms. A walk-forward backtest decides whether each prediction is worth trusting. This is a
+personal research tool and not financial advice.
+
+### Sources
+
+| Source | Status | History reach | Notes |
+|---|---|---|---|
+| Wikipedia Current events | kept | 2002-04 onward | Date only, no time of day |
+| SEC EDGAR 8-K filings | kept | 1994 onward | Date only for old filings; live feed limited to an allowlist plus your US holdings |
+| GDELT | kept | about 2017 onward | Strict rate limits |
+| Guardian Open Platform | kept | 1990-02 onward | Free key; 500 calls a day; headline and link only |
+| New York Times Archive and Top Stories | kept | 1990 onward | Free key; 500 calls a day |
+| Yahoo Finance headlines (yfinance) | kept | recent only | Per symbol, through the Search fallback |
+| Public RSS feeds (12) | kept | recent only | RTHK, SCMP, BBC, Investing.com, HKFP, Federal Reserve, HKMA, CISA, USGS earthquakes |
+| Google News RSS | skipped | n/a | Its robots.txt disallows `/rss` for every crawler |
+| HKEXnews | skipped | n/a | HKEX Terms of Use (section 5) forbid scripted access and data mining |
+
+The rule: use only official feeds, APIs and filings. Skip sites whose terms forbid scraping and
+skip paywalled articles.
+
+### Setup
+
+```powershell
+conda env create -f environment.yml          # python 3.12 env "stock_advisor"
+Copy-Item .env.example .env                  # then fill in the keys below
+```
+
+`.env` is gitignored. Never commit it. Keys:
+
+| Key | What it is | How to get it |
+|---|---|---|
+| `SEC_CONTACT_EMAIL` | contact address EDGAR requires in the User-Agent | your own email |
+| `GUARDIAN_API_KEY` | Guardian Open Platform | register for a free developer key at open-platform.theguardian.com |
+| `NYT_API_KEY` | NYT Archive and Top Stories | create an app at developer.nytimes.com, enable the Archive API and the Top Stories API |
+| `TELEGRAM_BOT_TOKEN` | your alert bot | message @BotFather in Telegram, send `/newbot` |
+| `TELEGRAM_CHAT_ID` | where alerts go | filled in by `notify --setup` |
+| `TELEGRAM_MAX_ALERTS_PER_HOUR` | optional, default 10 | a number |
+
+A source whose key is missing logs one warning and returns nothing. Telegram setup:
+
+```powershell
+# 1. put TELEGRAM_BOT_TOKEN in .env, 2. send your bot one message in Telegram, then:
+conda run -n stock_advisor python -m stock_advisor.news.notify --setup   # saves TELEGRAM_CHAT_ID
+conda run -n stock_advisor python -m stock_advisor.news.notify --test    # sends one test message
+```
+
+### Commands
+
+Run all of these from the repo root. Prefix with `conda run -n stock_advisor` (or activate the env).
+
+```powershell
+# Collect headlines now (every source's latest items)
+python -m stock_advisor.news.collect --recent
+python -m stock_advisor.news.collect --backfill --source guardian --start 2020-01-01
+
+# Build history: all long-history sources, then score, categorize and cluster. Resumable.
+python scripts/backfill_news.py                 # runs for hours; one at a time (lock file)
+python scripts/backfill_news.py --status        # progress per source
+python scripts/backfill_news.py --max-minutes 90
+
+# Current events, similar past events, predicted moves, actions
+python -m stock_advisor.news_cli                # one-shot, last 24 h from the store
+python -m stock_advisor.news_cli --collect      # fetch and score first
+python -m stock_advisor.news_cli --watch        # keep polling; prints new high-impact events
+python -m stock_advisor.news_cli --watch --no-alerts   # watch without Telegram
+
+# Walk-forward backtest; saves data/cache/news/model/results.json
+python -m stock_advisor.news_backtest_cli
+
+# Record today's 1-minute and 60-minute bars (Yahoo keeps 1m for only ~30 days); no options
+python scripts/record_minutes.py
+```
+
+Predictions also appear as a `news` column in `python -m stock_advisor.cli` and in the **News** tab
+of `streamlit run app.py`.
+
+### Scheduled tasks (Windows)
+
+Three scripts register Windows scheduled tasks. Each replaces its task if you run it again.
+
+| Script | Task name | When |
+|---|---|---|
+| `scripts\register_recorder_task.ps1` | `stock_advisor_minute_recorder` | daily 22:00, saves minute bars |
+| `scripts\register_backfill_task.ps1` | `stock_advisor_news_backfill` | daily 02:00, continues the backfill |
+| `scripts\register_watcher_task.ps1` | `stock_advisor_news_watcher` | at login, runs `news_cli --watch`, logs to `data\cache\news\watcher_log.txt` |
+
+```powershell
+powershell -File scripts\register_watcher_task.ps1
+Start-ScheduledTask -TaskName stock_advisor_news_watcher
+Get-ScheduledTask stock_advisor_news_watcher
+# remove a task
+Unregister-ScheduledTask -TaskName stock_advisor_news_watcher -Confirm:$false
+```
+
+### How to read the output
+
+- **Predicted move**: for each target, 1m, 1h and 1d returns with an 80% range, for example
+  `1d -1.20% (80% range -3.00% to +0.60%)`.
+- **`⚠ unproven`**: the backtest has not shown, on held-out later years, that this target and
+  horizon beats chance. Treat the number as a note, not a signal. It never changes the
+  price-based recommendation.
+- **Proven rule**: a target and horizon is proven when it has at least 30 out-of-sample events,
+  an absolute Welch t-stat of at least 2 and a hit rate above 50%. A proven "reduce" or "add"
+  moves the price-based recommendation one step (default awaiting your confirmation, see
+  `docs/decisions.md`).
+- **Action**: predicted 1-day move at or below -1.5% says reduce; at or above +1.5% says add;
+  otherwise hold. The threshold is `NEWS_ACTION_THRESHOLD_PCT` in `stock_advisor/config.py`.
+- **Window**: "exit within 1-3 days" comes from when similar past events' price paths peaked.
+  "no reversal within 10 days" means the move had not reversed in the history.
+- **`n/a`**: too little history to predict. Run the backfill and the backtest first.
+
+More detail: [docs/architecture.md](docs/architecture.md) and
+[docs/known-issues.md](docs/known-issues.md).
+
 ## Project layout
 
 ```
-app.py                  Streamlit interactive app (report + per-symbol trend charts)
+app.py                  Streamlit interactive app (report + News tab + per-symbol trend charts)
+scripts/
+  backfill_news.py       resumable news history backfill (+ --status)
+  record_minutes.py      daily 1m and 60m price recorder
+  register_*_task.ps1    register the scheduled tasks; run_watcher.ps1 is the watcher's wrapper
+docs/                    architecture.md, known-issues.md, decisions.md, open-items.md, plans/
 stock_advisor/
+  news/                  news module: sources/, store, scoring, categories, events, reactions,
+                         model, window, analysis, collect, notify
+  news_cli.py            current events, predictions, --watch
+  news_backtest_cli.py   walk-forward backtest of the news model
   market_data.py       Yahoo Finance loading (yfinance), with a local disk cache
   price_analysis.py    z-score / percentile-rank valuation vs. own history
   indicators.py         wider range of time-series metrics (RSI, Bollinger, momentum, ...)

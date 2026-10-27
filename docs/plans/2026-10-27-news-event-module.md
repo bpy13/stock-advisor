@@ -319,7 +319,7 @@ report the item count and the earliest date reachable.
 
 ## Phase 6 – Docs, scheduled task, end-to-end check
 
-- [ ] **Task 6.1: docs** `[parallel-ok]` (sonnet)
+- [x] **Task 6.1: docs** `[parallel-ok]` (sonnet)
   - Files: modify `README.md`; create `docs/architecture.md`, `docs/known-issues.md`.
   - Done when: each command in the README runs as written.
 - [ ] **Task 6.2: register recorder and end-to-end run** (coordinator)
