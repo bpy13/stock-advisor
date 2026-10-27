@@ -7,6 +7,15 @@ here; a limit or trap we live with goes in `known-issues.md`. Each item in one p
 
 ## Waiting on the user
 
+- Register the three scheduled tasks (the session's safety check blocks Claude from creating
+  persistent tasks): run `scripts\register_recorder_task.ps1`,
+  `scripts\register_backfill_task.ps1`, `scripts\register_watcher_task.ps1`, then
+  `Start-ScheduledTask -TaskName stock_advisor_news_watcher`. Check with
+  `Get-ScheduledTask -TaskName stock_advisor_*`.
+- Real-browser check of the dashboard News tab (no browser tools in this session): run
+  `conda run -n stock_advisor streamlit run app.py`, open http://localhost:8501, check the
+  News tab, stop with Ctrl+C.
+
 - Telegram bot token in `.env` as `TELEGRAM_BOT_TOKEN=` (create the bot with @BotFather, then
   send the bot one message). Task 5.4's setup and phone test wait for it.
 
