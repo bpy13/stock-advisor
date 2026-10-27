@@ -126,7 +126,9 @@ class NewsStore:
     def __init__(self, path: Union[str, Path, None] = None) -> None:
         self.path = Path(path) if path is not None else DEFAULT_DB_PATH
         self.path.parent.mkdir(parents=True, exist_ok=True)
-        self._conn = sqlite3.connect(str(self.path))
+        # Wait up to 30 s for another writer (the backfill, the watcher) instead of failing
+        # after sqlite's default 5 s.
+        self._conn = sqlite3.connect(str(self.path), timeout=30)
         self._conn.row_factory = sqlite3.Row
         self._conn.executescript(_SCHEMA)
         self._migrate()

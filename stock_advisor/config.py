@@ -102,3 +102,11 @@ def news_targets(holdings: Iterable[str]) -> list[str]:
 def MARKET_INDEX_FOR(symbol: str) -> str:  # noqa: N802 - name fixed by the plan
     """Return the benchmark index for a symbol: ^HSI for .HK tickers, else ^GSPC."""
     return "^HSI" if symbol.strip().upper().endswith(".HK") else "^GSPC"
+
+
+# Suggested news action: a predicted 1-day move at or below -T% says "reduce", at or above +T%
+# says "add", anything between says "hold". T is in percent (decision 2026-10-27, alert rule).
+NEWS_ACTION_THRESHOLD_PCT = 1.5
+
+# Targets the news watcher always reports and alerts on; the user's holdings are added to them.
+NEWS_ALERT_TARGETS: tuple[str, ...] = ("^HSI", "^GSPC")

@@ -277,7 +277,7 @@ report the item count and the earliest date reachable.
 
 ## Phase 5 – Live monitor and output (sonnet)
 
-- [ ] **Task 5.1: news CLI and watcher**
+- [x] **Task 5.1: news CLI and watcher**
   - Files: create `stock_advisor/news_cli.py`; test `tests/news/test_news_cli.py`.
   - Done when: test passes with fake store/model; live run prints current events (last 24 h by
     default), top 5 similar past events each, predicted move per target and horizon with a
