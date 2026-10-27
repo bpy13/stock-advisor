@@ -244,10 +244,13 @@ of `streamlit run app.py`.
 
 ### Scheduled tasks (Windows)
 
-Three scripts register Windows scheduled tasks. Each replaces its task if you run it again.
+Four scripts register Windows scheduled tasks. Each replaces its task if you run it again.
+All run headless (`conhost.exe --headless`, no window). The dashboard task needs an elevated
+PowerShell, because it starts at boot before anyone logs on.
 
 | Script | Task name | When |
 |---|---|---|
+| `scripts\register_dashboard_task.ps1` | `stock_advisor_dashboard` | at boot, `streamlit run app.py` on fixed port 8502 (hk-estate holds 8501), restarted if it stops |
 | `scripts\register_recorder_task.ps1` | `stock_advisor_minute_recorder` | daily 22:00, saves minute bars |
 | `scripts\register_backfill_task.ps1` | `stock_advisor_news_backfill` | daily 02:00, continues the backfill |
 | `scripts\register_watcher_task.ps1` | `stock_advisor_news_watcher` | at login, runs `news_cli --watch`, logs to `data\cache\news\watcher_log.txt` |

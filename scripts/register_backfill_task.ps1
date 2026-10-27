@@ -12,7 +12,8 @@ $script = Join-Path $repoRoot 'scripts\backfill_news.py'
 $python = (& conda run -n stock_advisor python -c "import sys; print(sys.executable)" | Select-Object -Last 1).Trim()
 if (-not (Test-Path $python)) { throw "Could not find the stock_advisor env python: '$python'" }
 
-$action = New-ScheduledTaskAction -Execute $python -Argument "`"$script`"" -WorkingDirectory $repoRoot
+# conhost --headless: python runs with no console window.
+$action = New-ScheduledTaskAction -Execute 'conhost.exe' -Argument "--headless `"$python`" `"$script`"" -WorkingDirectory $repoRoot
 $trigger = New-ScheduledTaskTrigger -Daily -At '02:00'
 # StartWhenAvailable: a missed run happens at the next login. No time limit: a run can take hours.
 $settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries `

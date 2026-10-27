@@ -12,8 +12,9 @@ $python = (& conda run -n stock_advisor python -c "import sys; print(sys.executa
 if (-not (Test-Path $python)) { throw "Could not find the stock_advisor env python: '$python'" }
 
 # The wrapper script appends the watcher output to data\cache\news\watcher_log.txt.
-$arguments = "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$runner`" -Python `"$python`""
-$action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument $arguments -WorkingDirectory $repoRoot
+# conhost --headless: no window at all (powershell -WindowStyle Hidden still flashes one on Windows 11).
+$arguments = "--headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$runner`" -Python `"$python`""
+$action = New-ScheduledTaskAction -Execute 'conhost.exe' -Argument $arguments -WorkingDirectory $repoRoot
 $user = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
 $trigger = New-ScheduledTaskTrigger -AtLogOn -User $user
 $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries `
