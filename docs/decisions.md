@@ -12,14 +12,25 @@ rather than deleting them). Nothing Brian didn't say is recorded as his decision
   a model such as regression.
 - 2026-10-27 (Brian): prediction horizons are short: minute, hour and 1-day returns.
 - 2026-10-27 (Brian): backtest as far back as the available stock data allows.
+- 2026-10-27 (Brian): the news module is separate from the price-vs-own-history modules. It
+  deals with market-moving events (new government policies, wars, security vulnerabilities,
+  crashes). It finds similar past events, measures how markets reacted, and extrapolates to
+  today's decisions to maximize profit or minimize loss. History goes as far back as the event
+  and price data allow.
+- 2026-10-27 (Brian): the aim is to beat ordinary investors, not professional trading
+  algorithms.
+- 2026-10-27 (Brian): score headlines with FinBERT.
+- 2026-10-27 (Brian, accepted default): a news prediction only shows a warning beside the
+  signal until the backtest proves it on held-out data for that horizon; then it may change
+  the signal for that horizon.
 
 ## Data and secrets
 
 - 2026-10-27 (Brian): include as many free news sources as possible.
 - 2026-10-27 (Brian, accepted default): use only official feeds, APIs and filings; skip sites
   whose terms forbid scraping, and skip paywalled articles.
-- 2026-10-27 (Brian, accepted default): SEC EDGAR requires a contact email in requests; Brian
-  supplies the address to use. No address is sent without his say.
+- 2026-10-27 (Brian): SEC EDGAR requests use Brian's personal email as the contact. It lives in
+  the gitignored `.env`, never in committed files.
 
 ## Behaviour and rules
 
