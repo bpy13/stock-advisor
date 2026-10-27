@@ -256,7 +256,8 @@ report the item count and the earliest date reachable.
     prediction (similarity-weighted mean reaction of the k=20 most similar earlier events),
     pre-event 20-day volatility of the target. Ridge regression per target and horizon.
     Predictions must use only events before the event being predicted (no look-ahead).
-- [ ] **Task 4.4: walk-forward backtest CLI** (fable)
+- [x] **Task 4.4: walk-forward backtest CLI** (fable) — live run on the real store found 0
+  scored events (backfill not yet scored); full live run waits for the backfill.
   - Files: create `stock_advisor/news_backtest_cli.py`; test `tests/news/test_backtest.py`.
   - Done when: test passes; run live on the backfilled store, it prints per target and
     horizon: n, out-of-sample hit rate, mean return when following the predicted sign, Welch
