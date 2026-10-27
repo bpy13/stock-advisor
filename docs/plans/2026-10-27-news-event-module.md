@@ -295,7 +295,7 @@ report the item count and the earliest date reachable.
   - Done when: tests pass; live `python -m stock_advisor.cli` shows a `news` column per
     holding (e.g. "⚠ war_conflict: −2.1% 1d (unproven)") and is unchanged when no events.
   - Notes: proven predictions may change the action per the decision; unproven never do.
-- [ ] **Task 5.3: dashboard News tab**
+- [x] **Task 5.3: dashboard News tab**
   - Files: modify `app.py`.
   - Done when: `streamlit run app.py` in the background on 8501 loads; the News tab shows
     events, similar past events, predicted moves and backtest results; checked in a real
