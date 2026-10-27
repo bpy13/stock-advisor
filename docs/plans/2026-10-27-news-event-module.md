@@ -238,7 +238,7 @@ report the item count and the earliest date reachable.
     ~440 calls ≈ 1 day). Add `scripts/register_backfill_task.ps1`: a daily Windows task that
     reruns the backfill until every source reports complete; the coordinator registers it.
     EDGAR's cursor advances only per completed quarter (its index is not in date order).
-- [ ] **Task 4.2: reaction table** (sonnet)
+- [x] **Task 4.2: reaction table** (sonnet)
   - Files: create `stock_advisor/news/reactions.py`; test `tests/news/test_reactions.py`.
   - Done when: tests pass on synthetic prices: for an event at time t, the cumulative return
     path from the last price at or before t to t+1m, 5m, 15m, 1h, 4h and the 1st, 2nd, 3rd,
