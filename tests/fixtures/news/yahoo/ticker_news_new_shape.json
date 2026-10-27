@@ -1,0 +1,22 @@
+[
+  {
+    "id": "a1b2c3d4-0000-4000-8000-000000000001",
+    "content": {
+      "id": "a1b2c3d4-0000-4000-8000-000000000001",
+      "contentType": "STORY",
+      "title": "Tech stocks rally as chipmakers lead gains",
+      "summary": "Semiconductor names pushed the sector higher on Monday.",
+      "pubDate": "2026-10-26T15:30:00Z",
+      "provider": {"displayName": "Reuters"},
+      "canonicalUrl": {"url": "https://finance.yahoo.com/news/tech-rally-123.html"},
+      "clickThroughUrl": {"url": "https://finance.yahoo.com/news/tech-rally-123.html"}
+    }
+  },
+  {
+    "id": "a1b2c3d4-0000-4000-8000-000000000002",
+    "content": {
+      "title": "Item without a date is skipped",
+      "canonicalUrl": {"url": "https://finance.yahoo.com/news/no-date.html"}
+    }
+  }
+]

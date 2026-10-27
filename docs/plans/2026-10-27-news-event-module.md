@@ -130,7 +130,7 @@ report the item count and the earliest date reachable.
   that forbid access" decision applies. Any later task that lists Google News drops it. — `sources/google_news.py`. Topic and
   search feeds (en-US and en-HK); `fetch_range` uses `after:`/`before:` search operators per
   week; report how many results one query returns and how far back it works.
-- [ ] **Task 1.7: yfinance news** `[parallel-ok]` — `sources/yahoo.py`. Per-symbol headlines
+- [x] **Task 1.7: yfinance news** `[parallel-ok]` — `sources/yahoo.py`. Per-symbol headlines
   for indices, sector proxies and holdings.
 - [ ] **Task 1.8: HKEXnews** `[parallel-ok]` — `sources/hkex.py`. Latest listed-company
   announcements (live) and title search by date range (history); map stock codes to Yahoo

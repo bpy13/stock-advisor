@@ -1,0 +1,98 @@
+[
+  {
+    "uuid": "4b11c38b-57cf-36eb-8cc9-703a94c8ad77",
+    "title": "Sector Update: Tech Stocks Gain Late Afternoon",
+    "publisher": "MT Newswires",
+    "link": "https://finance.yahoo.com/markets/stocks/articles/sector-tech-stocks-gain-afternoon-200002855.html",
+    "providerPublishTime": 1793044802,
+    "type": "STORY",
+    "relatedTickers": [
+      "SPCX",
+      "XLK",
+      "XSD",
+      "ANTH.PVT",
+      "APO",
+      "META"
+    ]
+  },
+  {
+    "uuid": "a1bae66f-a8c9-35d8-8453-c620b93c6694",
+    "title": "Sector Update: Tech",
+    "publisher": "MT Newswires",
+    "link": "https://finance.yahoo.com/technology/articles/sector-tech-194226796.html",
+    "providerPublishTime": 1793043746,
+    "type": "STORY",
+    "relatedTickers": [
+      "SPCX",
+      "XLK",
+      "XSD",
+      "ANTH.PVT",
+      "APO"
+    ]
+  },
+  {
+    "uuid": "3ec15341-8d18-30cb-b884-f78a7e0387aa",
+    "title": "Apple and Alphabet Stocks Look Vulnerable. Here’s How Far They Could Drop.",
+    "publisher": "Barrons.com",
+    "link": "https://finance.yahoo.com/m/3ec15341-8d18-30cb-b884-f78a7e0387aa/apple-and-alphabet-stocks.html",
+    "providerPublishTime": 1793037720,
+    "type": "STORY",
+    "thumbnail": {
+      "resolutions": [
+        {
+          "url": "https://media.zenfs.com/en/Barrons.com/c20b4fb267c8f34b12a4c0f476b8e2d1.jpg",
+          "width": 1280,
+          "height": 640,
+          "tag": "original"
+        },
+        {
+          "url": "https://s.yimg.com/lo/mysterio/api/AAD017A2DA2D93ACC01BB01E51FB87C3D3D4DFF0D44249F0D4523F2BAC776AE4/subgraphmysterio/resizefill_w140_h140/https:%2F%2Fmedia.zenfs.com%2Fen%2FBarrons.com%2Fc20b4fb267c8f34b12a4c0f476b8e2d1.jpg",
+          "width": 140,
+          "height": 140,
+          "tag": "140x140"
+        }
+      ]
+    },
+    "relatedTickers": [
+      "GOOG",
+      "AAPL",
+      "XLK"
+    ]
+  },
+  {
+    "uuid": "1a732f16-7609-39ff-bdd0-23d60e429be0",
+    "title": "Sector Update: Tech Stocks Gain Monday Afternoon",
+    "publisher": "MT Newswires",
+    "link": "https://finance.yahoo.com/markets/stocks/articles/sector-tech-stocks-gain-monday-175241264.html",
+    "providerPublishTime": 1793037161,
+    "type": "STORY",
+    "relatedTickers": [
+      "META",
+      "XLK",
+      "XSD",
+      "MSFT",
+      "ANTH.PVT"
+    ]
+  },
+  {
+    "uuid": "2e9f8dc0-9aa1-39c4-b907-9d33fbb9cca8",
+    "title": "Exchange-Traded Funds Higher as US Equities Advance After Midday",
+    "publisher": "MT Newswires",
+    "link": "https://finance.yahoo.com/markets/stocks/articles/exchange-traded-funds-higher-us-171302344.html",
+    "providerPublishTime": 1793034782,
+    "type": "STORY",
+    "relatedTickers": [
+      "QQQ",
+      "ANTH.PVT",
+      "CL=F",
+      "IVV",
+      "IYW",
+      "XLF",
+      "FAS",
+      "XLK",
+      "XLE",
+      "IGM",
+      "FAZ"
+    ]
+  }
+]
