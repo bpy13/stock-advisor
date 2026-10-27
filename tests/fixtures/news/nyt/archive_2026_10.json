@@ -1,0 +1,98 @@
+{
+  "copyright": "Copyright (c) 2026 The New York Times Company. All Rights Reserved.",
+  "response": {
+    "meta": {"hits": 6},
+    "docs": [
+      {
+        "abstract": "Stocks fell as bond yields climbed after a hot inflation report.",
+        "web_url": "https://www.nytimes.com/2026/10/26/business/stocks-yields.html",
+        "snippet": "Stocks fell as bond yields climbed.",
+        "print_page": "1",
+        "source": "The New York Times",
+        "headline": {"main": "Stocks Slide as Yields Climb", "kicker": null, "print_headline": "Stocks Slide as Yields Climb"},
+        "pub_date": "2026-10-26T14:05:00+0000",
+        "document_type": "article",
+        "news_desk": "Business",
+        "section_name": "Business Day",
+        "type_of_material": "News",
+        "_id": "nyt://article/0001",
+        "word_count": 910
+      },
+      {
+        "abstract": "Leaders met to discuss a ceasefire proposal.",
+        "web_url": "https://www.nytimes.com/2026/10/26/world/europe/ceasefire-talks.html",
+        "snippet": "Leaders met to discuss a ceasefire.",
+        "print_page": "8",
+        "source": "The New York Times",
+        "headline": {"main": "Ceasefire Talks Open in Geneva", "kicker": null, "print_headline": "Ceasefire Talks Open in Geneva"},
+        "pub_date": "2026-10-26T09:30:00+0000",
+        "document_type": "article",
+        "news_desk": "Foreign",
+        "section_name": "World",
+        "type_of_material": "News",
+        "_id": "nyt://article/0002",
+        "word_count": 1200
+      },
+      {
+        "abstract": "A chip maker said export limits would cut next year's sales.",
+        "web_url": "https://www.nytimes.com/2026/10/20/technology/chip-export-limits.html",
+        "snippet": "A chip maker warned on sales.",
+        "print_page": "3",
+        "source": "The New York Times",
+        "headline": {"main": "Chip Maker Warns on Export Limits", "kicker": null, "print_headline": "Chip Maker Warns"},
+        "pub_date": "2026-10-20T21:12:00+0000",
+        "document_type": "article",
+        "news_desk": "Business",
+        "section_name": "Technology",
+        "type_of_material": "News",
+        "_id": "nyt://article/0003",
+        "word_count": 780
+      },
+      {
+        "abstract": "Congress returns to a deadlock over the spending bill.",
+        "web_url": "https://www.nytimes.com/2026/10/05/us/politics/spending-bill.html",
+        "snippet": "Congress returns to a deadlock.",
+        "print_page": "15",
+        "source": "The New York Times",
+        "headline": {"main": "Spending Bill Stalls in Senate", "kicker": null, "print_headline": "Spending Bill Stalls"},
+        "pub_date": "2026-10-05T16:45:00+0000",
+        "document_type": "article",
+        "news_desk": "National",
+        "section_name": "U.S.",
+        "type_of_material": "News",
+        "_id": "nyt://article/0004",
+        "word_count": 1050
+      },
+      {
+        "abstract": "A new restaurant opens in Brooklyn.",
+        "web_url": "https://www.nytimes.com/2026/10/10/dining/brooklyn-restaurant.html",
+        "snippet": "A new restaurant opens.",
+        "print_page": "2",
+        "source": "The New York Times",
+        "headline": {"main": "A Brooklyn Newcomer Worth the Wait", "kicker": null, "print_headline": "A Brooklyn Newcomer"},
+        "pub_date": "2026-10-10T12:00:00+0000",
+        "document_type": "article",
+        "news_desk": "Dining",
+        "section_name": "Food",
+        "type_of_material": "Review",
+        "_id": "nyt://article/0005",
+        "word_count": 1500
+      },
+      {
+        "abstract": "A front-page profile of a retiring mayor.",
+        "web_url": "https://www.nytimes.com/2026/10/12/nyregion/mayor-profile.html",
+        "snippet": "A profile of a retiring mayor.",
+        "print_page": "1",
+        "source": "The New York Times",
+        "headline": {"main": "The Mayor's Last Lap", "kicker": null, "print_headline": "The Mayor's Last Lap"},
+        "pub_date": "2026-10-12T04:00:00+0000",
+        "document_type": "article",
+        "news_desk": "Metropolitan",
+        "section_name": "New York",
+        "type_of_material": "News",
+        "_id": "nyt://article/0006",
+        "word_count": 2100
+      }
+    ]
+  }
+}
