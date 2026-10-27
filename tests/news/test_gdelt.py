@@ -60,9 +60,34 @@ def test_parses_fixture():
     assert first.source == "gdelt"
     assert first.published_at == datetime(2026, 10, 27, 5, 15, tzinfo=timezone.utc)
     assert first.title and first.url.startswith("http")
-    assert source.session.calls[0]["timespan"] == "1d"
+    assert "timespan" not in source.session.calls[0]
     assert source.session.calls[0]["query"].endswith("sourcelang:english")
     assert source.session.calls[0]["format"] == "json"
+
+
+def test_fetch_recent_keeps_distinct_seendates_across_the_day():
+    """Regression: a single timespan=1d call returned the 250 newest articles, all from one
+    15-minute crawl batch (identical seendate). fetch_recent must cover all 24 hours."""
+    def reply(n, seen):
+        return json.dumps({"articles": [article(n, seen)]})
+
+    now = datetime(2026, 10, 27, 12, 0, tzinfo=timezone.utc)
+    source = GdeltSource(
+        session=FakeSession([
+            reply(1, "20261026T130000Z"), reply(2, "20261026T193000Z"),
+            reply(3, "20261027T014500Z"), reply(4, "20261027T113000Z")]),
+        queries={"t": "tariffs"},
+        sleep=lambda _: None,
+        clock=lambda: now,
+    )
+    items = source.fetch_recent()
+    assert [i.published_at.isoformat() for i in items] == [
+        "2026-10-26T13:00:00+00:00", "2026-10-26T19:30:00+00:00",
+        "2026-10-27T01:45:00+00:00", "2026-10-27T11:30:00+00:00"]
+    calls = source.session.calls
+    assert [c["startdatetime"] for c in calls] == [
+        "20261026120000", "20261026180000", "20261027000000", "20261027060000"]
+    assert calls[-1]["enddatetime"] == "20261027120000"
 
 
 def test_title_spacing_is_normalised():

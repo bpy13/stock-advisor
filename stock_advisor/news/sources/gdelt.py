@@ -25,6 +25,7 @@ logger = logging.getLogger(__name__)
 
 API_URL = "https://api.gdeltproject.org/api/v2/doc/doc"
 MAX_RECORDS = 250  # hard cap of the DOC API per call
+RECENT_SLICES = 4  # fetch_recent asks for the last 24 hours as four 6-hour windows
 
 # Market-moving themes. Each is a GDELT query; " sourcelang:english" is appended.
 THEME_QUERIES: Dict[str, str] = {
@@ -67,7 +68,9 @@ class GdeltSource:
         rate_limit_wait: float = 30.0,
         rate_limit_tries: int = 3,
         sleep: Callable[[float], None] = time.sleep,
+        clock: Callable[[], datetime] = lambda: datetime.now(timezone.utc),
     ) -> None:
+        self._clock = clock
         # 5.5 s between requests keeps us just under GDELT's one-per-5-seconds limit.
         self.session = session or PoliteSession(min_delay=5.5, timeout=60.0, max_retries=2, backoff=3.0)
         self.queries = queries or THEME_QUERIES
@@ -79,12 +82,21 @@ class GdeltSource:
     # -- public API ---------------------------------------------------------------------
     def fetch_recent(self) -> List[NewsItem]:
         """Articles seen in the last 24 hours, for every theme query (de-duplicated)."""
+        # One "timespan=1d" call is not enough: with sort=datedesc the API returns the 250
+        # newest articles, and GDELT stamps seendate per 15-minute crawl batch, so those 250
+        # can all share one timestamp. Fetch fixed slices of the day instead; a slice that
+        # comes back full is split further by _fetch_window.
+        now = ensure_utc(self._clock())
+        slice_length = timedelta(hours=24) / RECENT_SLICES
         items: Dict[str, NewsItem] = {}
         for theme, query in self.queries.items():
-            articles = self._request(query, {"timespan": "1d"})
-            for item in self._to_items(articles):
-                items.setdefault(item.id, item)
-            logger.info("gdelt %s: %d articles", theme, len(articles))
+            found = 0
+            for n in range(RECENT_SLICES):
+                start = now - timedelta(hours=24) + slice_length * n
+                for item in self._fetch_window(query, start, start + slice_length):
+                    found += 1
+                    items.setdefault(item.id, item)
+            logger.info("gdelt %s: %d articles", theme, found)
         return sorted(items.values(), key=lambda i: i.published_at)
 
     def fetch_range(self, start: datetime, end: datetime) -> Iterator[NewsItem]:
