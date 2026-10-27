@@ -194,7 +194,7 @@ report the item count and the earliest date reachable.
 
 ## Phase 3 – Scoring, categories and events (sonnet, 3.3 fable)
 
-- [ ] **Task 3.1: FinBERT tone and embeddings**
+- [x] **Task 3.1: FinBERT tone and embeddings**
   - Files: create `stock_advisor/news/scoring.py`; test `tests/news/test_scoring.py`.
   - Done when: unit tests pass with a fake model; a live check scores 5 real headlines and the
     tones look right ("Stocks crash as..." negative).
