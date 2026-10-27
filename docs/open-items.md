@@ -23,7 +23,14 @@ here; a limit or trap we live with goes in `known-issues.md`. Each item in one p
   The helper read the terms through a summarising fetch, not the raw page. Brian could ask
   info@hkex.com.hk for written permission; until then HK filings are not collected.
 
+- Confirm the one-step rule for proven news actions (decisions.md, 2026-10-27).
+
 ## Pending work
+
+- CLI report news column (Task 5.2): the live run showed "—" for every holding, because no
+  predictions exist before the backfill and backtest. Re-check once results.json exists. The
+  report fits the news model on every run; cache it if that gets slow. Under `conda run`,
+  "—" prints as mojibake in PowerShell 5.1 (console code page); direct python is fine.
 
 - yfinance `Ticker.news` returns nothing (Yahoo's endpoint answers 404); the Yahoo adapter
   uses the `yf.Search` fallback. Re-check after a yfinance upgrade. Search finds no headlines
@@ -71,6 +78,17 @@ here; a limit or trap we live with goes in `known-issues.md`. Each item in one p
   FinBERT scoring of the backfill runs slower than the measured 24 headlines/s.
 - Full live backtest (Task 4.4) and window check (Task 4.5) wait for the backfill to score
   and cluster events; rerun `python -m stock_advisor.news_backtest_cli` then.
+
+- Watcher (Task 5.1): switch news.db to WAL mode once the backfill finishes (lets the
+  watcher read while the backfill writes); store.py now connects with a 30 s timeout. A cold
+  `news_cli --collect` can block on GDELT 429 waits for many minutes (watch mode runs GDELT
+  on a side thread, so it doesn't stall). The watcher log (data\cache\news\watcher_log.txt,
+  gitignored) lists holdings symbols.
+
+- Dashboard News tab (Task 5.3) was checked with Streamlit's AppTest and an HTTP health
+  check, not a real browser: the coordinator checks it in a browser in Phase 6. The forecast
+  table and "⚠ unproven" badge are untested on real data until predictions exist.
+  `SimilarEvent` should carry a URL (app.py looks links up itself for now).
 
 ## Later
 

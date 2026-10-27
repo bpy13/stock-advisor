@@ -55,6 +55,10 @@ rather than deleting them). Nothing Brian didn't say is recorded as his decision
   sanctions, US–China and cross-strait friction short of war); it counts as macro. Real
   headlines like "China condemns US designation…" fell into "other" without it.
 
+- 2026-10-27 (Claude's default, Brian to confirm): a proven news action moves the price-based
+  recommendation one step: "reduce" turns BUY→HOLD or HOLD→SELL; "add" turns SELL→HOLD or
+  HOLD→BUY. The rationale gains a note. Unproven predictions never change it.
+
 ## UI
 
 - 2026-10-27 (Brian, Guardian key application): Guardian content is displayed only as the
