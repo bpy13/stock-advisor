@@ -210,7 +210,8 @@ report the item count and the earliest date reachable.
     election_politics, energy_commodities, company_results, company_corporate_action, other.
     Method: nearest seed-phrase centroid by embedding, keyword overrides where the centroid
     is weak.
-- [ ] **Task 3.3: event clustering and high-impact rule** (fable)
+- [x] **Task 3.3: event clustering and high-impact rule** (fable) — final values: cosine 0.60
+  to the event centroid, 12 h window, 48 h max span (979 real headlines → 769 events).
   - Files: create `stock_advisor/news/events.py`, `stock_advisor/news/article.py`; tests
     `tests/news/test_events.py`, `tests/news/test_article.py`.
   - Done when: tests pass: headlines about one story within a time window merge into one
