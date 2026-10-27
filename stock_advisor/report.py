@@ -9,7 +9,7 @@ import pandas as pd
 
 from .config import DEFAULT_CONFIG, DEFAULT_HK_UNIVERSE, AnalysisConfig
 from .correlation import build_peer_map
-from .market_data import fetch_close_prices, missing_symbols, normalize_symbol
+from .market_data import fetch_close_prices, missing_symbols
 from .portfolio import Portfolio, load_portfolio, resolve_portfolio_path
 from .price_analysis import analyze_valuations
 from .recommendation import Recommendation, build_recommendation

@@ -5,3 +5,18 @@ pyarrow>=17.0.0
 pytest>=8.0.0
 streamlit>=1.38.0
 plotly>=5.24.0
+# News module
+# torch: install the CPU build first with
+#   pip install torch --index-url https://download.pytorch.org/whl/cpu
+torch>=2.2.0
+transformers>=4.40.0
+sentence-transformers>=3.0.0
+feedparser>=6.0.0
+requests>=2.31.0
+beautifulsoup4>=4.12.0
+lxml>=5.0.0
+trafilatura>=1.12.0
+statsmodels>=0.14.0
+scikit-learn>=1.4.0
+python-dotenv>=1.0.0
+ruff>=0.6.0

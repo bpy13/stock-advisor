@@ -80,7 +80,7 @@ The aim is to react before ordinary investors do, not to compete with profession
 
 ## Phase 0 – Environment (sonnet)
 
-- [ ] **Task 0.1: project conda env**
+- [x] **Task 0.1: project conda env**
   - Files: create `environment.yml` (python 3.12, pinned versions); modify `requirements.txt`
     (minimum ranges); create `.env.example` (keys with empty values: `SEC_CONTACT_EMAIL`,
     `GUARDIAN_API_KEY`, `NYT_API_KEY`); add `ruff` config to a new `ruff.toml`.

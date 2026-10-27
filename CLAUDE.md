@@ -14,11 +14,13 @@ Read these before substantial changes:
 - `README.md` – user-facing setup and commands
 
 ## Environment
-- Install: `pip install -r requirements.txt`
-- Run: `python -m stock_advisor.cli` (report), `streamlit run app.py` (dashboard),
-  `python -m stock_advisor.validate_cli` (metric backtest)
-- Tests: `pytest`
-- Lint: none configured yet
+- Conda env `stock_advisor` (python 3.12): `conda env create -f environment.yml`
+  (pip-only alternative: `pip install -r requirements.txt`; install CPU torch first)
+- Run: `conda run -n stock_advisor python -m stock_advisor.cli` (report),
+  `streamlit run app.py` (dashboard), `python -m stock_advisor.validate_cli` (metric backtest)
+- Tests: `conda run -n stock_advisor python -m pytest -q`
+- Lint: `conda run -n stock_advisor ruff check .` (config in `ruff.toml`)
+- Secrets: copy `.env.example` to `.env` (gitignored)
 
 ## Project rules
 - `data/` holds the user's real holdings (`data/transaction.csv`) and caches; it is gitignored.

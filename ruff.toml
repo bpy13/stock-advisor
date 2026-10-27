@@ -1,0 +1,6 @@
+line-length = 100
+target-version = "py312"
+
+[lint]
+# Default pyflakes/pycodestyle subset plus import sorting.
+select = ["E4", "E7", "E9", "F", "I"]
