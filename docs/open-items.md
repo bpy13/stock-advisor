@@ -9,13 +9,10 @@ here; a limit or trap we live with goes in `known-issues.md`. Each item in one p
 
 - Guardian and NYT API keys in `.env` (`GUARDIAN_API_KEY`, `NYT_API_KEY`). Until then those
   two sources are built and tested from fixtures, but not backfilled.
-  - NYT (Task 1.5) is left unticked: its fixture is hand-built from NYT's docs. Once the key
-    exists, run one live month, check that `section_name` values match the filter (older
-    years may differ), then tick. A backfill from 1990 is ~440 calls against a 500/day cap:
-    split it over two days.
-  - Guardian (Task 1.4) is left unticked: the public `test` key now returns 401, so the
-    fixture is hand-built. Once the key exists, run the live probe, replace the fixture with a
-    real response, confirm the earliest date and the developer-key limits, then tick.
+  - NYT: done 2026-10-27 (live archive and Top Stories, real fixtures; old months use
+    "Business Day", already covered). Archive months run up to ~14 MB each.
+  - Guardian: done 2026-10-27 (live, real fixture, archive from 1990-02-08, limits 60/min and
+    500/day).
 
 - Google News RSS dropped: its robots.txt disallows /rss for every crawler. Brian may
   overrule the skip; the adapter would take about an hour to build.
@@ -37,3 +34,9 @@ here; a limit or trap we live with goes in `known-issues.md`. Each item in one p
 - News event module: see `docs/plans/2026-10-27-news-event-module.md`.
 
 ## Later
+
+- NYT business/world RSS feeds need no key and could join the RSS adapter. (Top Stories is
+  now Task 1.12.)
+- "Public attention" signal from the NYT Most Popular API: when a market story reaches
+  most-viewed, ordinary investors have caught on. No history in the API, so it must be
+  recorded for months before it can be backtested.

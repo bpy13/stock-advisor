@@ -123,10 +123,10 @@ report the item count and the earliest date reachable.
 - [ ] **Task 1.3: GDELT** `[parallel-ok]` — `sources/gdelt.py`. DOC 2.0 API (artlist,
   English, market/policy/war/cyber queries) for recent items; report the history the API
   actually allows.
-- [ ] **Task 1.4: Guardian Open Platform** `[parallel-ok]` — `sources/guardian.py`. Sections
+- [x] **Task 1.4: Guardian Open Platform** `[parallel-ok]` — `sources/guardian.py`. Sections
   business, world, technology, politics, us-news; date-range paging; key from `GUARDIAN_API_KEY`.
   Missing key: adapter logs one warning and returns nothing; live run waits for the key.
-- [ ] **Task 1.5: NYT Archive API** `[parallel-ok]` — `sources/nyt.py`. One call per month;
+- [x] **Task 1.5: NYT Archive API** `[parallel-ok]` — `sources/nyt.py`. One call per month;
   keep sections Business, World, Technology, U.S., Front Page; key from `NYT_API_KEY`; respect
   12 s between calls. Missing key: as in 1.4.
 - [-] **Task 1.6: Google News RSS** `[parallel-ok]` — SKIPPED 2026-10-27: news.google.com
@@ -157,7 +157,19 @@ report the item count and the earliest date reachable.
     One failing source logs and continues. Also (decisions 2026-10-27): add
     `time_precision` ("exact" | "day") to `NewsItem` and the `items` table (default "exact";
     Wikipedia and EDGAR items without an acceptance time set "day"); the live EDGAR feed
-    is filtered to the allowlist plus holdings.
+    is filtered to the allowlist plus holdings. Daily caps: a per-source daily call budget
+    (Guardian 480, NYT 480 — both APIs allow 500/day) counted in the store; on reaching it,
+    or on a 429/403 rate-limit response, the backfill for that source stops cleanly and
+    resumes from the last stored date on the next run.
+
+- [x] **Task 1.12: NYT Top Stories for live polling** (added 2026-10-27; after 1.11)
+  - Files: modify `stock_advisor/news/sources/nyt.py`, `tests/news/test_nyt.py`; fixture
+    under `tests/fixtures/news/nyt/`.
+  - Done when: tests pass; `fetch_recent` uses the Top Stories API (sections home, business,
+    world, technology, us) instead of the current-month archive, run live once with the key;
+    the Archive API stays for `fetch_range`. Also run the Task 1.5 live month check and tick
+    1.5 if it passes.
+  - Notes: same `NYT_API_KEY`; respect NYT's per-minute and per-day limits.
 
 ## Phase 2 – Intraday prices and minute recorder (sonnet)
 
@@ -220,7 +232,10 @@ report the item count and the earliest date reachable.
     `python scripts/backfill_news.py --status` prints per-source date reached and item count.
   - Notes: runs sources one after another (Wikipedia, EDGAR, GDELT, then
     Guardian and NYT once keys exist), then scoring and clustering. Resumable. Expected to
-    take hours; the helper hands back once it is running.
+    take hours; the helper hands back once it is running. Depth: as far back as each source
+    goes (Guardian from 1990-02, ~3,450 calls ≈ 7 days at the daily cap; NYT from 1990,
+    ~440 calls ≈ 1 day). Add `scripts/register_backfill_task.ps1`: a daily Windows task that
+    reruns the backfill until every source reports complete; the coordinator registers it.
 - [ ] **Task 4.2: reaction table** (sonnet)
   - Files: create `stock_advisor/news/reactions.py`; test `tests/news/test_reactions.py`.
   - Done when: tests pass on synthetic prices: for an event at time t, the cumulative return
