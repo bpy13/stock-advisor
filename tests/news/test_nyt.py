@@ -8,6 +8,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 from unittest.mock import MagicMock
 
+import pytest
+import requests
+
+from stock_advisor.news.models import SourceLimitReached
 from stock_advisor.news.sources import NewsSource
 from stock_advisor.news.sources.nyt import NytSource, parse_archive, parse_top_stories
 
@@ -137,6 +141,34 @@ def test_http_error_returns_nothing_without_leaking_key(caplog):
         assert list(source.fetch_range(datetime(2026, 10, 1), datetime(2026, 10, 31))) == []
         assert source.fetch_recent() == []
     assert "SECRET" not in caplog.text
+
+
+def test_budget_stops_range_and_recent_keeps_earlier_sections():
+    session = MagicMock()
+    session.get.return_value.json.return_value = _payload()
+    source = NytSource(session=session, api_key="k", budget=lambda: False)
+    with pytest.raises(SourceLimitReached):
+        list(source.fetch_range(datetime(2026, 10, 1, tzinfo=timezone.utc),
+                                datetime(2026, 10, 31, tzinfo=timezone.utc)))
+    assert session.get.call_count == 0
+    # Top stories: the cap falls after two sections; their items are kept.
+    session = MagicMock()
+    session.get.return_value.json.return_value = _load("topstories_home.json")
+    allowed = iter([True, True, False])
+    source = NytSource(session=session, api_key="k", budget=lambda: next(allowed))
+    source.fetch_recent()
+    assert session.get.call_count == 2
+
+
+def test_rate_limit_response_raises_limit_reached():
+    session = MagicMock()
+    response = requests.Response()
+    response.status_code = 429
+    session.get.side_effect = requests.HTTPError(response=response)
+    source = NytSource(session=session, api_key="k")
+    with pytest.raises(SourceLimitReached):
+        list(source.fetch_range(datetime(2026, 10, 1, tzinfo=timezone.utc),
+                                datetime(2026, 10, 31, tzinfo=timezone.utc)))
 
 
 def test_satisfies_protocol():

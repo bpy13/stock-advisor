@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 import time
 from datetime import datetime, timedelta, timezone
 from typing import Callable, Dict, Iterator, List, Optional
@@ -42,6 +43,13 @@ THEME_QUERIES: Dict[str, str] = {
 
 def _format_dt(moment: datetime) -> str:
     return ensure_utc(moment).strftime("%Y%m%d%H%M%S")
+
+
+def clean_title(title: str) -> str:
+    """GDELT titles often have spaces before punctuation ("Stocks fall , oil rises .") and
+    repeated spaces. Tidy them so the text reads like the other sources."""
+    title = re.sub(r"\s+", " ", title).strip()
+    return re.sub(r"\s+([,.;:!?])", r"\1", title)
 
 
 def _parse_seendate(text: str) -> datetime:
@@ -147,7 +155,7 @@ class GdeltSource:
     def _to_items(articles: List[dict]) -> List[NewsItem]:
         items = []
         for article in articles:
-            title = (article.get("title") or "").strip()
+            title = clean_title(article.get("title") or "")
             seen = article.get("seendate")
             if not title or not seen:
                 continue

@@ -1,12 +1,13 @@
 """GDELT adapter tests: parse a saved real response; no network access."""
 
+import json
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import requests
 
 from stock_advisor.news.sources import NewsSource
-from stock_advisor.news.sources.gdelt import MAX_RECORDS, GdeltSource
+from stock_advisor.news.sources.gdelt import MAX_RECORDS, GdeltSource, clean_title
 
 FIXTURE = Path(__file__).parent.parent / "fixtures" / "news" / "gdelt" / "artlist_tariffs.json"
 RATE_LIMIT_TEXT = "Please limit requests to one every 5 seconds or contact someone."
@@ -62,6 +63,16 @@ def test_parses_fixture():
     assert source.session.calls[0]["timespan"] == "1d"
     assert source.session.calls[0]["query"].endswith("sourcelang:english")
     assert source.session.calls[0]["format"] == "json"
+
+
+def test_title_spacing_is_normalised():
+    assert clean_title("Stocks fall  , oil rises .") == "Stocks fall, oil rises."
+    assert clean_title("  Fed   holds rates ; markets calm ! ") == "Fed holds rates; markets calm!"
+    assert clean_title("Already clean, fine.") == "Already clean, fine."
+    reply = json.dumps({"articles": [
+        {"url": "http://x/1", "title": "War  talks , again .", "seendate": "20261027T051500Z"}]})
+    [item] = make_source([reply]).fetch_recent()
+    assert item.title == "War talks, again."
 
 
 def test_fetch_recent_dedups_across_queries():

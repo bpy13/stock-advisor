@@ -1,8 +1,9 @@
 """Guardian Open Platform adapter (content API `/search`).
 
 Developer key limits (read from response headers 2026-10-27): 60 calls/minute and 500
-calls/day; we stay at one call per 1.2 s. The daily cap is not enforced here: a long backfill
-must stop after ~480 calls and resume the next day from the last seen date. One query
+calls/day; we stay at one call per 1.2 s. The daily cap (480) is enforced through the
+`budget` hook the collector sets: when it runs out, or the API answers 429/403, the fetch
+raises SourceLimitReached and the backfill resumes next day from the last seen date. One query
 covers all wanted sections (`section=a|b|c`), so `fetch_range` yields items in publication
 order and a caller can resume by passing the last seen date as the new `start`.
 """
@@ -13,9 +14,11 @@ import html
 import logging
 import re
 from datetime import datetime, timedelta, timezone
-from typing import Iterator, List, Optional
+from typing import Callable, Iterator, List, Optional
 
-from stock_advisor.news.models import NewsItem, ensure_utc
+import requests
+
+from stock_advisor.news.models import NewsItem, SourceLimitReached, ensure_utc
 from stock_advisor.news.settings import guardian_api_key
 from stock_advisor.news.sources import PoliteSession
 
@@ -61,7 +64,11 @@ class GuardianSource:
         api_key: Optional[str] = None,
         session: Optional[PoliteSession] = None,
         sections=SECTIONS,
+        budget: Optional[Callable[[], bool]] = None,
     ) -> None:
+        """`budget()` is called before each API call; it returns False once the daily cap
+        is used up, and then the fetch raises SourceLimitReached. The collector sets it."""
+        self.budget = budget
         self._api_key = guardian_api_key() if api_key is None else api_key
         self._http = session or PoliteSession(min_delay=1.2)
         self._sections = "|".join(sections)
@@ -89,7 +96,14 @@ class GuardianSource:
                 "page": page,
                 "show-fields": "trailText",
             }
-            payload = self._http.get(API_URL, params=params).json()
+            if self.budget is not None and not self.budget():
+                raise SourceLimitReached("guardian daily call budget used up")
+            try:
+                payload = self._http.get(API_URL, params=params).json()
+            except requests.HTTPError as exc:
+                if exc.response is not None and exc.response.status_code in (403, 429):
+                    raise SourceLimitReached("guardian rate limit reached") from None
+                raise
             yield parse_response(payload)
             total_pages = payload.get("response", {}).get("pages", 1)
             if page >= total_pages or (max_pages is not None and page >= max_pages):

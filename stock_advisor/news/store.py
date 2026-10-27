@@ -24,7 +24,8 @@ CREATE TABLE IF NOT EXISTS items (
     summary TEXT NOT NULL DEFAULT '',
     symbols TEXT NOT NULL DEFAULT '[]',
     language TEXT NOT NULL DEFAULT 'en',
-    body TEXT
+    body TEXT,
+    time_precision TEXT NOT NULL DEFAULT 'exact'
 );
 CREATE INDEX IF NOT EXISTS idx_items_time ON items (published_at);
 CREATE INDEX IF NOT EXISTS idx_items_source_time ON items (source, published_at);
@@ -52,6 +53,21 @@ CREATE TABLE IF NOT EXISTS events (
     high_impact INTEGER NOT NULL DEFAULT 0
 );
 CREATE INDEX IF NOT EXISTS idx_events_time ON events (started_at);
+
+-- Calls made to rate-capped APIs, per source and UTC day (see NewsStore.spend_call).
+CREATE TABLE IF NOT EXISTS api_calls (
+    source TEXT NOT NULL,
+    day TEXT NOT NULL,
+    calls INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY (source, day)
+);
+
+-- How far a backfill has got per source. The newest stored item is not enough, because a
+-- --recent run stores items from today and would make a backfill skip all of history.
+CREATE TABLE IF NOT EXISTS backfill_cursor (
+    source TEXT PRIMARY KEY,
+    cursor TEXT NOT NULL
+);
 """
 
 
@@ -74,6 +90,7 @@ def _row_to_item(row: sqlite3.Row) -> NewsItem:
         symbols=json.loads(row["symbols"]),
         language=row["language"],
         body=row["body"],
+        time_precision=row["time_precision"],
     )
 
 
@@ -112,6 +129,61 @@ class NewsStore:
         self._conn = sqlite3.connect(str(self.path))
         self._conn.row_factory = sqlite3.Row
         self._conn.executescript(_SCHEMA)
+        self._migrate()
+
+    def _migrate(self) -> None:
+        """Bring a database created by an older version up to the current schema."""
+        columns = {r["name"] for r in self._conn.execute("PRAGMA table_info(items)")}
+        if "time_precision" not in columns:
+            with self._conn:
+                self._conn.execute(
+                    "ALTER TABLE items ADD COLUMN time_precision TEXT NOT NULL DEFAULT 'exact'"
+                )
+                # Rows stored before the column existed: Wikipedia is always day-only, and
+                # an item stamped exactly 00:00:00 UTC from EDGAR had no acceptance time.
+                self._conn.execute(
+                    "UPDATE items SET time_precision = 'day' WHERE source = 'wikipedia_events' "
+                    "OR (source = 'edgar' AND published_at LIKE '%T00:00:00.000000+00:00')"
+                )
+
+    def spend_call(self, source: str, cap: int, day: Optional[str] = None) -> bool:
+        """Count one API call for `source` today (UTC) unless `cap` calls are already used.
+        Returns True when the call may go ahead."""
+        day = day or datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        with self._conn:
+            self._conn.execute(
+                "INSERT OR IGNORE INTO api_calls (source, day, calls) VALUES (?, ?, 0)",
+                (source, day),
+            )
+            used = self._conn.execute(
+                "UPDATE api_calls SET calls = calls + 1 WHERE source = ? AND day = ? AND calls < ?",
+                (source, day, cap),
+            ).rowcount
+        return used == 1
+
+    def get_backfill_cursor(self, source: str) -> Optional[datetime]:
+        row = self._conn.execute(
+            "SELECT cursor FROM backfill_cursor WHERE source = ?", (source,)
+        ).fetchone()
+        return _from_text(row[0]) if row else None
+
+    def advance_backfill_cursor(self, source: str, moment: datetime) -> None:
+        """Move the cursor forward; it never moves back."""
+        current = self.get_backfill_cursor(source)
+        if current is not None and current >= ensure_utc(moment):
+            return
+        with self._conn:
+            self._conn.execute(
+                "INSERT OR REPLACE INTO backfill_cursor (source, cursor) VALUES (?, ?)",
+                (source, _to_text(moment)),
+            )
+
+    def calls_today(self, source: str, day: Optional[str] = None) -> int:
+        day = day or datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        row = self._conn.execute(
+            "SELECT calls FROM api_calls WHERE source = ? AND day = ?", (source, day)
+        ).fetchone()
+        return row[0] if row else 0
 
     def close(self) -> None:
         self._conn.close()
@@ -130,8 +202,8 @@ class NewsStore:
         with self._conn:
             self._conn.executemany(
                 "INSERT OR IGNORE INTO items "
-                "(id, source, published_at, title, url, summary, symbols, language, body) "
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                "(id, source, published_at, title, url, summary, symbols, language, body, "
+                "time_precision) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 [
                     (
                         i.id,
@@ -143,6 +215,7 @@ class NewsStore:
                         json.dumps(list(i.symbols)),
                         i.language,
                         i.body,
+                        i.time_precision,
                     )
                     for i in items
                 ],

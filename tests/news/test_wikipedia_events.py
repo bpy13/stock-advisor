@@ -44,6 +44,7 @@ def test_modern_page_has_categories_and_utc_midnight_date():
     items = parse_day_html(html, date(2024, 3, 5))
     assert len(items) == 12
     assert all(i.published_at == datetime(2024, 3, 5, tzinfo=timezone.utc) for i in items)
+    assert all(i.time_precision == "day" for i in items)
     first = items[0]
     assert first.title.startswith("The Russian Navy patrol ship Sergey Kotov is sunk")
     assert "(The Guardian)" not in first.title  # citation moved out of the title

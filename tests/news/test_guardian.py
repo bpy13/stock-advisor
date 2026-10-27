@@ -5,6 +5,10 @@ import logging
 from datetime import datetime, timezone
 from pathlib import Path
 
+import pytest
+import requests
+
+from stock_advisor.news.models import SourceLimitReached
 from stock_advisor.news.sources.guardian import GuardianSource, parse_response
 
 FIXTURE = Path(__file__).resolve().parent.parent / "fixtures" / "news" / "guardian" / "search_business.json"
@@ -74,6 +78,33 @@ def test_missing_key_warns_once_and_returns_nothing(caplog):
         assert list(source.fetch_range(datetime(2020, 1, 1), datetime(2020, 2, 1))) == []
     assert http.calls == []
     assert sum("GUARDIAN_API_KEY" in r.message for r in caplog.records) == 1
+
+
+def test_budget_stops_before_the_call_that_would_exceed_it():
+    page = _payload()
+    page["response"]["pages"] = 3
+    http = FakeHttp([page, page, page])
+    allowed = iter([True, False])
+    source = GuardianSource(api_key="k", session=http, budget=lambda: next(allowed))
+    got = []
+    with pytest.raises(SourceLimitReached):
+        for item in source.fetch_range(datetime(2020, 3, 9, tzinfo=timezone.utc),
+                                       datetime(2020, 3, 10, tzinfo=timezone.utc)):
+            got.append(item)
+    assert len(http.calls) == 1  # the second call never went out
+    assert got  # items of the first page were already yielded
+
+
+def test_rate_limit_response_raises_limit_reached():
+    class Limited:
+        def get(self, url, **kwargs):
+            response = requests.Response()
+            response.status_code = 429
+            raise requests.HTTPError(response=response)
+
+    source = GuardianSource(api_key="k", session=Limited())
+    with pytest.raises(SourceLimitReached):
+        source.fetch_recent()
 
 
 def test_fetch_recent_single_page():

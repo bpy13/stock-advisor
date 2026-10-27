@@ -26,6 +26,11 @@ def make_item_id(
     return hashlib.sha1(key.encode("utf-8")).hexdigest()
 
 
+class SourceLimitReached(Exception):
+    """A source stopped because its daily call budget is used up or the server rate-limited
+    us (HTTP 429/403). The collector ends that source cleanly and resumes on the next run."""
+
+
 @dataclass
 class NewsItem:
     """One normalized headline from any source."""
@@ -39,6 +44,9 @@ class NewsItem:
     language: str = "en"
     body: Optional[str] = None  # full article text, only fetched for high-impact events
     id: str = ""
+    # "exact": published_at is the real publication time. "day": the source only knows the
+    # date (published_at is 00:00 UTC); use such items for the 1-day horizon only.
+    time_precision: str = "exact"
 
     def __post_init__(self) -> None:
         self.published_at = ensure_utc(self.published_at)

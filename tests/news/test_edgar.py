@@ -140,6 +140,8 @@ def test_fetch_range_quarterly_filters_by_cik_and_reads_headers():
                            "000032019324000080/0000320193-24-000080-index.htm")
     assert items[1].published_at == datetime(2024, 8, 23, tzinfo=UTC)  # header lacked a time
     assert items[1].title == "Apple Inc.: 8-K"
+    assert results.time_precision == "exact"
+    assert items[1].time_precision == "day"  # no acceptance time in the header
     # 1 tickers file + 1 index + 4 headers; the other companies' rows cost nothing.
     assert len(http.calls) == 6
 
@@ -178,12 +180,17 @@ def test_fetch_range_clamps_to_earliest_quarter():
     assert not any("1980" in c[0] for c in http.calls)
 
 
-def test_fetch_recent_returns_all_by_default_and_filters_on_request():
+def test_fetch_recent_keeps_only_allowlisted_by_default():
     routes = [("browse-edgar", read_bytes("latest_8k.atom"))]
-    source, _ = aapl_source(routes)
-    assert len(source.fetch_recent()) == 7
-    source, _ = aapl_source(routes, live_allowlist_only=True)
+    source, _ = aapl_source(routes)  # allowlist: the default megacaps, none in the fixture
     assert source.fetch_recent() == []
+    # A holding passed in as a CIK (Perpetua Resources) lets its filing through.
+    source, _ = aapl_source(routes, ciks=[1526243])
+    items = source.fetch_recent()
+    assert [i.title.split(":")[0] for i in items] == ["PERPETUA RESOURCES CORP."]
+    assert all(i.time_precision == "exact" for i in items)  # the feed carries a time
+    source, _ = aapl_source(routes, live_allowlist_only=False)
+    assert len(source.fetch_recent()) == 7
 
 
 def test_missing_email_warns_once_and_returns_nothing(caplog):

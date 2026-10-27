@@ -185,10 +185,12 @@ class EdgarSource:
         tickers: Iterable[str] = DEFAULT_TICKERS,
         ciks: Iterable[int] = (),
         email: Optional[str] = None,
-        live_allowlist_only: bool = False,
+        live_allowlist_only: bool = True,
     ) -> None:
-        """`tickers` and `ciks` form the allowlist for history. `fetch_recent` returns every
-        8-K in the feed unless `live_allowlist_only` is set."""
+        """`tickers` and `ciks` form the allowlist (megacaps plus holdings, passed in by the
+        collector). `fetch_recent` keeps only allowlisted companies unless
+        `live_allowlist_only` is False, because thousands of small filers would drown the
+        event signal."""
         self._tickers = [t.upper() for t in tickers]
         self._extra_ciks = [int(c) for c in ciks]
         self._email = sec_contact_email() if email is None else email
@@ -295,6 +297,7 @@ class EdgarSource:
             url=_filing_url(cik, accession),
             summary=_summary(numbers),
             symbols=list(tickers),
+            time_precision="exact" if accepted else "day",
         )
 
     def _read_header(self, http, cik: int, accession: str) -> Tuple[Optional[datetime], List[str]]:

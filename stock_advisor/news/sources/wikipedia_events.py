@@ -134,7 +134,7 @@ def parse_day_html(html: str, day: date) -> List[NewsItem]:
         if labels:
             summary = f"{summary} [{'; '.join(labels)}]" if summary else f"[{'; '.join(labels)}]"
         items.append(NewsItem(source="wikipedia_events", published_at=published,
-                              title=text, url=url, summary=summary))
+                              title=text, url=url, summary=summary, time_precision="day"))
     return items
 
 

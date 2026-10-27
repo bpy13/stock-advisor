@@ -11,11 +11,11 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime
-from typing import Iterator, List, Optional
+from typing import Callable, Iterator, List, Optional
 
 import requests
 
-from stock_advisor.news.models import NewsItem, ensure_utc
+from stock_advisor.news.models import NewsItem, SourceLimitReached, ensure_utc
 from stock_advisor.news.settings import nyt_api_key
 from stock_advisor.news.sources import PoliteSession
 
@@ -100,7 +100,11 @@ class NytSource:
         self,
         session: Optional[PoliteSession] = None,
         api_key: Optional[str] = None,
+        budget: Optional[Callable[[], bool]] = None,
     ) -> None:
+        """`budget()` is called before each API call and returns False once the daily cap is
+        used up (the collector sets it); the fetch then raises SourceLimitReached."""
+        self.budget = budget
         self._session = session or PoliteSession(min_delay=NYT_MIN_DELAY, timeout=NYT_TIMEOUT)
         self._api_key = api_key
         self._warned = False
@@ -112,22 +116,37 @@ class NytSource:
             self._warned = True
         return key
 
+    def _spend(self) -> None:
+        if self.budget is not None and not self.budget():
+            raise SourceLimitReached("nyt daily call budget used up")
+
+    @staticmethod
+    def _raise_if_rate_limited(exc: Exception) -> None:
+        response = getattr(exc, "response", None)
+        if isinstance(exc, requests.HTTPError) and response is not None \
+                and response.status_code in (403, 429):
+            raise SourceLimitReached("nyt rate limit reached") from None
+
     def _fetch_month(self, year: int, month: int, key: str) -> List[NewsItem]:
         url = ARCHIVE_URL.format(year=year, month=month)
+        self._spend()
         try:
             response = self._session.get(url, params={"api-key": key})
             return parse_archive(response.json())
         except (requests.RequestException, ValueError) as exc:
+            self._raise_if_rate_limited(exc)
             # Log the type only: the exception text can contain the URL with the key.
             logger.warning("NYT archive %d-%02d failed (%s)", year, month, type(exc).__name__)
             return []
 
     def _fetch_section(self, section: str, key: str) -> List[NewsItem]:
         url = TOP_STORIES_URL.format(section=section)
+        self._spend()
         try:
             response = self._session.get(url, params={"api-key": key})
             return parse_top_stories(response.json())
         except (requests.RequestException, ValueError) as exc:
+            self._raise_if_rate_limited(exc)
             logger.warning("NYT top stories %s failed (%s)", section, type(exc).__name__)
             return []
 
@@ -142,7 +161,12 @@ class NytSource:
         seen = set()
         items: List[NewsItem] = []
         for section in TOP_SECTIONS:
-            for item in self._fetch_section(section, key):
+            try:
+                fetched = self._fetch_section(section, key)
+            except SourceLimitReached as exc:
+                logger.warning("NYT top stories stopped early: %s", exc)
+                break  # keep what the earlier sections gave
+            for item in fetched:
                 if item.url in seen:
                     continue
                 seen.add(item.url)
