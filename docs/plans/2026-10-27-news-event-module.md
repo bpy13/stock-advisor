@@ -226,7 +226,7 @@ report the item count and the earliest date reachable.
 
 ## Phase 4 – Backfill, reactions and model (fable for 4.3, 4.4)
 
-- [ ] **Task 4.1: backfill job** (sonnet)
+- [x] **Task 4.1: backfill job** (sonnet)
   - Files: create `scripts/backfill_news.py`.
   - Done when: started in the background, writing progress to
     `data/cache/news/backfill_status.json`; the check command
