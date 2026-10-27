@@ -311,7 +311,7 @@ report the item count and the earliest date reachable.
     ≥ 1.5%; 24/7. Message: event headline + link, category, target, predicted move per
     horizon, action, window, "⚠ unproven" when applicable. Never alert the same event twice
     (record sent event ids in the store). The token never appears in logs.
-- [ ] **Task 5.5: watcher autostart**
+- [x] **Task 5.5: watcher autostart**
   - Files: create `scripts/register_watcher_task.ps1`.
   - Done when: the script registers a Windows scheduled task `stock_advisor_news_watcher`
     that runs `news_cli --watch` at user login and restarts on failure. The coordinator runs
