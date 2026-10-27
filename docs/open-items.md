@@ -5,6 +5,17 @@ here; a limit or trap we live with goes in `known-issues.md`. Each item in one p
 
 ## Blockers
 
+- GDELT timestamps still collapse: after the fix (b8af5fe) and the combined-query change
+  (8bbdb94), all 169 stored GDELT items still share published_at 2026-10-27 05:15 UTC
+  (checked 2026-10-27 20:20 HKT). The root cause was never confirmed live (GDELT returned 429
+  on every probe). Until fixed, GDELT events can't be used for minute/hour reactions, and
+  they group into misleading "05:15" events. Next step: capture a real artlist response
+  outside rate-limit windows and compare `seendate` values with what is stored; also check
+  whether the backfill and watcher calling GDELT at the same time makes the 429s worse.
+- `conda run` on Windows strips `^` from arguments (cmd escape character), so
+  `--targets ^HSI ^GSPC` became HSI/GSPC and prices failed to load in the end-to-end run.
+  Use `^^HSI`, or call the env's python directly; consider accepting HSI/GSPC aliases.
+
 ## Waiting on the user
 
 - Register the three scheduled tasks (the session's safety check blocks Claude from creating
