@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import sys
 
 from .config import DEFAULT_CONFIG
 from .report import format_report, generate_report
@@ -38,12 +39,21 @@ def build_arg_parser() -> argparse.ArgumentParser:
         default=DEFAULT_CONFIG.period,
         help="Yahoo Finance history period, e.g. 1y, 2y, 5y (default: %(default)s)",
     )
+    parser.add_argument(
+        "--no-news",
+        action="store_true",
+        help="Skip the news lookup (no news column).",
+    )
     return parser
 
 
 def main() -> None:
     parser = build_arg_parser()
     args = parser.parse_args()
+
+    # The news column uses non-ASCII marks; never crash on a legacy Windows console.
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(errors="replace")
 
     config = DEFAULT_CONFIG
     if args.period != config.period:
@@ -52,7 +62,10 @@ def main() -> None:
         config = replace(config, period=args.period)
 
     report = generate_report(
-        args.symbols or None, portfolio_path=args.portfolio, config=config
+        args.symbols or None,
+        portfolio_path=args.portfolio,
+        config=config,
+        include_news=not args.no_news,
     )
     print(format_report(report))
 

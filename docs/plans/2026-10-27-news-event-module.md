@@ -289,7 +289,7 @@ report the item count and the earliest date reachable.
     "hold". Shown as a warning ("⚠ unproven") unless `proven` for that target and horizon.
     Thresholds live in `config.py` as `NEWS_ACTION_THRESHOLD_PCT`. Guardian items display
     as headline + link only, never the summary (applies to 5.1–5.4).
-- [ ] **Task 5.2: CLI report news column**
+- [x] **Task 5.2: CLI report news column**
   - Files: modify `stock_advisor/report.py`, `stock_advisor/cli.py`; test
     `tests/test_report.py`.
   - Done when: tests pass; live `python -m stock_advisor.cli` shows a `news` column per
