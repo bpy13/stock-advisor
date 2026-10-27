@@ -148,7 +148,7 @@ report the item count and the earliest date reachable.
 - [x] **Task 1.10: public RSS feeds** `[parallel-ok]` — `sources/rss_feeds.py`. A list of
   feed URLs in the module (Yahoo Finance, Nasdaq, RTHK business, SCMP business, CNBC, BBC
   business, MarketWatch, Investing.com); keep only feeds that load and allow access.
-- [ ] **Task 1.11: collector CLI**
+- [x] **Task 1.11: collector CLI**
   - Files: create `stock_advisor/news/collect.py`; test `tests/news/test_collect.py`.
   - Done when: test passes with fake adapters; `python -m stock_advisor.news.collect --recent`
     run live stores items from every working source and prints a count per source.
