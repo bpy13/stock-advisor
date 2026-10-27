@@ -236,6 +236,7 @@ report the item count and the earliest date reachable.
     goes (Guardian from 1990-02, ~3,450 calls ≈ 7 days at the daily cap; NYT from 1990,
     ~440 calls ≈ 1 day). Add `scripts/register_backfill_task.ps1`: a daily Windows task that
     reruns the backfill until every source reports complete; the coordinator registers it.
+    EDGAR's cursor advances only per completed quarter (its index is not in date order).
 - [ ] **Task 4.2: reaction table** (sonnet)
   - Files: create `stock_advisor/news/reactions.py`; test `tests/news/test_reactions.py`.
   - Done when: tests pass on synthetic prices: for an event at time t, the cumulative return

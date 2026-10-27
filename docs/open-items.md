@@ -33,6 +33,15 @@ here; a limit or trap we live with goes in `known-issues.md`. Each item in one p
 
 - News event module: see `docs/plans/2026-10-27-news-event-module.md`.
 
+- GDELT: all 168 live items share one published_at (2026-10-27 05:15 UTC), so the time
+  parsing is wrong. Fix dispatched with Phase 2.
+- GDELT returns 429 under a full 10-query pass (one query gave up in the live run). The
+  watcher polls it every 15 min; the Phase 4 backfill needs longer waits.
+- EDGAR live feed gave 0 allowlisted 8-Ks in one poll. Judge the allowlist after several
+  days of polling. HK holdings are not passed to EDGAR (HK companies don't file 8-Ks).
+- EDGAR `fetch_range` reads quarterly indexes in form-type order, so an interrupted
+  mid-quarter backfill could skip filings; Task 4.1 must keep EDGAR's cursor per quarter.
+
 ## Later
 
 - NYT business/world RSS feeds need no key and could join the RSS adapter. (Top Stories is
