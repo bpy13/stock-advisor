@@ -282,6 +282,8 @@ def build_arg_parser() -> argparse.ArgumentParser:
         description="Current news events with similar past events, predicted moves and actions.")
     parser.add_argument("--watch", action="store_true",
                         help="keep polling the sources and print new high-impact events")
+    parser.add_argument("--no-alerts", action="store_true",
+                        help="with --watch: do not send Telegram alerts")
     parser.add_argument("--collect", action="store_true",
                         help="fetch every source and score new items before showing events")
     parser.add_argument("--hours", type=float, default=DEFAULT_HOURS,
@@ -339,6 +341,10 @@ def main(
             if sources is None:
                 sources = A.build_watch_sources(holdings)
         if args.watch:
+            if on_new_events is None and not args.no_alerts:
+                from stock_advisor.news.notify import build_notifier
+
+                on_new_events = build_notifier(store)  # inert (one warning) without a token
             return watch(store, analyzer, sources, on_new_events, hours=args.hours,
                          finbert=finbert, embedder=embedder, out=out, **watch_options)
         if args.collect:

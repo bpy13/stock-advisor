@@ -68,6 +68,14 @@ CREATE TABLE IF NOT EXISTS backfill_cursor (
     source TEXT PRIMARY KEY,
     cursor TEXT NOT NULL
 );
+
+-- Telegram alerts already handled, so an event is never alerted twice (Task 5.4).
+-- kind: 'alert' (message sent) or 'suppressed' (over the hourly limit; not sent).
+CREATE TABLE IF NOT EXISTS sent_alerts (
+    event_id TEXT PRIMARY KEY,
+    sent_at TEXT NOT NULL,
+    kind TEXT NOT NULL DEFAULT 'alert'
+);
 """
 
 
@@ -147,6 +155,28 @@ class NewsStore:
                     "UPDATE items SET time_precision = 'day' WHERE source = 'wikipedia_events' "
                     "OR (source = 'edgar' AND published_at LIKE '%T00:00:00.000000+00:00')"
                 )
+
+    # ---- sent alerts (the table is created by _SCHEMA, so an older database gets it on open) --
+
+    def alert_handled(self, event_id: str) -> bool:
+        """True when an alert (sent or suppressed) was already recorded for this event."""
+        return self._conn.execute(
+            "SELECT 1 FROM sent_alerts WHERE event_id = ?", (event_id,)
+        ).fetchone() is not None
+
+    def record_alert(self, event_id: str, when: datetime, kind: str = "alert") -> None:
+        with self._conn:
+            self._conn.execute(
+                "INSERT OR IGNORE INTO sent_alerts (event_id, sent_at, kind) VALUES (?, ?, ?)",
+                (event_id, _to_text(when), kind),
+            )
+
+    def alerts_sent_since(self, since: datetime) -> int:
+        """Number of messages actually sent (kind 'alert') at or after `since`."""
+        return self._conn.execute(
+            "SELECT COUNT(*) FROM sent_alerts WHERE kind = 'alert' AND sent_at >= ?",
+            (_to_text(since),),
+        ).fetchone()[0]
 
     def spend_call(self, source: str, cap: int, day: Optional[str] = None) -> bool:
         """Count one API call for `source` today (UTC) unless `cap` calls are already used.
