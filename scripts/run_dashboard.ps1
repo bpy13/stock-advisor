@@ -1,5 +1,5 @@
 # Runs the dashboard (streamlit run app.py) on a fixed port and starts it again whenever it stops.
-# The scheduled task stock_advisor_dashboard (register_dashboard_task.ps1) calls this at boot.
+# The scheduled task stock_advisor_dashboard (register_dashboard_task.ps1) calls this at logon.
 # The port is fixed (default 8502) so bookmarks keep working: hk-estate's dashboard holds 8501,
 # and without a fixed port Streamlit silently moves to the next free one.
 # Starts and stops go to data\cache\dashboard_log.txt, Streamlit's own output to

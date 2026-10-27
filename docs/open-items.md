@@ -19,9 +19,9 @@ here; a limit or trap we live with goes in `known-issues.md`. Each item in one p
 ## Waiting on the user
 
 - Register the four scheduled tasks (the session's safety check blocks Claude from creating
-  persistent tasks), in an elevated PowerShell: `scripts\register_recorder_task.ps1`,
+  persistent tasks), in a normal PowerShell: `scripts\register_recorder_task.ps1`,
   `scripts\register_backfill_task.ps1`, `scripts\register_watcher_task.ps1`,
-  `scripts\register_dashboard_task.ps1` (2026-10-28: dashboard at boot on port 8502; all four
+  `scripts\register_dashboard_task.ps1` (2026-10-28: dashboard at login on port 8502; all four
   now headless), then start the watcher and dashboard tasks. Check with
   `Get-ScheduledTask -TaskName stock_advisor_*`. The backfill (pid 20636) died in the PC
   restart of 2026-10-27 ~23:24; the 02:00 task continues it (stale lock is replaced).
