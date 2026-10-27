@@ -6,7 +6,7 @@ import json
 import sqlite3
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Iterable, List, Optional, Union
+from typing import Iterable, List, Optional, Tuple, Union
 
 from stock_advisor.news.models import Event, ItemScore, NewsItem, ensure_utc
 from stock_advisor.news.settings import DEFAULT_DB_PATH
@@ -327,6 +327,26 @@ class NewsStore:
             sql += " LIMIT ?"
             params.append(limit)
         return [_row_to_item(r) for r in self._conn.execute(sql, params)]
+
+    def items_awaiting_category(self, limit: Optional[int] = None) -> List[Tuple[NewsItem, bytes]]:
+        """(item, embedding bytes) for items that have an embedding but no category yet."""
+        sql = (
+            "SELECT i.*, s.embedding AS score_embedding FROM items i "
+            "JOIN scores s ON s.item_id = i.id "
+            "WHERE s.category IS NULL AND s.embedding IS NOT NULL ORDER BY i.published_at, i.id"
+        )
+        params: list = []
+        if limit is not None:
+            sql += " LIMIT ?"
+            params.append(limit)
+        return [(_row_to_item(r), r["score_embedding"]) for r in self._conn.execute(sql, params)]
+
+    def set_category(self, item_id: str, category: str) -> None:
+        """Set only the category of an existing score row. high_impact is left alone."""
+        with self._conn:
+            self._conn.execute(
+                "UPDATE scores SET category = ? WHERE item_id = ?", (category, item_id)
+            )
 
     def items_for_event(self, event_id: str) -> List[NewsItem]:
         rows = self._conn.execute(

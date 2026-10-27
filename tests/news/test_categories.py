@@ -53,6 +53,13 @@ HEADLINES = [
     ("Tesla reports record deliveries and revenue growth in quarterly results", "company_results"),
     ("Floods and landslides leave thousands homeless after monsoon rains", "natural_disaster"),
     ("Government announces new import quotas and retaliatory tariffs on farm goods", "trade_tariffs"),
+    # Added before the geopolitical_tension seeds were written.
+    ("Beijing summons US ambassador over new arms package for Taiwan", "geopolitical_tension"),
+    ("Washington blacklists dozens of Chinese tech firms, Beijing vows countermeasures", "geopolitical_tension"),
+    ("Two countries expel diplomats in escalating spy dispute", "geopolitical_tension"),
+    # Known mislabels: bond tender results and generic sector updates.
+    ("Government 10-year bond tender draws strong demand, yields ease", "fiscal_regulation"),
+    ("Sector Update: Consumer Discretionary Stocks Fall Late Afternoon", "other"),
 ]
 
 
@@ -70,7 +77,8 @@ class FakeEmbedder:
 
 
 def test_category_lists():
-    assert len(CATEGORIES) == 14
+    assert len(CATEGORIES) == 15
+    assert "geopolitical_tension" in MACRO_CATEGORIES
     assert "other" in CATEGORIES
     assert set(MACRO_CATEGORIES) == {c for c in CATEGORIES if not c.startswith("company_") and c != "other"}
     assert len(HEADLINES) >= 30
@@ -92,6 +100,18 @@ def test_keyword_override_beats_weak_centroid():
     # The fake vectors are unrelated to the seeds, so only the keyword rule can decide.
     result = categorize(["Trump announces new tariffs on imports"], embeddings=np.zeros((1, 384), np.float32))
     assert result == ["trade_tariffs"]
+
+
+def test_overrides_for_bond_tenders_and_sector_updates():
+    titles = [
+        "Treasury auction of 30-year bonds sees tail",
+        "Sector Update: Energy Stocks Slip",
+        "Oil auction of drilling rights announced",  # no bond word: not overridden
+    ]
+    got = categorize(titles, embeddings=np.zeros((3, 384), np.float32))
+    assert got[0] == "fiscal_regulation"
+    assert got[1] == "other"
+    assert got[2] != "fiscal_regulation"
 
 
 def test_weak_match_falls_back_to_other():

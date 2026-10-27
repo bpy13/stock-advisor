@@ -19,6 +19,7 @@ CATEGORIES: List[str] = [
     "monetary_policy",
     "fiscal_regulation",
     "war_conflict",
+    "geopolitical_tension",
     "terrorism",
     "pandemic_health",
     "cyber_security",
@@ -71,6 +72,14 @@ SEEDS: Dict[str, List[str]] = {
         "ceasefire negotiations in the war",
         "missile strike on city",
         "sanctions imposed after military aggression",
+    ],
+    "geopolitical_tension": [
+        "diplomatic dispute between rival powers",
+        "sanctions imposed on foreign officials and firms",
+        "tensions rise across the Taiwan Strait",
+        "ambassador summoned and diplomats expelled",
+        "foreign ministry condemns blacklist of its companies",
+        "relations between Washington and Beijing deteriorate",
     ],
     "terrorism": [
         "terrorist attack kills civilians",
@@ -159,6 +168,15 @@ KEYWORDS: Dict[str, List[str]] = {
     ],
     "fiscal_regulation": ["budget", "tax", "regulator", "antitrust", "stimulus"],
     "war_conflict": ["war", "invasion", "airstrike", "airstrikes", "missile", "troops", "ceasefire"],
+    "geopolitical_tension": [
+        "sanctions",
+        "embassy",
+        "cross-strait",
+        "taiwan strait",
+        "diplomatic row",
+        "diplomatic dispute",
+        "expels diplomats",
+    ],
     "terrorism": ["terror", "terrorist", "terrorism", "suicide bomber", "bombing"],
     "pandemic_health": ["pandemic", "epidemic", "outbreak", "virus", "covid", "who warns"],
     "cyber_security": ["cyberattack", "cyber attack", "hackers", "ransomware", "data breach"],
@@ -174,6 +192,20 @@ _KEYWORD_PATTERNS = {
     category: re.compile(r"\b(?:" + "|".join(re.escape(w) for w in words) + r")\b", re.IGNORECASE)
     for category, words in KEYWORDS.items()
 }
+
+# Checked before the centroid match, because the embedding gets these wrong (a government bond
+# tender result reads like "bond failure"; a generic "Sector Update" has no event in it).
+_OVERRIDES = [
+    (re.compile(r"^\s*sector update\s*:", re.IGNORECASE), "other"),
+    (
+        re.compile(
+            r"\b(?:(?:bond|bill|bills|note|notes|treasury|treasuries|debt)\b[^.]{0,40}\b(?:tender|auction)"
+            r"|(?:tender|auction)\b[^.]{0,40}\b(?:bond|bonds|bills|notes|treasury|treasuries))",
+            re.IGNORECASE,
+        ),
+        "fiscal_regulation",
+    ),
+]
 
 _centroids: Optional[np.ndarray] = None
 _centroid_names = [c for c in CATEGORIES if c != "other"]
@@ -215,6 +247,10 @@ def categorize(
     sims = np.asarray(embeddings, dtype=np.float32) @ _get_centroids(embedder).T
     result = []
     for title, row in zip(titles, sims):
+        override = next((cat for pattern, cat in _OVERRIDES if pattern.search(title)), None)
+        if override is not None:
+            result.append(override)
+            continue
         best = int(np.argmax(row))
         score = float(row[best])
         if score >= STRONG_SIMILARITY:
@@ -235,23 +271,12 @@ def categorize_pending(store, limit: Optional[int] = None) -> int:
 
     Uses the stored embeddings, so no model is loaded. Returns the number categorized.
     """
-    sql = (
-        "SELECT i.id, i.title, s.embedding FROM items i JOIN scores s ON s.item_id = i.id "
-        "WHERE s.category IS NULL AND s.embedding IS NOT NULL ORDER BY i.published_at, i.id"
-    )
-    params: list = []
-    if limit is not None:
-        sql += " LIMIT ?"
-        params.append(limit)
-    rows = store._conn.execute(sql, params).fetchall()
+    rows = store.items_awaiting_category(limit)
     if not rows:
         return 0
-    vectors = np.vstack([embedding_from_bytes(r["embedding"]) for r in rows])
-    labels = categorize([r["title"] for r in rows], embeddings=vectors)
-    # Direct UPDATE: store.update_scores would reset high_impact to 0.
-    with store._conn:
-        store._conn.executemany(
-            "UPDATE scores SET category = ? WHERE item_id = ?",
-            [(label, row["id"]) for row, label in zip(rows, labels)],
-        )
+    vectors = np.vstack([embedding_from_bytes(emb) for _, emb in rows])
+    labels = categorize([item.title for item, _ in rows], embeddings=vectors)
+    # set_category, not update_scores: update_scores would reset high_impact to 0.
+    for (item, _), label in zip(rows, labels):
+        store.set_category(item.id, label)
     return len(rows)

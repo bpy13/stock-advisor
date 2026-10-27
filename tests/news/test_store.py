@@ -129,6 +129,25 @@ def test_update_scores_and_unscored(store):
     assert store.get_score("missing") is None
 
 
+def test_items_awaiting_category_and_set_category(store):
+    a, b, c = _item(title="a"), _item(title="b", minutes=1), _item(title="c", minutes=2)
+    store.add_items([a, b, c])
+    store.update_scores(ItemScore(a.id, embedding=b"\x01", high_impact=True))
+    store.update_scores(ItemScore(b.id, embedding=b"\x02", category="other"))
+    store.update_scores(ItemScore(c.id, tone=0.1))  # no embedding
+
+    waiting = store.items_awaiting_category()
+    assert [(i.id, emb) for i, emb in waiting] == [(a.id, b"\x01")]
+    assert store.items_awaiting_category(limit=0) == []
+
+    store.set_category(a.id, "war_conflict")
+    score = store.get_score(a.id)
+    assert score.category == "war_conflict"
+    assert score.high_impact is True  # untouched
+    assert score.embedding == b"\x01"
+    assert store.items_awaiting_category() == []
+
+
 def test_events_roundtrip_and_query(store):
     e1 = Event(id="e1", started_at=T0, category="war_conflict", title="War", n_items=3,
                n_sources=2, high_impact=True)
