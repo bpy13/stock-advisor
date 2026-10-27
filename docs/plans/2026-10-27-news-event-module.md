@@ -92,7 +92,7 @@ The aim is to react before ordinary investors do, not to compete with profession
 
 ## Phase 1 – News sources (sonnet)
 
-- [ ] **Task 1.1: news models, store and settings**
+- [x] **Task 1.1: news models, store and settings**
   - Files: create `stock_advisor/news/__init__.py`, `stock_advisor/news/models.py`,
     `stock_advisor/news/store.py`, `stock_advisor/news/settings.py`,
     `stock_advisor/news/sources/__init__.py`; test `tests/news/test_store.py`.
