@@ -71,4 +71,5 @@ rather than deleting them). Nothing Brian didn't say is recorded as his decision
 
 ## Repository
 
-- Remote: https://github.com/bpy13/stock_advisor (existing).
+- Remote: https://github.com/bpy13/stock-advisor.git (GitHub renamed it from stock_advisor;
+  remote updated 2026-10-28).
