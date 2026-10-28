@@ -18,19 +18,15 @@ here; a limit or trap we live with goes in `known-issues.md`. Each item in one p
 
 ## Waiting on the user
 
-- Register the four scheduled tasks (the session's safety check blocks Claude from creating
-  persistent tasks), in a normal PowerShell: `scripts\register_recorder_task.ps1`,
-  `scripts\register_backfill_task.ps1`, `scripts\register_watcher_task.ps1`,
-  `scripts\register_dashboard_task.ps1` (2026-10-28: dashboard at login on port 8502; all four
-  now headless), then start the watcher and dashboard tasks. Check with
-  `Get-ScheduledTask -TaskName stock_advisor_*`. The backfill (pid 20636) died in the PC
-  restart of 2026-10-27 ~23:24; the 02:00 task continues it (stale lock is replaced).
-- Real-browser check of the dashboard News tab (no browser tools in this session): run
-  `conda run -n stock_advisor streamlit run app.py`, open http://localhost:8501, check the
-  News tab, stop with Ctrl+C.
+- Watcher (pid 19260) and dashboard (pid 24808) run outside their tasks: `Stop-ScheduledTask`
+  marked the tasks Ready but left the processes, and Claude's safety check blocked
+  `Stop-Process`. In PowerShell: `Stop-Process -Id 19260,24808; Start-ScheduledTask
+  stock_advisor_news_watcher; Start-ScheduledTask stock_advisor_dashboard`.
+- Real-browser check of the dashboard News tab (no browser tools in this session): the
+  dashboard task serves it at http://localhost:8502; open it and check the News tab.
 
 - Telegram bot token in `.env` as `TELEGRAM_BOT_TOKEN=` (create the bot with @BotFather, then
-  send the bot one message). Task 5.4's setup and phone test wait for it.
+  send the bot one message). Task 5.4b (setup and phone test) waits for it.
 
 - Guardian and NYT API keys in `.env` (`GUARDIAN_API_KEY`, `NYT_API_KEY`). Until then those
   two sources are built and tested from fixtures, but not backfilled.
@@ -46,6 +42,10 @@ here; a limit or trap we live with goes in `known-issues.md`. Each item in one p
   info@hkex.com.hk for written permission; until then HK filings are not collected.
 
 - Confirm the one-step rule for proven news actions (decisions.md, 2026-10-27).
+- (plan review 2026-10-28) If Task 6.2c finds GDELT stamps items per 15-minute crawl batch,
+  should GDELT items drop the 1-minute horizon (keep hour and day)? Default: yes.
+- (plan review 2026-10-28) OneDrive syncs `data\` (news.db is 1.5 GB, written all day). This
+  may slow or break the backfill. Default: exclude `data\` from OneDrive sync (Brian's setting).
 
 ## Pending work
 
@@ -65,8 +65,6 @@ here; a limit or trap we live with goes in `known-issues.md`. Each item in one p
 
 - News event module: see `docs/plans/2026-10-27-news-event-module.md`.
 
-- GDELT: all 168 live items share one published_at (2026-10-27 05:15 UTC), so the time
-  parsing is wrong. Fix dispatched with Phase 2.
 - GDELT returns 429 under a full 10-query pass (one query gave up in the live run). The
   watcher polls it every 15 min; the Phase 4 backfill needs longer waits.
 - EDGAR live feed gave 0 allowlisted 8-Ks in one poll. Judge the allowlist after several
@@ -90,7 +88,10 @@ here; a limit or trap we live with goes in `known-issues.md`. Each item in one p
 - Cluster parameters chosen on real data: similarity ≥ 0.60, 12 h window (same day for
   date-only items), events span at most 48 h. The plan's 0.75 merged too little.
 
-- Backfill (Task 4.1) running since 2026-10-27 18:55 HKT (pid 20636). Check:
+- Backfill (Task 4.1): the daily 02:00 task runs it; the 2026-10-28 run stopped at 07:57 HKT
+  while scoring, with no trace; cause unknown. Since cf242e3 a crash writes `crashed: <type>`
+  to the status file and a traceback to backfill_log.txt; read them after the next stop.
+  `news_cli` took over 5 minutes to print on the full store (2026-10-28). Check:
   `conda run -n stock_advisor python scripts\backfill_news.py --status`. Sources take
   30-minute turns; Guardian and NYT stop at 480 calls a day; GDELT history from 2017 needs
   ~2 calls per day-window, so it takes a day or more. Wikipedia, NYT and EDGAR adapters
@@ -101,8 +102,7 @@ here; a limit or trap we live with goes in `known-issues.md`. Each item in one p
 - Full live backtest (Task 4.4) and window check (Task 4.5) wait for the backfill to score
   and cluster events; rerun `python -m stock_advisor.news_backtest_cli` then.
 
-- Watcher (Task 5.1): switch news.db to WAL mode once the backfill finishes (lets the
-  watcher read while the backfill writes); store.py now connects with a 30 s timeout. A cold
+- Watcher (Task 5.1): WAL mode is now Task 6.2b; store.py connects with a 30 s timeout. A cold
   `news_cli --collect` can block on GDELT 429 waits for many minutes (watch mode runs GDELT
   on a side thread, so it doesn't stall). The watcher log (data\cache\news\watcher_log.txt,
   gitignored) lists holdings symbols.
@@ -112,14 +112,8 @@ here; a limit or trap we live with goes in `known-issues.md`. Each item in one p
   table and "⚠ unproven" badge are untested on real data until predictions exist.
   `SimilarEvent` should carry a URL (app.py looks links up itself for now).
 
-- Re-categorize after the backfill ends: the backfill process started before the
-  single-stock category fix (commit 0fbfdf1), so its stored categories use the old rules.
-  Steps: back up news.db; dry run that prints old→new counts; write only changed rows via
-  `store.set_category` (not `update_scores`, which resets high_impact); recompute high_impact
-  for changed events.
-- Task 5.4 (Telegram) is built but unticked: run `python -m stock_advisor.news.notify --setup`
-  then `--test` once TELEGRAM_BOT_TOKEN is in `.env`, and tick after Brian confirms the
-  message on his phone.
+- Re-categorize rows categorized before commit 0fbfdf1: now Task 6.2e (use
+  `store.set_category`, not `update_scores`, which resets high_impact).
 
 ## Later
 

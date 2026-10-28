@@ -301,7 +301,7 @@ report the item count and the earliest date reachable.
   - Done when: `streamlit run app.py` in the background on 8501 loads; the News tab shows
     events, similar past events, predicted moves and backtest results; checked in a real
     browser; server stopped by port afterwards.
-- [ ] **Task 5.4: Telegram alerts** (built in 2bffd2b; split 2026-10-28, plan review: the
+- [x] **Task 5.4: Telegram alerts** (built in 2bffd2b; split 2026-10-28, plan review: the
   phone test is Task 5.4b, so this task can be ticked without the token)
   - Files: create `stock_advisor/news/notify.py`; test `tests/news/test_notify.py`; hook
     into `news_cli.py --watch`; add `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` to `.env.example`.
@@ -336,8 +336,8 @@ before the end-to-end check. 6.2a and 6.2b are `[parallel-ok]` (disjoint files).
 write to or diagnose the real store: one at a time, never while
 `data/cache/news/backfill.lock` exists, and with a copy of `news.db` taken first.
 
-- [ ] **Task 6.2a: index aliases without `^`** (added 2026-10-28, plan review) `[parallel-ok]`
-  (sonnet)
+- [x] **Task 6.2a: index aliases without `^`** (added 2026-10-28, plan review) `[parallel-ok]`
+  (sonnet) — a3be264; HSI/GSPC map to ^HSI/^GSPC and load 1d and 60m prices (checked live)
   - Files: modify `stock_advisor/config.py` (one `normalize_target` helper), `news_cli.py`,
     `news_backtest_cli.py`, `stock_advisor/news/analysis.py` (`NewsAnalyzer` targets),
     `README.md`; test `tests/test_config.py`.
@@ -346,8 +346,10 @@ write to or diagnose the real store: one at a time, never while
     `conda run -n stock_advisor python -m stock_advisor.news_cli --targets ^HSI ^GSPC` loads
     prices; the README says `conda run` strips `^` (cmd escape) and gives `^^HSI` or the env's
     python as the way round it.
-- [ ] **Task 6.2b: news.db in WAL mode** (added 2026-10-28, plan review) `[parallel-ok]`
-  (sonnet)
+- [x] **Task 6.2b: news.db in WAL mode** (added 2026-10-28, plan review) `[parallel-ok]`
+  (sonnet) — 4e9cf8a; the real file switched at 12:03 HKT while the watcher ran (not stopped
+  first); afterwards journal_mode=wal, quick_check ok, counts intact; `--status` works with the
+  watcher and backfill running
   - Files: modify `stock_advisor/news/store.py`; test `tests/news/test_store.py`; update the
     "SQLite has one writer" entry in `docs/known-issues.md` and `docs/architecture.md`.
   - Done when: `NewsStore` runs `PRAGMA journal_mode=WAL` on connect (the real file reports
@@ -377,8 +379,10 @@ write to or diagnose the real store: one at a time, never while
   - Notes: if GDELT really stamps `seendate` per 15-minute crawl batch, minute reactions for
     GDELT items are not possible: record that in known-issues and ask Brian whether GDELT
     items keep the 1-minute horizon (decision, not a default).
-- [ ] **Task 6.2d: backfill stop diagnosis and crash logging** (added 2026-10-28, plan
-  review) (coordinator diagnoses; sonnet for the code)
+- [x] **Task 6.2d: backfill stop diagnosis and crash logging** (added 2026-10-28, plan
+  review) (coordinator diagnoses; sonnet for the code) — cf242e3 (crash state, progress lines,
+  faulthandler, `--process-only`); the old log has no trace after 03:25, so the cause stays
+  unknown (open-items); backfill task restarted 12:05 HKT, `--status` shows it running
   - Facts on 2026-10-28: the 02:00 task's run (started 02:00:02 HKT) stopped at 07:57 HKT in
     state "scoring" with 543,624 items unscored. The lock file is gone, so `main()`'s
     `finally` ran: an exception escaped `run()` (a finished run writes "stopped" or
