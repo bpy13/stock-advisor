@@ -379,9 +379,8 @@ write to or diagnose the real store: one at a time, never while
   - Progress 2026-10-28 (173e3d8): (1) done: GDELT's DOC API itself had nothing newer than
     2026-10-27T05:15Z (index stalled upstream); fetch_recent now logs the newest seendate.
     (2) done: real 72 h fixture, 250 articles with only 3 distinct seendates. (3) open until
-    GDELT publishes newer batches. (4) on hold: 126 of the 169 stored items appear in the real
-    response, and GDELT stamps all 126 at 05:15, so the stored times are correct. Purge waits
-    for Brian (open-items); script in the session scratchpad (`purge_old_gdelt.py`).
+    GDELT publishes newer batches. (4) dropped (Brian, 2026-10-28: no purge): 126 of the 169
+    stored items appear in the real response with the same 05:15 stamp, so they are correct.
   - Notes: if GDELT really stamps `seendate` per 15-minute crawl batch, minute reactions for
     GDELT items are not possible: record that in known-issues and ask Brian whether GDELT
     items keep the 1-minute horizon (decision, not a default).

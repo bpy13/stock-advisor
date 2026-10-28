@@ -39,9 +39,6 @@ here; a limit or trap we live with goes in `known-issues.md`. Each item in one p
   info@hkex.com.hk for written permission; until then HK filings are not collected.
 
 - Confirm the one-step rule for proven news actions (decisions.md, 2026-10-27).
-- Keep the 169 GDELT items stored on 2026-10-27? The plan said purge them as mis-stamped, but
-  126 of them carry the same 05:15 stamp in GDELT's own response, so they are correct.
-  Default: keep them (no purge).
 
 ## Pending work
 

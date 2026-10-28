@@ -68,6 +68,8 @@ rather than deleting them). Nothing Brian didn't say is recorded as his decision
 - 2026-10-27 (Brian): news output appears in both the CLI report and the Streamlit dashboard.
 - 2026-10-28 (Brian): GDELT items drop the sub-hour horizons (1m, 5m, 15m) and keep the hour
   and day horizons, because GDELT stamps articles per crawl batch, not per article.
+- 2026-10-28 (Brian, accepted recommendation): keep the 169 GDELT items stored on 2026-10-27;
+  no purge. Their 05:15 UTC stamps match GDELT's own batch stamps.
 
 ## Repository
 
