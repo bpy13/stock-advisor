@@ -437,7 +437,8 @@ write to or diagnose the real store: one at a time, never while
 - [ ] **Task 6.2f: rerun the backtest after the backfill completes** (added 2026-10-28, plan
   review; waiting on time, probably a later session)
   - Done when: `--status` shows every source complete (or capped with the limit recorded) and
-    0 to score, categorize and cluster; `news_backtest_cli` rerun and `results.json`
+    0 to score, categorize and cluster; `news_backtest_cli --rebuild-reactions` rerun (the
+    cache predates the GDELT "batch" precision of 16bfaa6) and `results.json`
     replaced; the `proven` flags, the market-moving categories and the window section are
     quoted; the category thresholds and high-impact rule open items are revisited with them.
 - [ ] **Task 6.3: pre-release review, fixes, wrap-up, ship** (coordinator; after 6.2.
