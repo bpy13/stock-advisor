@@ -3,6 +3,7 @@
     python scripts/backfill_news.py                    # run until done or every source is capped
     python scripts/backfill_news.py --max-minutes 90   # bounded run
     python scripts/backfill_news.py --status           # print progress and exit
+    python scripts/backfill_news.py --process-only     # score/categorize/cluster, fetch nothing
 
 Sources run one after another (Wikipedia, EDGAR, GDELT, Guardian, NYT). Each gets a time slice
 per pass (--slice-minutes), then scoring, categorizing and clustering catch up on the new
@@ -17,6 +18,7 @@ stops for the day; the daily scheduled task (register_backfill_task.ps1) continu
 from __future__ import annotations
 
 import argparse
+import faulthandler
 import json
 import logging
 import os
@@ -57,7 +59,8 @@ COMPLETE_LAG = timedelta(days=3)
 STILL_ACTIVE = 259  # Windows exit code of a running process
 STALL_RETRIES = 3  # passes to retry a rate-limited source (GDELT) before giving up for the run
 STALL_WAIT_SECONDS = 180
-SCORE_CHUNK = 1000
+SCORE_CHUNK = 640  # ten model batches of 64; one log line and one status heartbeat per chunk
+FULL_REFRESH_EVERY = 10  # chunks between full status refreshes (which recount the database)
 CATEGORY_CHUNK = 20000
 BODY_FETCH_DAYS = 30  # only recent high-impact events get an article body (old URLs are dead)
 
@@ -214,6 +217,10 @@ class Progress:
         self.data["processing"] = {**self.data["processing"], **processing_counts(self.store)}
         write_status(self.data)
 
+    def heartbeat(self) -> None:
+        """Rewrite the status file (refreshes `updated`) without recounting the database."""
+        write_status(self.data)
+
     def source(self, name: str, run_status: Optional[str] = None, error: Optional[str] = None) -> None:
         entry = self.data["sources"][name]
         if run_status is not None:
@@ -314,9 +321,24 @@ def process_new_items(store, progress: Progress, stop_at: float, final: bool = F
     from stock_advisor.news.scoring import score_pending
 
     progress.refresh("scoring")
-    while processing_counts(store)["unscored"] and time.monotonic() < stop_at:
-        score_pending(store, limit=SCORE_CHUNK)
-        progress.refresh()
+    remaining = processing_counts(store)["unscored"]
+    scored_total, began, chunks = 0, time.monotonic(), 0
+    while remaining and time.monotonic() < stop_at:
+        scored = score_pending(store, limit=SCORE_CHUNK)
+        if not scored:
+            logger.warning("scoring: %d items still unscored but none could be scored", remaining)
+            break
+        scored_total += scored
+        remaining = max(remaining - scored, 0)
+        chunks += 1
+        rate = scored_total / max(time.monotonic() - began, 1e-9)
+        # One line per chunk: when a run dies, the last line shows when and how far it got.
+        logger.info("scoring: %d scored this pass, %.1f items/s, %d remaining",
+                    scored_total, rate, remaining)
+        if chunks % FULL_REFRESH_EVERY == 0:
+            progress.refresh()  # also recounts the database: slow on a large store
+        else:
+            progress.heartbeat()
     progress.refresh("categorizing")
     while processing_counts(store)["uncategorized"] and time.monotonic() < stop_at:
         categorize_pending(store, limit=CATEGORY_CHUNK)
@@ -415,6 +437,8 @@ def main(argv: Optional[List[str]] = None) -> int:
     parser.add_argument("--max-minutes", type=float, help="stop after about this many minutes")
     parser.add_argument("--slice-minutes", type=float, default=30,
                         help="time each source gets per pass before scoring runs (default 30)")
+    parser.add_argument("--process-only", action="store_true",
+                        help="score, categorize and cluster pending items; fetch from no source")
     parser.add_argument("--db", help="path of the SQLite store (default: data/cache/news/news.db)")
     args = parser.parse_args(argv)
 
@@ -427,22 +451,72 @@ def main(argv: Optional[List[str]] = None) -> int:
         level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s",
         handlers=[logging.FileHandler(LOG_FILE, encoding="utf-8"), logging.StreamHandler()],
     )
-    if not acquire_lock():
+    if not acquire_lock(LOCK_FILE):
         print("Another backfill is running (see backfill.lock). Exiting.")
         return 2
+    _enable_faulthandler()
+    exit_code = 0
     try:
-        previous = read_status()
+        previous = read_status(STATUS_FILE)
         with NewsStore(args.db) as store:
-            sources = {s.name: s for s in build_sources(holdings_symbols())}
-            gdelt = sources["gdelt"]
-            gdelt.strict = True  # stop instead of skipping a window the server refused
-            gdelt.rate_limit_wait, gdelt.rate_limit_tries = 75.0, 4  # lockouts last 1+ minutes
             progress = Progress(store, previous)
-            run(store, sources, progress, args.max_minutes, args.slice_minutes)
+            if args.process_only:
+                run_process_only(store, progress, args.max_minutes)
+            else:
+                sources = {s.name: s for s in build_sources(holdings_symbols())}
+                gdelt = sources["gdelt"]
+                gdelt.strict = True  # stop instead of skipping a window the server refused
+                gdelt.rate_limit_wait, gdelt.rate_limit_tries = 75.0, 4  # lockouts last 1+ minutes
+                run(store, sources, progress, args.max_minutes, args.slice_minutes)
+    except Exception as exc:
+        # The headless task has no console, so the traceback must go to the log file.
+        logger.exception("backfill crashed")
+        _record_end_state(f"crashed: {type(exc).__name__}")
+        exit_code = 1  # non-zero so Task Scheduler records a failure
+    except KeyboardInterrupt:
+        logger.error("backfill interrupted (Ctrl+C)")
+        _record_end_state("interrupted")
+        raise
+    except SystemExit as exc:
+        logger.error("backfill exited early: SystemExit(%r)", exc.code)
+        _record_end_state(f"exited: {exc.code}")
+        raise
     finally:
-        release_lock()
-    print(format_status(read_status()))
-    return 0
+        release_lock(LOCK_FILE)
+    print(format_status(read_status(STATUS_FILE)))
+    return exit_code
+
+
+def run_process_only(store, progress: Progress, max_minutes: Optional[float]) -> None:
+    """Score, categorize and cluster pending items without fetching from any source."""
+    stop_at = time.monotonic() + max_minutes * 60 if max_minutes else float("inf")
+    process_new_items(store, progress, stop_at)
+    left = processing_counts(store)
+    done = not (left["unscored"] or left["uncategorized"] or left["unclustered"])
+    progress.refresh("processed (no fetch)" if done else "stopped (processing only)")
+
+
+def _record_end_state(state: str) -> None:
+    """Write the final state to the status file without needing the store or Progress."""
+    try:
+        write_status({**read_status(STATUS_FILE), "state": state}, STATUS_FILE)
+    except Exception:
+        logger.exception("could not write end state %r", state)
+
+
+def _enable_faulthandler() -> None:
+    """Dump the Python stack to the log on a fatal signal (segfault, abort).
+
+    A hard kill (out-of-memory, terminate) cannot be caught; this covers native crashes."""
+    global _fault_file
+    try:
+        _fault_file = open(LOG_FILE, "a", encoding="utf-8")
+        faulthandler.enable(file=_fault_file, all_threads=True)
+    except Exception:
+        logger.exception("could not enable faulthandler")
+
+
+_fault_file = None
 
 
 if __name__ == "__main__":
