@@ -97,7 +97,10 @@ here; a limit or trap we live with goes in `known-issues.md`. Each item in one p
   no reactions to fit, and analyzing one event did the same. That took hours and stalled the
   main loop. Fixed too: on the real store (467k events) a refresh now takes 62 s and peaks at
   3.1 GB; the watcher keeps ~2.4 GB for the event library. Once reactions exist, the fit
-  builds the full table again (needed for training): revisit with 6.2f. The watcher and
+  builds the full table again (needed for training): revisit with 6.2f. Since 2026-10-29
+  03:54 reactions.parquet (309 MB) exists, so every 6-hourly watcher refresh will fit and
+  build the full table (estimate 30–60 min, several GB) while the main loop stops polling.
+  Proposed: the backtest saves its fitted models and the watcher loads them (question to Brian). The watcher and
   backfill can still both cluster the same recent pending items at once.
 - Watcher (Task 5.1): WAL mode is now Task 6.2b; store.py connects with a 30 s timeout. A cold
   `news_cli --collect` can block on GDELT 429 waits for many minutes (watch mode runs GDELT

@@ -434,6 +434,10 @@ write to or diagnose the real store: one at a time, never while
     has no browser tool); after 22:00 HKT, `Get-ScheduledTaskInfo stock_advisor_minute_recorder`
     shows LastTaskResult 0 and the 1m cache gained today's bars (or this check goes to
     open-items for the next session).
+  - Progress 2026-10-29: the backtest on the store as it stood finished at 05:10 HKT (started
+    12:25 the day before): results.json covers 321,373 events, 37 targets, 10 horizons; 271
+    target/horizon results, 0 proven; 99 pairs skipped (too few reactions); 6 market-moving
+    category rows; no window section. The watcher loads results.json only when it starts.
   - Notes: the backfill needs several more daily runs (Guardian cursor 2002, NYT 2010,
     Wikipedia 2010, GDELT stalled; scoring lags fetching). Do not wait for it: 6.2f is the
     rerun.
