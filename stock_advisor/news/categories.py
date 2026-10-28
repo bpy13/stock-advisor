@@ -322,12 +322,14 @@ def categorize(
     return result
 
 
-def categorize_pending(store, limit: Optional[int] = None) -> int:
+def categorize_pending(store, limit: Optional[int] = None, since=None) -> int:
     """Fill the category of scored items that have an embedding but no category.
 
-    Uses the stored embeddings, so no model is loaded. Returns the number categorized.
+    Uses the stored embeddings, so no model is loaded. `since` limits it to items published at
+    or after that time (a live run leaves the backfill's backlog to the backfill). Returns the
+    number categorized.
     """
-    rows = store.items_awaiting_category(limit)
+    rows = store.items_awaiting_category(limit, since=since)
     if not rows:
         return 0
     vectors = np.vstack([embedding_from_bytes(emb) for _, emb in rows])

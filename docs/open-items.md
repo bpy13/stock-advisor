@@ -91,6 +91,12 @@ here; a limit or trap we live with goes in `known-issues.md`. Each item in one p
 - Full live backtest (Task 4.4) and window check (Task 4.5) wait for the backfill to score
   and cluster events; rerun `python -m stock_advisor.news_backtest_cli` then.
 
+- Watcher memory (2026-10-28): the watcher reached 11.9 GB because each cycle also
+  categorized and clustered the backfill's scored backlog (up to 14,744 items per cycle).
+  Fixed: `process_new` now limits all three steps to the last 3 days. The running watcher
+  still has the old code: restart it by process id (see the restart note below). Still large:
+  the 6-hourly model refresh loads every stored event (~2.5 GB peak at 450k events). The
+  watcher and backfill can still both cluster the same recent pending items at once.
 - Watcher (Task 5.1): WAL mode is now Task 6.2b; store.py connects with a 30 s timeout. A cold
   `news_cli --collect` can block on GDELT 429 waits for many minutes (watch mode runs GDELT
   on a side thread, so it doesn't stall). The watcher log (data\cache\news\watcher_log.txt,

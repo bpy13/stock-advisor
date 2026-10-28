@@ -370,14 +370,22 @@ class NewsStore:
             params.append(limit)
         return [_row_to_item(r) for r in self._conn.execute(sql, params)]
 
-    def items_awaiting_category(self, limit: Optional[int] = None) -> List[Tuple[NewsItem, bytes]]:
-        """(item, embedding bytes) for items that have an embedding but no category yet."""
+    def items_awaiting_category(
+        self, limit: Optional[int] = None, since: Optional[datetime] = None
+    ) -> List[Tuple[NewsItem, bytes]]:
+        """(item, embedding bytes) for items that have an embedding but no category yet,
+        optionally only those published at or after `since`."""
+        params: list = []
+        recent = ""
+        if since is not None:
+            recent = " AND i.published_at >= ?"
+            params.append(_to_text(since))
         sql = (
             "SELECT i.*, s.embedding AS score_embedding FROM items i "
             "JOIN scores s ON s.item_id = i.id "
-            "WHERE s.category IS NULL AND s.embedding IS NOT NULL ORDER BY i.published_at, i.id"
+            f"WHERE s.category IS NULL AND s.embedding IS NOT NULL{recent} "
+            "ORDER BY i.published_at, i.id"
         )
-        params: list = []
         if limit is not None:
             sql += " LIMIT ?"
             params.append(limit)

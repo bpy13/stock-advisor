@@ -350,13 +350,17 @@ def event_members(store, event_id: str) -> List[ClusterItem]:
     return [_row_to_cluster_item(r) for r in rows]
 
 
-def _pending_rows(store, limit: int):
-    """Items ready to cluster: embedded and categorized, no event yet, oldest first."""
+def _pending_rows(store, limit: int, since: Optional[datetime] = None):
+    """Items ready to cluster: embedded and categorized, no event yet, oldest first (only those
+    published at or after `since`, when given)."""
+    recent, params = "", []
+    if since is not None:
+        recent, params = " AND i.published_at >= ?", [_to_text(since)]
     return store._conn.execute(
         f"SELECT {_MEMBER_COLUMNS} FROM items i JOIN scores s ON s.item_id = i.id "
-        "WHERE s.event_id IS NULL AND s.embedding IS NOT NULL AND s.category IS NOT NULL "
-        "ORDER BY i.published_at, i.id LIMIT ?",
-        (limit,),
+        "WHERE s.event_id IS NULL AND s.embedding IS NOT NULL AND s.category IS NOT NULL"
+        f"{recent} ORDER BY i.published_at, i.id LIMIT ?",
+        (*params, limit),
     ).fetchall()
 
 
@@ -417,17 +421,19 @@ def cluster_pending(
     max_span: timedelta = DEFAULT_MAX_SPAN,
     market_moving: Iterable[str] = (),
     chunk_size: int = 5000,
+    since: Optional[datetime] = None,
 ) -> int:
     """Assign events to every embedded, categorized item that has none. Returns items placed.
 
     Works in chunks of `chunk_size` items in time order. Before each chunk it reloads the
     stored events that overlap the chunk's time range, so new headlines (a live batch, or late
-    arrivals) can join existing events. Run scoring and categorize_pending first.
+    arrivals) can join existing events. Run scoring and categorize_pending first. `since`
+    limits it to items published at or after that time (a live run leaves the backlog alone).
     """
     market_moving = tuple(market_moving)
     placed = 0
     while True:
-        rows = _pending_rows(store, chunk_size)
+        rows = _pending_rows(store, chunk_size, since)
         if not rows:
             return placed
         items = [_row_to_cluster_item(r) for r in rows]

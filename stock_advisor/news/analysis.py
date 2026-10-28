@@ -404,9 +404,10 @@ def process_new(store, since: datetime, finbert=None, embedder=None,
                 limit: int = 2000) -> ProcessResult:
     """Score the unscored items since `since`, categorize, then cluster into events.
 
-    Scoring is limited to recent items so a live run never takes over the backfill's backlog;
-    categorizing and clustering handle whatever is ready. Each store write is a short
-    transaction, so the backfill can write between them.
+    Scoring, categorizing and clustering are all limited to items published since `since`, so
+    a live run never takes over the backfill's backlog (the backfill does all three for its own
+    items; loading that backlog every cycle made the watcher grow to ~12 GB). Each store write is
+    a short transaction, so the backfill can write between them.
     """
     from stock_advisor.news.categories import categorize_pending
     from stock_advisor.news.events import cluster_pending
@@ -417,7 +418,8 @@ def process_new(store, since: datetime, finbert=None, embedder=None,
     )
 
     result = ProcessResult()
-    items = _recent_unscored(store, ensure_utc(since), limit)
+    since = ensure_utc(since)
+    items = _recent_unscored(store, since, limit)
     for start in range(0, len(items), batch_size):
         chunk = items[start:start + batch_size]
         titles = [i.title for i in chunk]
@@ -429,8 +431,8 @@ def process_new(store, since: datetime, finbert=None, embedder=None,
                 embedding=embedding_to_bytes(np.asarray(vector)),
             ))
         result.scored += len(chunk)
-    result.categorized = categorize_pending(store)
-    result.clustered = cluster_pending(store, market_moving=tuple(market_moving))
+    result.categorized = categorize_pending(store, since=since)
+    result.clustered = cluster_pending(store, market_moving=tuple(market_moving), since=since)
     return result
 
 

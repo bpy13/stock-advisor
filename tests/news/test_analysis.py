@@ -209,6 +209,28 @@ def test_process_new_scores_categorizes_and_clusters_recent_items_only(store, mo
     assert store.get_event(ids.pop()).n_items == 2
 
 
+def test_process_new_leaves_the_backfills_scored_backlog_alone(store, monkeypatch):
+    # The backfill scores old items, then categorizes and clusters them itself. A live run that
+    # also took them on loaded the whole backlog every cycle (the watcher grew to 11.9 GB).
+    rng = np.random.default_rng(1)
+    centroids = rng.normal(size=(len(categories._centroid_names), EMBED_DIM)).astype(np.float32)
+    centroids /= np.linalg.norm(centroids, axis=1, keepdims=True)
+    monkeypatch.setattr(categories, "_centroids", centroids)
+    scored_old = NewsItem("nyt", NOW - timedelta(days=30), "Old scored", url="https://x/s")
+    categorized_old = NewsItem("nyt", NOW - timedelta(days=30), "Old categorized",
+                               url="https://x/c")
+    store.add_items([scored_old, categorized_old])
+    vector = embedding_to_bytes(np.ones(EMBED_DIM, dtype=np.float32))
+    store.update_scores(ItemScore(item_id=scored_old.id, tone=0.0, embedding=vector))
+    store.update_scores(ItemScore(item_id=categorized_old.id, tone=0.0, embedding=vector,
+                                  category="war_conflict"))
+    done = A.process_new(store, since=NOW - timedelta(days=3), finbert=FakeFinBert(),
+                         embedder=FakeEmbedder())
+    assert (done.scored, done.categorized, done.clustered) == (0, 0, 0)
+    assert store.get_score(scored_old.id).category is None
+    assert store.get_score(categorized_old.id).event_id is None
+
+
 # ---- sources and GDELT guard --------------------------------------------------------------------
 
 
