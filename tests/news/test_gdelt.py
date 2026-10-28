@@ -60,6 +60,7 @@ def test_parses_fixture():
     assert first.source == "gdelt"
     assert first.published_at == datetime(2026, 10, 27, 5, 15, tzinfo=timezone.utc)
     assert first.title and first.url.startswith("http")
+    assert all(i.time_precision == "batch" for i in items)
     assert "timespan" not in source.session.calls[0]
     assert source.session.calls[0]["query"].endswith("sourcelang:english")
     assert source.session.calls[0]["format"] == "json"

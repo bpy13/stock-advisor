@@ -44,7 +44,8 @@ class NewsItem:
     language: str = "en"
     body: Optional[str] = None  # full article text, only fetched for high-impact events
     id: str = ""
-    # "exact": published_at is the real publication time. "day": the source only knows the
+    # "exact": published_at is the real publication time. "batch": a clock time that is only a
+    # crawl-batch stamp (GDELT); no horizons under 1 hour. "day": the source only knows the
     # date (published_at is 00:00 UTC); use such items for the 1-day horizon only.
     time_precision: str = "exact"
 

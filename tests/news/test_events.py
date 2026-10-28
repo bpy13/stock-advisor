@@ -136,6 +136,17 @@ def test_summarize_event_time_title_category_and_sources():
     assert events.event_time_precision(members[:1]) == "day"
 
 
+def test_event_time_precision_ranks_exact_over_batch_over_day():
+    day = item(1, 1, source="wikipedia_events", precision="day")
+    batch = item(2, 1, source="gdelt", precision="batch")
+    exact = item(3, 1, precision="exact")
+    assert events.event_time_precision([day, batch, exact]) == "exact"
+    assert events.event_time_precision([day, batch]) == "batch"
+    assert events.event_time_precision([batch]) == "batch"
+    assert events.event_time_precision([day]) == "day"
+    assert batch.is_exact  # a batch stamp is still a clock time for the event start
+
+
 def test_source_key():
     assert events.source_key("rss", "https://bbc.co.uk/x", "[BBC World | world] text") == "rss:BBC World"
     assert events.source_key("rss", "https://www.rthk.hk/a", "") == "rss:www.rthk.hk"

@@ -79,15 +79,16 @@ class ReadOnlyStore:
         self._conn.row_factory = sqlite3.Row
 
     def event_precisions(self) -> Dict[str, str]:
-        """{event id: "exact" | "day"}: "exact" when any member has an exact time
-        (the rule of `events.event_time_precision`)."""
+        """{event id: "exact" | "batch" | "day"}: the rule of `events.event_time_precision`
+        ("exact" if any member is exact, else "batch" if any is batch, else "day")."""
         rows = self._conn.execute(
             "SELECT s.event_id AS event_id, "
-            "MAX(CASE WHEN i.time_precision = 'day' THEN 0 ELSE 1 END) AS any_exact "
+            "MAX(CASE i.time_precision WHEN 'day' THEN 0 WHEN 'batch' THEN 1 ELSE 2 END) AS rank "
             "FROM scores s JOIN items i ON i.id = s.item_id "
             "WHERE s.event_id IS NOT NULL GROUP BY s.event_id"
         )
-        return {r["event_id"]: ("exact" if r["any_exact"] else "day") for r in rows}
+        names = {0: "day", 1: "batch", 2: "exact"}
+        return {r["event_id"]: names[r["rank"]] for r in rows}
 
     def close(self) -> None:
         self._conn.close()

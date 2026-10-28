@@ -194,6 +194,17 @@ def test_old_database_is_migrated(tmp_path):
         pass
 
 
+def test_gdelt_exact_rows_are_migrated_to_batch(tmp_path):
+    path = tmp_path / "gdelt.db"
+    with NewsStore(path) as first:
+        first.add_items([_item("gdelt", 0), _item("nyt", 0)])  # stored as 'exact', like old rows
+    with NewsStore(path) as second:  # reopening runs the migration on stored rows
+        precision = {i.source: i.time_precision for i in second.query_items()}
+    assert precision == {"gdelt": "batch", "nyt": "exact"}
+    with NewsStore(path) as third:  # idempotent
+        assert {i.time_precision for i in third.query_items() if i.source == "gdelt"} == {"batch"}
+
+
 def test_spend_call_enforces_cap_per_day(store):
     assert [store.spend_call("nyt", 2, day="2026-10-27") for _ in range(3)] == [True, True, False]
     assert store.calls_today("nyt", day="2026-10-27") == 2

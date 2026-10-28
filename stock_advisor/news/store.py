@@ -158,6 +158,13 @@ class NewsStore:
                     "UPDATE items SET time_precision = 'day' WHERE source = 'wikipedia_events' "
                     "OR (source = 'edgar' AND published_at LIKE '%T00:00:00.000000+00:00')"
                 )
+        # GDELT stamps seendate per crawl batch, so its times are not story times. Cheap and
+        # idempotent: once no 'exact' GDELT rows remain the UPDATE matches nothing.
+        with self._conn:
+            self._conn.execute(
+                "UPDATE items SET time_precision = 'batch' "
+                "WHERE source = 'gdelt' AND time_precision = 'exact'"
+            )
 
     # ---- sent alerts (the table is created by _SCHEMA, so an older database gets it on open) --
 

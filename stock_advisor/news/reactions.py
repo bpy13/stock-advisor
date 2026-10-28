@@ -8,7 +8,8 @@ trading hours (no bar covers t) the start is the next session's open.  Horizons 
 * "1d", "2d", "3d", "5d", "10d": the Nth daily close after the start.
 
 Missing data gives NaN, never 0.  Items with ``time_precision="day"`` get daily horizons
-only.  Trading hours are never hard-coded: a time is "in session" only when an intraday bar
+only.  Items with ``time_precision="batch"`` (GDELT: the time is the crawl batch, not the
+story) get the 1h, 4h and daily horizons; 1m, 5m and 15m are NaN.  Trading hours are never hard-coded: a time is "in session" only when an intraday bar
 covers it, so holidays and lunch breaks (Hong Kong) are handled by the data itself.
 
 Known approximations, kept simple on purpose:
@@ -38,6 +39,7 @@ _INTERVAL_HORIZONS: Dict[str, Tuple[str, ...]] = {
     "60m": ("1h", "4h"),
 }
 _BAR_SECONDS: Dict[str, int] = {"1m": 60, "60m": 3600}
+_SUB_HOUR_HORIZONS: Tuple[str, ...] = ("1m", "5m", "15m")  # not meaningful for "batch" items
 _MAX_GAP = pd.Timedelta(days=5)  # a longer hole in the bars counts as missing data
 _MAX_DAILY_GAP_DAYS = 7
 _DAILY_CLOSE_HOUR = 16  # fallback only: exchange-local hour after which daily-only events are after hours
@@ -267,6 +269,10 @@ def compute_reaction_path(
     else:
         market = _raw_returns(_path(event_time, time_precision, market_prices))
     result = {h: (raw[h], raw[h] - market[h]) for h in HORIZONS}  # NaN propagates
+    if time_precision == "batch":
+        nan = float("nan")
+        for h in _SUB_HOUR_HORIZONS:
+            result[h] = (nan, nan)
     return path.start_ts, path.start_source, result
 
 

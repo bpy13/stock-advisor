@@ -55,6 +55,20 @@ def test_in_session_minute_horizons_use_the_open_of_the_covering_bar():
     assert np.isnan(result["1d"][0])  # no daily data given
 
 
+def test_batch_precision_drops_sub_hour_horizons_but_keeps_hour_and_day():
+    ny = "America/New_York"
+    prices = {"1m": us_session_1m("2024-01-02"), "1d": daily_frame("2024-01-02", 15, ny)}
+    market = {"1m": us_session_1m("2024-01-02", 50.0),
+              "1d": daily_frame("2024-01-02", 15, ny, 50.0)}
+    exact = compute_reaction(utc("2024-01-02 15:00:20"), "exact", prices, market)
+    batch = compute_reaction(utc("2024-01-02 15:00:20"), "batch", prices, market)
+    assert all_nan(batch, ["1m", "5m", "15m"])
+    assert not all_nan(exact, ["1m", "5m", "15m"])
+    for horizon in ["1h", "4h", "1d"]:
+        assert not np.isnan(batch[horizon][0]) and not np.isnan(batch[horizon][1])
+        assert batch[horizon] == pytest.approx(exact[horizon])
+
+
 def test_start_source_is_reported_per_event():
     prices = {"1m": us_session_1m("2024-01-02")}
     start_ts, source, _ = reactions.compute_reaction_path(utc("2024-01-02 15:00:20"), "exact", prices)

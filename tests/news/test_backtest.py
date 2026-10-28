@@ -171,6 +171,12 @@ def test_store_is_opened_read_only(tmp_path):
     precisions = store.event_precisions()
     store.close()
     assert precisions["e3_00000"] == "day" and precisions["e3_00001"] == "exact"
+    # An event with a batch and a day member is "batch"; adding an exact member makes it "exact".
+    with sqlite3.connect(str(tmp_path / "news.db")) as conn:
+        conn.execute("UPDATE items SET time_precision = 'batch' WHERE id IN "
+                     "(SELECT item_id FROM scores WHERE event_id = 'e3_00000')")
+    with B.ReadOnlyStore(tmp_path / "news.db") as store:
+        assert store.event_precisions()["e3_00000"] == "batch"
 
 
 def test_missing_store_and_missing_results(tmp_path):

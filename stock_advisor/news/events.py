@@ -280,8 +280,11 @@ def is_high_impact(
 
 
 def event_time_precision(members: Sequence[ClusterItem]) -> str:
-    """"exact" when any member has an exact time, else "day" (daily horizons only)."""
-    return "exact" if any(m.is_exact for m in members) else "day"
+    """"exact" when any member has an exact time, else "batch" when any member has a crawl-batch
+    time (no sub-hour horizons), else "day" (daily horizons only)."""
+    if any(m.time_precision == "exact" for m in members):
+        return "exact"
+    return "batch" if any(m.time_precision == "batch" for m in members) else "day"
 
 
 def summarize_event(

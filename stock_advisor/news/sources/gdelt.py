@@ -200,6 +200,7 @@ class GdeltSource:
                     url=article.get("url", ""),
                     summary=article.get("domain", ""),
                     language="en",
+                    time_precision="batch",  # seendate is a crawl-batch stamp, not story time
                 )
             )
         return items
