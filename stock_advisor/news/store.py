@@ -376,6 +376,32 @@ class NewsStore:
             params.append(limit)
         return [(_row_to_item(r), r["score_embedding"]) for r in self._conn.execute(sql, params)]
 
+    def categorized_chunk(
+        self, after_id: str = "", limit: int = 20000
+    ) -> List[Tuple[str, str, bytes, str, Optional[str]]]:
+        """One page of (item_id, title, embedding bytes, category, event_id) for rows that have
+        a category and an embedding, in item-id order, starting after `after_id`.
+
+        Keyset paging (pass the last id of the previous page) keeps memory flat on a big store,
+        and stays correct while the caller updates categories between pages.
+        """
+        rows = self._conn.execute(
+            "SELECT i.id, i.title, s.embedding, s.category, s.event_id FROM items i "
+            "JOIN scores s ON s.item_id = i.id "
+            "WHERE s.category IS NOT NULL AND s.embedding IS NOT NULL AND i.id > ? "
+            "ORDER BY i.id LIMIT ?",
+            (after_id, limit),
+        )
+        return [tuple(r) for r in rows]
+
+    def set_categories(self, pairs: Iterable[Tuple[str, str]]) -> None:
+        """Set the category of many score rows in one transaction. high_impact is left alone."""
+        with self._conn:
+            self._conn.executemany(
+                "UPDATE scores SET category = ? WHERE item_id = ?",
+                [(category, item_id) for item_id, category in pairs],
+            )
+
     def set_category(self, item_id: str, category: str) -> None:
         """Set only the category of an existing score row. high_impact is left alone."""
         with self._conn:

@@ -169,6 +169,33 @@ def test_items_awaiting_category_and_set_category(store):
     assert store.items_awaiting_category() == []
 
 
+def test_categorized_chunk_pages_and_set_categories(store):
+    items = [_item(title=f"t{n}", minutes=n) for n in range(5)]
+    store.add_items(items)
+    for n, it in enumerate(items):
+        category = None if n == 4 else "other"
+        emb = None if n == 3 else bytes([n])
+        store.update_scores(ItemScore(it.id, category=category, embedding=emb, event_id="e1",
+                                      high_impact=True))
+    # Rows 3 (no embedding) and 4 (no category) are left out.
+    seen, after = [], ""
+    while True:
+        page = store.categorized_chunk(after, 2)
+        if not page:
+            break
+        seen += page
+        after = page[-1][0]
+    assert sorted(r[0] for r in seen) == sorted(it.id for it in items[:3])
+    assert all(r[3] == "other" and r[4] == "e1" for r in seen)
+    assert {r[1] for r in seen} == {"t0", "t1", "t2"}
+
+    store.set_categories([(items[0].id, "war_conflict"), (items[1].id, "terrorism")])
+    assert store.get_score(items[0].id).category == "war_conflict"
+    assert store.get_score(items[1].id).category == "terrorism"
+    assert store.get_score(items[0].id).high_impact is True  # untouched
+    store.set_categories([])  # no-op
+
+
 def test_events_roundtrip_and_query(store):
     e1 = Event(id="e1", started_at=T0, category="war_conflict", title="War", n_items=3,
                n_sources=2, high_impact=True)

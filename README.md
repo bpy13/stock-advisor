@@ -229,6 +229,9 @@ python -m stock_advisor.news.collect --backfill --source guardian --start 2020-0
 python scripts/backfill_news.py                 # runs for hours; one at a time (lock file)
 python scripts/backfill_news.py --status        # progress per source
 python scripts/backfill_news.py --max-minutes 90
+# Re-apply the current category rules to stored items (back up news.db first; needs the lock)
+python scripts/recategorize_news.py --dry-run   # old -> new category counts, writes nothing
+python scripts/recategorize_news.py             # update changed rows and their events
 
 # Current events, similar past events, predicted moves, actions
 python -m stock_advisor.news_cli                # one-shot, last 24 h from the store
