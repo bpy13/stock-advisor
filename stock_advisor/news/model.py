@@ -318,8 +318,13 @@ class EventLibrary:
         """(indices, similarities, time ns) for one event, in the library or not."""
         pos = self.position.get(event.id)
         if pos is not None:
-            idx, sim = self.candidates()
-            return idx[pos], sim[pos], int(self.times[pos])
+            t = int(self.times[pos])
+            if pos < len(self._cand_idx):
+                return self._cand_idx[pos], self._cand_sim[pos], t
+            # Search this one row only: the full table compares every pair of events, which
+            # takes hours on the live store (450k events) when only a few events are analyzed.
+            idx, sim = self.search(self.matrix[pos:pos + 1], self.earlier_count([t]))
+            return idx[0], sim[0], t
         vec = np.asarray(event.embedding, dtype=np.float32)
         vec = vec / max(float(np.linalg.norm(vec)), 1e-12)
         t = _to_ns(event.started_at)
@@ -694,6 +699,12 @@ class NewsModel:
         cutoff = None if train_end is None else _to_ns(train_end)
         for target in targets:
             for horizon in horizons:
+                # Too few known reactions can never fit: skip before `features`, whose
+                # candidate table costs hours on the full live store.
+                known = np.count_nonzero(~np.isnan(self.outcomes(target, horizon).values))
+                if known < MIN_TRAIN_ROWS:
+                    self.models.pop((target, horizon), None)
+                    continue
                 fs = self.features(target, horizon)
                 rows = np.arange(len(fs.y))
                 if cutoff is not None:

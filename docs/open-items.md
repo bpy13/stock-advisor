@@ -94,9 +94,13 @@ here; a limit or trap we live with goes in `known-issues.md`. Each item in one p
 - Watcher memory (2026-10-28): the watcher reached 11.9 GB because each cycle also
   categorized and clustered the backfill's scored backlog (up to 14,744 items per cycle).
   Fixed: `process_new` now limits all three steps to the last 3 days. The running watcher
-  still has the old code: restart it by process id (see the restart note below). Still large:
-  the 6-hourly model refresh loads every stored event (~2.5 GB peak at 450k events). The
-  watcher and backfill can still both cluster the same recent pending items at once.
+  still has the old code: restart it by process id (see the restart note below). A second
+  cause: each model refresh built the all-pairs analog table for every stored event, even with
+  no reactions to fit, and analyzing one event did the same. That took hours and stalled the
+  main loop. Fixed too: on the real store (467k events) a refresh now takes 62 s and peaks at
+  3.1 GB; the watcher keeps ~2.4 GB for the event library. Once reactions exist, the fit
+  builds the full table again (needed for training): revisit with 6.2f. The watcher and
+  backfill can still both cluster the same recent pending items at once.
 - Watcher (Task 5.1): WAL mode is now Task 6.2b; store.py connects with a 30 s timeout. A cold
   `news_cli --collect` can block on GDELT 429 waits for many minutes (watch mode runs GDELT
   on a side thread, so it doesn't stall). The watcher log (data\cache\news\watcher_log.txt,

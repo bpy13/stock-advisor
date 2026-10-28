@@ -296,6 +296,30 @@ def test_extend_appends_and_reorders():
     assert [e.id for e in shuffled.events] == [e.id for e in events]
 
 
+def _no_full_table(self):
+    raise AssertionError("full candidate table computed")
+
+
+def test_fit_without_enough_reactions_skips_the_candidate_table(monkeypatch):
+    # The live watcher refits on the whole store (450k events) while no reactions exist yet;
+    # the all-pairs search then took hours and GBs for a model it could not fit.
+    events = make_events(200, seed=17)
+    model = NewsModel(EventLibrary(events), make_reactions(events[:10], 17, planted=True))
+    monkeypatch.setattr(EventLibrary, "candidates", _no_full_table)
+    assert model.fit(["^GSPC"], ["1d"]).models == {}
+
+
+def test_library_event_query_does_not_build_the_full_table(monkeypatch):
+    events = make_events(200, seed=18)
+    expected, expected_sim = EventLibrary(events).candidates()
+    lib = EventLibrary(events)
+    monkeypatch.setattr(EventLibrary, "candidates", _no_full_table)
+    idx, sim, t = lib.candidates_for(events[150])
+    np.testing.assert_array_equal(idx, expected[150])
+    np.testing.assert_allclose(sim, expected_sim[150], rtol=1e-5)  # one row vs matrix rounding
+    assert t == int(lib.times[150])
+
+
 def test_new_event_query_matches_library_row():
     events = make_events(200, seed=16)
     lib = EventLibrary(events[:-1])
