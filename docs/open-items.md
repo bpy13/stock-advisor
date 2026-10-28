@@ -18,8 +18,6 @@ here; a limit or trap we live with goes in `known-issues.md`. Each item in one p
 - Real-browser check of the dashboard News tab (no browser tools in this session): the
   dashboard task serves it at http://localhost:8502; open it and check the News tab.
 
-- Telegram bot token in `.env` as `TELEGRAM_BOT_TOKEN=` (create the bot with @BotFather, then
-  send the bot one message). Task 5.4b (setup and phone test) waits for it.
 
 - Guardian and NYT API keys in `.env` (`GUARDIAN_API_KEY`, `NYT_API_KEY`). Until then those
   two sources are built and tested from fixtures, but not backfilled.

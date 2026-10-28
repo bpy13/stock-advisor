@@ -315,6 +315,10 @@ report the item count and the earliest date reachable.
   - Done when: `--setup` saves `TELEGRAM_CHAT_ID` to `.env`; `--test` delivers one message that
     Brian confirms on his phone; the running watcher picks up the token (restart the
     `stock_advisor_news_watcher` task) and the sent-alert table records the first real alert.
+  - Progress 2026-10-28: bot @brian_stock_advisor_bot; `--setup` saved the chat id (private
+    chat); `--test` delivered and Brian confirmed it on his phone; the watcher restarted at
+    23:07 HKT without the "alerts are off" warning. Open: the first real alert, which needs
+    predictions (after the backfill and 6.2f).
   - Notes: Telegram Bot API `sendMessage` only (plus `getUpdates` once at setup). Alert rule
     (decision): high-impact event affecting a holding, ^HSI or ^GSPC with a predicted move
     ≥ 1.5%; 24/7. Message: event headline + link, category, target, predicted move per
