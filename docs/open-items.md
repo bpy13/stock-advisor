@@ -15,10 +15,6 @@ here; a limit or trap we live with goes in `known-issues.md`. Each item in one p
 
 ## Waiting on the user
 
-- Watcher (pid 19260) and dashboard (pid 24808) run outside their tasks: `Stop-ScheduledTask`
-  marked the tasks Ready but left the processes, and Claude's safety check blocked
-  `Stop-Process`. In PowerShell: `Stop-Process -Id 19260,24808; Start-ScheduledTask
-  stock_advisor_news_watcher; Start-ScheduledTask stock_advisor_dashboard`.
 - Real-browser check of the dashboard News tab (no browser tools in this session): the
   dashboard task serves it at http://localhost:8502; open it and check the News tab.
 
@@ -105,6 +101,10 @@ here; a limit or trap we live with goes in `known-issues.md`. Each item in one p
   table and "⚠ unproven" badge are untested on real data until predictions exist.
   `SimilarEvent` should carry a URL (app.py looks links up itself for now).
 
+- `Stop-ScheduledTask` does not end the watcher or dashboard (they run under conhost
+  --headless); end them by process id. On 2026-10-28 a `Start-ScheduledTask` of the watcher
+  right after `Stop-Process` exited at once with result 0 and no log line; a second start
+  worked. Watch for this after a restart.
 - Re-categorize rows categorized before commit 0fbfdf1: now Task 6.2e (use
   `store.set_category`, not `update_scores`, which resets high_impact).
 
