@@ -53,9 +53,10 @@ Limits and traps we live with. A bug that will be fixed goes in `open-items.md` 
   while running. `scripts/run_watcher.ps1` loops and restarts the watcher after 60 s on a
   non-zero exit code. A clean exit (code 0) ends the loop.
 - **The watcher only runs while you are logged in.** It starts at login and stops at logout.
-- **SQLite has one writer.** The backfill, watcher and commands share `news.db`. They wait up to
-  30 s for a lock, so a long write can still make a command fail with "database is locked".
-  See `architecture.md`.
+- **SQLite still has one writer.** `news.db` uses WAL mode, so readers no longer block on the
+  backfill's writes. Two writers still take turns: a writer waits up to 30 s for the lock, so
+  a long write can make another writer fail with "database is locked". WAL adds `news.db-wal`
+  and `news.db-shm` files beside the database. See `architecture.md`.
 - **A cold `news_cli --collect`** can wait many minutes on GDELT rate-limit pauses. Watch mode
   runs GDELT on a side thread, so it does not stall.
 - **HK holdings and EDGAR.** HK companies do not file 8-Ks, so HK holdings are not passed to

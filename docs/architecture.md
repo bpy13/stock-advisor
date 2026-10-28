@@ -86,5 +86,6 @@ SQLite allows one writer at a time. The backfill, the watcher and interactive co
   so a second backfill exits at once. The scheduled task also uses `MultipleInstances IgnoreNew`.
 - The watcher reads `backfill_status.json` only. It never takes the lock.
 - Never run two GDELT callers at once: GDELT locks out for a minute or more after a burst.
-- The journal mode is SQLite's default. Switching to WAL is a pending item once the first
-  backfill finishes.
+- `NewsStore` sets `PRAGMA journal_mode=WAL` on connect (the mode persists in the file). Readers
+  run while a writer holds a transaction. Writers still take turns. The `-wal` and `-shm` side
+  files sit next to `news.db`; copy all three together when taking a backup.

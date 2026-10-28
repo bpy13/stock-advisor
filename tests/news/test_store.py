@@ -34,6 +34,27 @@ def store(tmp_path):
         yield s
 
 
+def test_wal_mode_lets_a_second_connection_read_during_a_write(tmp_path):
+    import sqlite3
+
+    path = tmp_path / "news.db"
+    with NewsStore(path) as s:
+        s.add_items([_item()])
+    writer = NewsStore(path)
+    reader = sqlite3.connect(str(path), timeout=1)
+    try:
+        assert writer._conn.execute("PRAGMA journal_mode").fetchone()[0] == "wal"
+        before = reader.execute("SELECT COUNT(*) FROM items").fetchone()[0]
+        writer._conn.execute("BEGIN IMMEDIATE")  # the writer now holds an open write
+        writer._conn.execute("DELETE FROM items")
+        # In the default journal mode this read would fail with "database is locked".
+        assert reader.execute("SELECT COUNT(*) FROM items").fetchone()[0] == before
+        writer._conn.rollback()
+    finally:
+        reader.close()
+        writer.close()
+
+
 # ---- models ----------------------------------------------------------------------------
 
 

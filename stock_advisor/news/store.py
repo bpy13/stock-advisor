@@ -138,6 +138,9 @@ class NewsStore:
         # after sqlite's default 5 s.
         self._conn = sqlite3.connect(str(self.path), timeout=30)
         self._conn.row_factory = sqlite3.Row
+        # WAL lets readers run while the backfill writes. The mode is stored in the file, so
+        # this only does work on the first connect. It also creates -wal and -shm side files.
+        self._conn.execute("PRAGMA journal_mode=WAL")
         self._conn.executescript(_SCHEMA)
         self._migrate()
 
