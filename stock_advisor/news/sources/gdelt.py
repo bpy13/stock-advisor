@@ -103,7 +103,15 @@ class GdeltSource:
                     found += 1
                     items.setdefault(item.id, item)
             logger.info("gdelt %s: %d articles", theme, found)
-        return sorted(items.values(), key=lambda i: i.published_at)
+        ordered = sorted(items.values(), key=lambda i: i.published_at)
+        # GDELT's index can stall for a day (seen 2026-10-28: nothing newer than 2026-10-27
+        # 05:15Z). Log the newest stamp so a stall reads differently from a code bug.
+        if ordered:
+            logger.info("gdelt newest seendate %s, %d distinct", ordered[-1].published_at.isoformat(),
+                        len({i.published_at for i in ordered}))
+        else:
+            logger.info("gdelt returned no articles for the last 24 hours")
+        return ordered
 
     def fetch_range(self, start: datetime, end: datetime) -> Iterator[NewsItem]:
         """Articles seen between `start` and `end` (tz-aware UTC), window by window."""

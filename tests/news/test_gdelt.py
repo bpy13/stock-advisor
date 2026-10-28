@@ -179,3 +179,23 @@ def test_fetch_range_splits_full_window():
     assert calls[1]["enddatetime"] == "20240101120000"
     assert calls[2]["startdatetime"] == "20240101120000"
     assert len(items) == 2  # the two halves return the same articles; de-duplicated
+
+
+MULTI_BATCH_FIXTURE = (
+    Path(__file__).parent.parent / "fixtures" / "news" / "gdelt" / "artlist_72h_2026-10-28.json"
+)
+
+
+def test_real_72h_response_keeps_distinct_seendates():
+    """Real response (captured 2026-10-28, 250 newest articles of 72 h): items must keep the
+    timestamp of their own seendate, not one shared value. GDELT stamps per crawl batch, so
+    the response holds only a few distinct values, but each item must match its article."""
+    articles = json.loads(MULTI_BATCH_FIXTURE.read_text(encoding="utf-8"))["articles"]
+    items = GdeltSource._to_items(articles)
+    seen_values = {a["seendate"] for a in articles}
+    assert len(seen_values) >= 3
+    assert len({i.published_at for i in items}) == len(seen_values)
+    by_url = {a["url"]: a["seendate"] for a in articles}
+    for item in items:
+        expected = datetime.strptime(by_url[item.url], "%Y%m%dT%H%M%SZ").replace(tzinfo=timezone.utc)
+        assert item.published_at == expected
