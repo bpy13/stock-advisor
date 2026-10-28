@@ -78,7 +78,8 @@ The aim is to react before ordinary investors do, not to compete with profession
 - `data/cache/news/news.db` (the real store): tests always use `tmp_path`. Only the backfill
   and live runs write to it, one at a time.
 - `data/cache/prices/` (price cache): tests use `tmp_path` / monkeypatched `CACHE_DIR`.
-- Streamlit port 8501: Phase 5 only.
+- Streamlit port 8502 (changed 2026-10-28, plan review: hk-estate holds 8501): the
+  `stock_advisor_dashboard` task owns it; Phase 6 checks open it, never start a second server.
 - `requirements.txt`, `environment.yml`, `stock_advisor/config.py`, `README.md`: one task per
   phase at most; named in that task.
 
@@ -300,12 +301,20 @@ report the item count and the earliest date reachable.
   - Done when: `streamlit run app.py` in the background on 8501 loads; the News tab shows
     events, similar past events, predicted moves and backtest results; checked in a real
     browser; server stopped by port afterwards.
-- [ ] **Task 5.4: Telegram alerts**
+- [ ] **Task 5.4: Telegram alerts** (built in 2bffd2b; split 2026-10-28, plan review: the
+  phone test is Task 5.4b, so this task can be ticked without the token)
   - Files: create `stock_advisor/news/notify.py`; test `tests/news/test_notify.py`; hook
     into `news_cli.py --watch`; add `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` to `.env.example`.
-  - Done when: tests pass with a mocked Telegram API; `python -m stock_advisor.news.notify
-    --setup` finds the chat id from the bot's latest update and saves it to `.env`;
-    `--test` delivers one message that Brian confirms on his phone.
+  - Done when: tests pass with a mocked Telegram API (the coordinator reruns
+    `tests/news/test_notify.py`); `python -m stock_advisor.news.notify --setup` finds the chat
+    id from the bot's latest update and saves it to `.env`; `--test` sends one message; with
+    no token both commands say so and exit without a request.
+- [ ] **Task 5.4b: Telegram live test** (added 2026-10-28, plan review; waiting on Brian)
+  - Blocked until `.env` has a non-empty `TELEGRAM_BOT_TOKEN` (absent on 2026-10-28). Does not
+    block 6.2 or 6.3; if still blocked at 6.3, the wrap-up leaves it in open-items.
+  - Done when: `--setup` saves `TELEGRAM_CHAT_ID` to `.env`; `--test` delivers one message that
+    Brian confirms on his phone; the running watcher picks up the token (restart the
+    `stock_advisor_news_watcher` task) and the sent-alert table records the first real alert.
   - Notes: Telegram Bot API `sendMessage` only (plus `getUpdates` once at setup). Alert rule
     (decision): high-impact event affecting a holding, ^HSI or ^GSPC with a predicted move
     ≥ 1.5%; 24/7. Message: event headline + link, category, target, predicted move per
@@ -322,15 +331,112 @@ report the item count and the earliest date reachable.
 - [x] **Task 6.1: docs** `[parallel-ok]` (sonnet)
   - Files: modify `README.md`; create `docs/architecture.md`, `docs/known-issues.md`.
   - Done when: each command in the README runs as written.
-- [ ] **Task 6.2: register recorder and end-to-end run** (coordinator)
-  - Done when: `Get-ScheduledTask stock_advisor_minute_recorder` and
-    `Get-ScheduledTask stock_advisor_news_watcher` show both Ready; one full live pass
-    (collect → score → news_cli) completes and its output is quoted in the report.
-- [ ] **Task 6.3: pre-release review, fixes, wrap-up, ship** (coordinator)
+Tasks 6.2a–6.2e (added 2026-10-28, plan review) fix the blockers the Phase 5 live run found,
+before the end-to-end check. 6.2a and 6.2b are `[parallel-ok]` (disjoint files). 6.2c–6.2e
+write to or diagnose the real store: one at a time, never while
+`data/cache/news/backfill.lock` exists, and with a copy of `news.db` taken first.
+
+- [ ] **Task 6.2a: index aliases without `^`** (added 2026-10-28, plan review) `[parallel-ok]`
+  (sonnet)
+  - Files: modify `stock_advisor/config.py` (one `normalize_target` helper), `news_cli.py`,
+    `news_backtest_cli.py`, `stock_advisor/news/analysis.py` (`NewsAnalyzer` targets),
+    `README.md`; test `tests/test_config.py`.
+  - Done when: tests pass; a `NEWS_TARGETS` key given without its `^` (`HSI`, `GSPC`) maps
+    back to `^HSI`/`^GSPC` wherever targets are read from the command line; live
+    `conda run -n stock_advisor python -m stock_advisor.news_cli --targets ^HSI ^GSPC` loads
+    prices; the README says `conda run` strips `^` (cmd escape) and gives `^^HSI` or the env's
+    python as the way round it.
+- [ ] **Task 6.2b: news.db in WAL mode** (added 2026-10-28, plan review) `[parallel-ok]`
+  (sonnet)
+  - Files: modify `stock_advisor/news/store.py`; test `tests/news/test_store.py`; update the
+    "SQLite has one writer" entry in `docs/known-issues.md` and `docs/architecture.md`.
+  - Done when: `NewsStore` runs `PRAGMA journal_mode=WAL` on connect (the real file reports
+    `delete` on 2026-10-28; the mode persists in the file once set); a test shows a second
+    connection reads while the first holds an open write; the first real connect happens with
+    the watcher and dashboard tasks stopped (`Stop-ScheduledTask`, then start them again), and
+    `--status` plus one `news_cli` run succeed while the watcher runs.
+  - Notes: why now: the watcher, dashboard and daily backfill all hold the file at once since
+    Brian registered the tasks; `delete` mode blocks every reader during a write.
+- [ ] **Task 6.2c: GDELT timestamps, verified on fresh data** (added 2026-10-28, plan review)
+  (sonnet)
+  - Facts on 2026-10-28 (read-only count): 169 GDELT items, one distinct `published_at`
+    (2026-10-27T05:15Z), all stored by the pre-fix code (b8af5fe landed 18:08 HKT);
+    `add_items` is `INSERT OR IGNORE`, so a refetch never re-stamps them; no GDELT item has
+    been stored since, although the watcher has polled GDELT every 15 min since 00:42 HKT. So
+    the fix is untested, not disproven, and live GDELT collection currently adds nothing.
+  - Files: `stock_advisor/news/sources/gdelt.py`, `tests/news/test_gdelt.py` (one real
+    artlist response saved under `tests/fixtures/news/gdelt/`), maybe
+    `stock_advisor/news/collect.py`; a scratchpad script for the one-off purge.
+  - Done when: (1) the watcher log explains the 0 items in 11 h (429 on every poll, an
+    exception, or `gdelt_busy` stuck true) and that cause is fixed; (2) one real artlist call
+    made outside a lockout is saved as a fixture and its `seendate` values are compared with
+    what `_to_items` stores; (3) after the fix, a live `fetch_recent` stores items with more
+    than one distinct `published_at` (read-only `COUNT(DISTINCT published_at)`); (4) the 169
+    old items, their scores and their event memberships are deleted (backup first) so no
+    "05:15" events remain; the GDELT backfill cursor is left alone.
+  - Notes: if GDELT really stamps `seendate` per 15-minute crawl batch, minute reactions for
+    GDELT items are not possible: record that in known-issues and ask Brian whether GDELT
+    items keep the 1-minute horizon (decision, not a default).
+- [ ] **Task 6.2d: backfill stop diagnosis and crash logging** (added 2026-10-28, plan
+  review) (coordinator diagnoses; sonnet for the code)
+  - Facts on 2026-10-28: the 02:00 task's run (started 02:00:02 HKT) stopped at 07:57 HKT in
+    state "scoring" with 543,624 items unscored. The lock file is gone, so `main()`'s
+    `finally` ran: an exception escaped `run()` (a finished run writes "stopped" or
+    "complete"). The traceback went to the headless console and is lost; the task reports
+    result 0. Nothing runs until 02:00 tomorrow.
+  - Files: `scripts/backfill_news.py`; test `tests/test_backfill.py`.
+  - Done when: `main()` logs an exception from `run()` with `logger.exception` and writes
+    state `crashed: <ExceptionType>` to the status file before releasing the lock (test with
+    a fake `run` that raises); the coordinator reads the tail of
+    `data/cache/news/backfill_log.txt` (summarize the cause, never quote data); the backfill
+    is restarted (`Start-ScheduledTask stock_advisor_news_backfill`) and `--status` shows it
+    running; the cause is fixed or recorded in open-items.
+  - Notes: suspects: "database is locked" from the watcher or dashboard writing while
+    scoring (6.2b helps), memory in FinBERT batches, or OneDrive holding the 1.5 GB db (the
+    repo lives under OneDrive; `data/` is gitignored but still synced).
+- [ ] **Task 6.2e: re-categorize items scored before the single-stock fix** (added
+  2026-10-28, plan review) (sonnet)
+  - Files: create `scripts/recategorize_news.py` (reuses `categories.py`; add a store query
+    for all categorized rows beside `items_awaiting_category`); test with a `tmp_path` store.
+  - Done when: a dry run prints old→new category counts; the real run (backup first, never
+    while the backfill lock exists) updates only changed rows with `store.set_category`, then
+    recomputes `high_impact` for the affected events; `--status` item and event counts are
+    unchanged.
+  - Notes: the first backfill run (18:55–23:24 HKT on 2026-10-27) categorized with the rules
+    before 0fbfdf1 (19:53 HKT); `scores` has no categorized-at column, so recompute every
+    categorized row and write only the differences.
+- [ ] **Task 6.2: scheduled tasks check and end-to-end run** (coordinator; after 6.2a–6.2e)
+  - (plan review 2026-10-28) Brian registered all four tasks. Observed: `minute_recorder`
+    Ready (first run 22:00 HKT), `news_backfill` Ready (daily 02:00), `news_watcher` Running
+    since 00:42, `dashboard` Running on 8502. Registering is done; this task verifies.
+  - Done when: `Get-ScheduledTask -TaskName stock_advisor_*` output quoted in the report
+    (recorder Ready, watcher Running); one full live pass (collect → score → news_cli, run
+    with the env's python, not `conda run`) completes and its output is quoted;
+    `python -m stock_advisor.news_backtest_cli` run on the store as it stands (about 380k
+    scored items and 312k events on 2026-10-28) writes `data/cache/news/model/results.json`
+    (absent on 2026-10-28) and its summary is quoted; `python -m stock_advisor.cli` shows
+    real values in the news column; the dashboard News tab at http://localhost:8502 is
+    checked in a real browser (or stays in open-items as waiting on Brian when the session
+    has no browser tool); after 22:00 HKT, `Get-ScheduledTaskInfo stock_advisor_minute_recorder`
+    shows LastTaskResult 0 and the 1m cache gained today's bars (or this check goes to
+    open-items for the next session).
+  - Notes: the backfill needs several more daily runs (Guardian cursor 2002, NYT 2010,
+    Wikipedia 2010, GDELT stalled; scoring lags fetching). Do not wait for it: 6.2f is the
+    rerun.
+- [ ] **Task 6.2f: rerun the backtest after the backfill completes** (added 2026-10-28, plan
+  review; waiting on time, probably a later session)
+  - Done when: `--status` shows every source complete (or capped with the limit recorded) and
+    0 to score, categorize and cluster; `news_backtest_cli` rerun and `results.json`
+    replaced; the `proven` flags, the market-moving categories and the window section are
+    quoted; the category thresholds and high-impact rule open items are revisited with them.
+- [ ] **Task 6.3: pre-release review, fixes, wrap-up, ship** (coordinator; after 6.2.
+  5.4b and 6.2f may stay open: the wrap-up lists them in open-items, they do not block the
+  ship)
 
 ## Self-review
 - A1→0.1; A2→1.1–1.11; A3→2.1–2.3, 6.2; A4→3.1–3.3; A5→4.1, 4.2; A6→4.3, 4.4;
-  A7→5.1–5.3; A8→6.1; A9→4.2, 4.5, 5.1; A10→5.4, 5.5, 6.2.
+  A7→5.1–5.3; A8→6.1; A9→4.2, 4.5, 5.1; A10→5.4, 5.4b, 5.5, 6.2. (2026-10-28, plan
+  review) Phase 5 live-run blockers→6.2a–6.2e; A5/A6 on the full history→6.2f.
 - Parallel groups touch disjoint files; `config.py` only in 2.2 (Phase 2) and read-only
   afterwards except 5.1 adding one constant (Phase 5, serial with 5.2/5.3? 5.1–5.3 run in
   sequence because 5.2 and 5.3 use 5.1's functions).
