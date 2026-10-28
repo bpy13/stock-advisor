@@ -5,13 +5,10 @@ here; a limit or trap we live with goes in `known-issues.md`. Each item in one p
 
 ## Blockers
 
-- GDELT timestamps still collapse: after the fix (b8af5fe) and the combined-query change
-  (8bbdb94), all 169 stored GDELT items still share published_at 2026-10-27 05:15 UTC
-  (checked 2026-10-27 20:20 HKT). The root cause was never confirmed live (GDELT returned 429
-  on every probe). Until fixed, GDELT events can't be used for minute/hour reactions, and
-  they group into misleading "05:15" events. Next step: capture a real artlist response
-  outside rate-limit windows and compare `seendate` values with what is stored; also check
-  whether the backfill and watcher calling GDELT at the same time makes the 429s worse.
+- GDELT (Task 6.2c, 2026-10-28): no parsing bug. GDELT stamps articles per crawl batch, and
+  its index had nothing newer than 2026-10-27 05:15 UTC for about 23 hours. Re-check
+  `COUNT(DISTINCT published_at)` for gdelt once the watcher log's "gdelt newest seendate"
+  line shows a later stamp.
 - `conda run` on Windows strips `^` from arguments (cmd escape character), so
   `--targets ^HSI ^GSPC` became HSI/GSPC and prices failed to load in the end-to-end run.
   Use `^^HSI`, or call the env's python directly; consider accepting HSI/GSPC aliases.
@@ -42,8 +39,11 @@ here; a limit or trap we live with goes in `known-issues.md`. Each item in one p
   info@hkex.com.hk for written permission; until then HK filings are not collected.
 
 - Confirm the one-step rule for proven news actions (decisions.md, 2026-10-27).
-- (plan review 2026-10-28) If Task 6.2c finds GDELT stamps items per 15-minute crawl batch,
-  should GDELT items drop the 1-minute horizon (keep hour and day)? Default: yes.
+- GDELT stamps items per crawl batch (Task 6.2c: 250 articles over 72 h carried 3 distinct
+  stamps). Should GDELT items drop the 1-minute horizon (keep hour and day)? Default: yes.
+- Keep the 169 GDELT items stored on 2026-10-27? The plan said purge them as mis-stamped, but
+  126 of them carry the same 05:15 stamp in GDELT's own response, so they are correct.
+  Default: keep them (no purge).
 - (plan review 2026-10-28) OneDrive syncs `data\` (news.db is 1.5 GB, written all day). This
   may slow or break the backfill. Default: exclude `data\` from OneDrive sync (Brian's setting).
 

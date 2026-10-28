@@ -376,6 +376,12 @@ write to or diagnose the real store: one at a time, never while
     than one distinct `published_at` (read-only `COUNT(DISTINCT published_at)`); (4) the 169
     old items, their scores and their event memberships are deleted (backup first) so no
     "05:15" events remain; the GDELT backfill cursor is left alone.
+  - Progress 2026-10-28 (173e3d8): (1) done: GDELT's DOC API itself had nothing newer than
+    2026-10-27T05:15Z (index stalled upstream); fetch_recent now logs the newest seendate.
+    (2) done: real 72 h fixture, 250 articles with only 3 distinct seendates. (3) open until
+    GDELT publishes newer batches. (4) on hold: 126 of the 169 stored items appear in the real
+    response, and GDELT stamps all 126 at 05:15, so the stored times are correct. Purge waits
+    for Brian (open-items); script in the session scratchpad (`purge_old_gdelt.py`).
   - Notes: if GDELT really stamps `seendate` per 15-minute crawl batch, minute reactions for
     GDELT items are not possible: record that in known-issues and ask Brian whether GDELT
     items keep the 1-minute horizon (decision, not a default).
@@ -406,6 +412,8 @@ write to or diagnose the real store: one at a time, never while
     while the backfill lock exists) updates only changed rows with `store.set_category`, then
     recomputes `high_impact` for the affected events; `--status` item and event counts are
     unchanged.
+  - Progress 2026-10-28: script in 8e2ce23; real dry run (28 s): 27 of 383,946 rows change,
+    in 22 events. Real run waits for the backfill lock to clear.
   - Notes: the first backfill run (18:55–23:24 HKT on 2026-10-27) categorized with the rules
     before 0fbfdf1 (19:53 HKT); `scores` has no categorized-at column, so recompute every
     categorized row and write only the differences.

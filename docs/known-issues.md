@@ -14,7 +14,9 @@ Limits and traps we live with. A bug that will be fixed goes in `open-items.md` 
   sample is small.
 - **GDELT.** It starts around 2017 and returns 429 under bursts, then locks the caller out for a
   minute or more. The backfill waits longer between calls, and only one GDELT caller may run at a
-  time.
+  time. Its `seendate` is a crawl-batch stamp, not the article's time: on 2026-10-28 the newest
+  250 articles over 72 hours carried only 3 distinct stamps, and the index added nothing for
+  about 23 hours. Minute-level reactions are not meaningful for GDELT items.
 - **Guardian and NYT daily caps.** Both APIs allow 500 calls a day; we stop at 480. The full
   Guardian archive (from 1990) takes about a week of daily runs and the NYT archive about a day.
   The daily backfill task resumes where the last run stopped.
