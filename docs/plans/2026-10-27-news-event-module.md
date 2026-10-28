@@ -402,8 +402,7 @@ write to or diagnose the real store: one at a time, never while
     is restarted (`Start-ScheduledTask stock_advisor_news_backfill`) and `--status` shows it
     running; the cause is fixed or recorded in open-items.
   - Notes: suspects: "database is locked" from the watcher or dashboard writing while
-    scoring (6.2b helps), memory in FinBERT batches, or OneDrive holding the 1.5 GB db (the
-    repo lives under OneDrive; `data/` is gitignored but still synced).
+    scoring (6.2b helps) or memory in FinBERT batches. (OneDrive sync is off, so not OneDrive.)
 - [ ] **Task 6.2e: re-categorize items scored before the single-stock fix** (added
   2026-10-28, plan review) (sonnet)
   - Files: create `scripts/recategorize_news.py` (reuses `categories.py`; add a store query

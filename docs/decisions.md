@@ -66,6 +66,8 @@ rather than deleting them). Nothing Brian didn't say is recorded as his decision
   only and never shown in the CLI, dashboard or alerts.
 
 - 2026-10-27 (Brian): news output appears in both the CLI report and the Streamlit dashboard.
+- 2026-10-28 (Brian): GDELT items drop the sub-hour horizons (1m, 5m, 15m) and keep the hour
+  and day horizons, because GDELT stamps articles per crawl batch, not per article.
 
 ## Repository
 
