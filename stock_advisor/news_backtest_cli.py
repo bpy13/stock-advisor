@@ -558,7 +558,8 @@ def main(argv: Optional[Sequence[str]] = None, price_loader: Optional[PriceLoade
         from stock_advisor.news.reactions import default_price_loader
         price_loader = default_price_loader
     if args.targets:
-        targets = [t.strip().upper() for t in args.targets]
+        from stock_advisor.config import normalize_target
+        targets = [normalize_target(t) for t in args.targets]
     else:
         from stock_advisor.config import news_targets
         targets = news_targets(_holdings(args.portfolio))

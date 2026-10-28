@@ -216,6 +216,10 @@ conda run -n stock_advisor python -m stock_advisor.news.notify --test    # sends
 
 Run all of these from the repo root. Prefix with `conda run -n stock_advisor` (or activate the env).
 
+Note: `conda run` passes arguments through `cmd`, which strips `^`, so `--targets ^HSI` arrives
+as `HSI`. The CLIs map `HSI` and `GSPC` back to `^HSI` and `^GSPC`. You can also write `^^HSI`
+or call the env's own `python.exe` directly.
+
 ```powershell
 # Collect headlines now (every source's latest items)
 python -m stock_advisor.news.collect --recent

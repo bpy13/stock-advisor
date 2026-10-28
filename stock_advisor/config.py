@@ -87,6 +87,17 @@ NEWS_TARGETS: dict[str, dict[str, str]] = {
 }
 
 
+def normalize_target(symbol: str) -> str:
+    """Upper-case a target; map an index key given without its ^ (HSI, GSPC) back to ^HSI.
+
+    `conda run` strips ^ from arguments (cmd escape), so the CLIs must accept both forms.
+    """
+    normalized = symbol.strip().upper()
+    if normalized and f"^{normalized}" in NEWS_TARGETS:
+        return f"^{normalized}"
+    return normalized
+
+
 def news_targets(holdings: Iterable[str]) -> list[str]:
     """Return the fixed targets followed by holdings (upper-cased, de-duplicated)."""
     result = list(NEWS_TARGETS)

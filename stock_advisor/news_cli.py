@@ -28,6 +28,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Callable, Iterable, List, Optional, Sequence
 
+from stock_advisor.config import normalize_target
 from stock_advisor.news import analysis as A
 from stock_advisor.news.analysis import EventAnalysis, NewsAnalyzer
 from stock_advisor.news.settings import DEFAULT_DB_PATH
@@ -322,7 +323,7 @@ def main(
 
     holdings: Iterable[str] = ()
     if args.targets:
-        targets = [t.strip().upper() for t in args.targets]
+        targets = [normalize_target(t) for t in args.targets]
     else:
         from stock_advisor.news.collect import holdings_symbols
 

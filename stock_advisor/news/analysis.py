@@ -33,7 +33,7 @@ from typing import Callable, Dict, Iterable, List, Optional, Sequence
 import numpy as np
 import pandas as pd
 
-from stock_advisor.config import NEWS_ACTION_THRESHOLD_PCT, NEWS_ALERT_TARGETS
+from stock_advisor.config import NEWS_ACTION_THRESHOLD_PCT, NEWS_ALERT_TARGETS, normalize_target
 from stock_advisor.news.models import Event, ItemScore, NewsItem, ensure_utc
 from stock_advisor.news.settings import NEWS_CACHE_DIR
 from stock_advisor.news.store import NewsStore
@@ -226,7 +226,7 @@ class NewsAnalyzer:
         from stock_advisor.news_backtest_cli import load_results
 
         self.store = store
-        self.targets = [t.strip().upper() for t in targets]
+        self.targets = [normalize_target(t) for t in targets]
         self.results = results if results is not None else load_results()
         self._fixed_reactions = reactions
         self.reactions_path = reactions_path
