@@ -12,6 +12,7 @@ import pandas as pd
 import pytest
 
 from stock_advisor import news_backtest_cli as B
+from stock_advisor.news.model import load_fitted
 from stock_advisor.news.models import Event, ItemScore, NewsItem
 from stock_advisor.news.reactions import HORIZONS
 from stock_advisor.news.scoring import embedding_to_bytes
@@ -123,6 +124,32 @@ def test_cli_prints_table_saves_results_and_finds_planted_effect(tmp_path, capsy
     assert not results.is_proven("XLK", "1d")
     assert not results.is_proven("^GSPC", "1h")  # skipped -> not proven
     assert not results.is_proven("^HSI", "1d")  # never tested -> not proven
+
+
+def test_normal_run_saves_the_fitted_models(tmp_path, capsys):
+    categories = build_store(tmp_path / "news.db")
+    assert run_cli(tmp_path, FakeBuilder(categories)) == 0
+    assert "fitted target/horizon pairs" in capsys.readouterr().out
+    fitted = load_fitted(tmp_path / "model" / B.FITTED_FILE)
+    assert fitted.library_size == 600
+    assert set(fitted.models) == {("^GSPC", "1d"), ("XLK", "1d")}  # 1h has no reactions
+
+
+def test_fit_only_saves_models_and_skips_the_backtest(tmp_path, capsys):
+    categories = build_store(tmp_path / "news.db")
+    builder = FakeBuilder(categories)
+    assert run_cli(tmp_path, builder, "--fit-only") == 0
+    out = capsys.readouterr().out
+    assert "Fitted 2 target/horizon pairs" in out and "Walk-forward" not in out
+    assert not (tmp_path / "model" / B.RESULTS_FILE).exists()
+    assert (tmp_path / "model" / B.REACTIONS_FILE).exists()  # reactions are still cached
+    assert len(load_fitted(tmp_path / "model" / B.FITTED_FILE).models) == 2
+
+    # An existing results.json is left alone.
+    results = tmp_path / "model" / B.RESULTS_FILE
+    results.write_text('{"keep": true}', encoding="utf-8")
+    assert run_cli(tmp_path, builder, "--fit-only") == 0
+    assert results.read_text(encoding="utf-8") == '{"keep": true}'
 
 
 def test_reaction_cache_is_incremental(tmp_path):

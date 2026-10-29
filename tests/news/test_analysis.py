@@ -12,6 +12,12 @@ import pytest
 
 from stock_advisor.news import analysis as A
 from stock_advisor.news import categories
+from stock_advisor.news.model import (
+    EventLibrary,
+    NewsModel,
+    load_event_records,
+    save_fitted,
+)
 from stock_advisor.news.models import Event, ItemScore, NewsItem
 from stock_advisor.news.scoring import EMBED_DIM, embedding_to_bytes
 from stock_advisor.news.store import NewsStore
@@ -73,13 +79,29 @@ def store(tmp_path):
         yield s
 
 
-def analyzer_for(store, reactions=None, proven=(), targets=("^GSPC", "^HSI")):
+def fit_and_save(store, reactions, path, targets=("^GSPC", "^HSI"),
+                 horizons=A.HEADLINE_HORIZONS):
+    """What news_backtest_cli does: fit on the store's events and save the models to `path`."""
+    records = load_event_records(store)
+    model = NewsModel(EventLibrary(records), reactions).fit(targets, horizons)
+    save_fitted(model.models, path, len(records))
+    return path
+
+
+def analyzer_for(store, tmp_path, reactions=None, proven=(), targets=("^GSPC", "^HSI")):
+    """An analyzer that reads reactions and a fitted file saved under `tmp_path`.
+
+    No reactions: the fitted file is not written, like a machine that never ran the backtest.
+    """
     results = BacktestResults({"results": [
         {"target": t, "horizon": h, "proven": True} for t, h in proven]})
+    fitted_path = tmp_path / "fitted.pkl"
     if reactions is None:
         reactions = pd.DataFrame(columns=A.REACTION_COLUMNS)
+    else:
+        fit_and_save(store, reactions, fitted_path, targets)
     return A.NewsAnalyzer(store, targets, results=results, reactions=reactions,
-                          clock=lambda: NOW)
+                          fitted_path=fitted_path, clock=lambda: NOW)
 
 
 def test_decide_action_thresholds():
@@ -96,10 +118,10 @@ def test_alert_targets_adds_holdings_without_duplicates():
     assert A.alert_targets() == ["^HSI", "^GSPC"]
 
 
-def test_no_history_degrades_without_error(store):
+def test_no_history_degrades_without_error(store, tmp_path):
     vec = np.ones(DIM)
     add_event(store, "now", NOW - timedelta(hours=1), vec)
-    analyzer = analyzer_for(store)
+    analyzer = analyzer_for(store, tmp_path)
     [analysis] = analyzer.analyze_recent(24)
     assert analysis.similar == []
     for target in ("^GSPC", "^HSI"):
@@ -112,10 +134,10 @@ def test_no_history_degrades_without_error(store):
     assert analysis.warnings == []
 
 
-def test_with_history_predicts_reduce_and_lists_similar(store):
+def test_with_history_predicts_reduce_and_lists_similar(store, tmp_path):
     war, reactions = past_history(store)
     add_event(store, "now", NOW - timedelta(hours=2), war, title="Missiles hit port city")
-    analyzer = analyzer_for(store, reactions)
+    analyzer = analyzer_for(store, tmp_path, reactions)
     [analysis] = analyzer.analyze_recent(24)
     outlook = analysis.outlooks["^GSPC"]
     one_day = outlook.forecasts["1d"]
@@ -130,10 +152,10 @@ def test_with_history_predicts_reduce_and_lists_similar(store):
     assert A.strong_targets(analysis) == ["^GSPC", "^HSI"]
 
 
-def test_proven_flag_comes_from_results(store):
+def test_proven_flag_comes_from_results(store, tmp_path):
     war, reactions = past_history(store)
     add_event(store, "now", NOW - timedelta(hours=2), war)
-    analyzer = analyzer_for(store, reactions, proven=[("^GSPC", "1d")])
+    analyzer = analyzer_for(store, tmp_path, reactions, proven=[("^GSPC", "1d")])
     [analysis] = analyzer.analyze_recent(24)
     assert analysis.outlooks["^GSPC"].action_proven
     assert analysis.outlooks["^GSPC"].forecasts["1d"].proven
@@ -141,30 +163,30 @@ def test_proven_flag_comes_from_results(store):
     assert not analysis.outlooks["^HSI"].action_proven
 
 
-def test_guardian_summary_never_reaches_the_analysis(store):
+def test_guardian_summary_never_reaches_the_analysis(store, tmp_path):
     add_event(store, "g", NOW - timedelta(hours=1), np.ones(DIM), source="guardian",
               summary="SECRET-TRAIL-TEXT", n_items=1, title="Guardian headline")
-    [analysis] = analyzer_for(store).analyze_recent(24)
+    [analysis] = analyzer_for(store, tmp_path).analyze_recent(24)
     assert "SECRET-TRAIL-TEXT" not in repr(analysis)
     assert analysis.headlines[0].title == "Guardian headline"
     assert analysis.headlines[0].url.startswith("https://example.test/")
     assert analysis.sources == ["guardian"]
 
 
-def test_old_events_and_ordering(store):
+def test_old_events_and_ordering(store, tmp_path):
     add_event(store, "old", NOW - timedelta(hours=30), np.ones(DIM))
     add_event(store, "quiet", NOW - timedelta(hours=3), np.arange(1, DIM + 1), high_impact=False,
               n_items=1)
     add_event(store, "big", NOW - timedelta(hours=5), np.arange(DIM, 0, -1))
-    analyzer = analyzer_for(store)
+    analyzer = analyzer_for(store, tmp_path)
     assert [a.event_id for a in analyzer.analyze_recent(24)] == ["ev_big", "ev_quiet"]
     assert [a.event_id for a in analyzer.analyze_recent(24, high_impact_only=True)] == ["ev_big"]
     assert [a.event_id for a in analyzer.analyze_recent(24, limit=1)] == ["ev_big"]
 
 
-def test_prediction_error_becomes_a_warning(store):
+def test_prediction_error_becomes_a_warning(store, tmp_path):
     add_event(store, "now", NOW - timedelta(hours=1), np.ones(DIM))
-    analyzer = analyzer_for(store)
+    analyzer = analyzer_for(store, tmp_path)
     analyzer.refresh()
 
     def boom(*args, **kwargs):
@@ -174,6 +196,56 @@ def test_prediction_error_becomes_a_warning(store):
     [analysis] = analyzer.analyze_recent(24)
     assert any("prediction failed" in w for w in analysis.warnings)
     assert math.isnan(analysis.outlooks["^GSPC"].predicted_action_move)
+
+
+def test_refresh_never_fits_and_predicts_from_the_fitted_file(store, tmp_path, monkeypatch):
+    # Fitting builds the all-pairs analog table: 30-60 minutes on the live store, and the
+    # watcher stops polling meanwhile. refresh must only load.
+    war, reactions = past_history(store)
+    add_event(store, "now", NOW - timedelta(hours=2), war)
+    analyzer = analyzer_for(store, tmp_path, reactions)  # fits and saves here, before the patches
+
+    def boom(*args, **kwargs):
+        raise AssertionError("refresh must not fit or build the candidate table")
+
+    monkeypatch.setattr(NewsModel, "fit", boom)
+    monkeypatch.setattr(NewsModel, "features", boom)
+    monkeypatch.setattr(EventLibrary, "candidates", boom)
+    [analysis] = analyzer.analyze_recent(24)
+    assert analyzer.model.models
+    forecast = analysis.outlooks["^GSPC"].forecasts["1d"]
+    assert forecast.available and forecast.predicted < -0.015
+    assert not math.isnan(forecast.low) and forecast.n_train > 0
+    assert len(analysis.similar) == A.TOP_SIMILAR
+    assert analysis.warnings == []
+
+
+def test_refresh_logs_the_fitted_file_and_warns_when_missing(store, tmp_path, caplog):
+    war, reactions = past_history(store)
+    add_event(store, "now", NOW - timedelta(hours=2), war)
+    with caplog.at_level("INFO"):
+        analyzer_for(store, tmp_path, reactions).refresh()
+    assert "Fitted models generated" in caplog.text
+    assert "Model ready:" in caplog.text and "fitted target/horizon pairs" in caplog.text
+    caplog.clear()
+    with caplog.at_level("WARNING"):
+        analyzer_for(store, tmp_path / "empty").refresh()
+    assert "No fitted models" in caplog.text
+
+
+def test_missing_fitted_file_gives_na_predictions_without_error(store, tmp_path):
+    war, reactions = past_history(store)
+    add_event(store, "now", NOW - timedelta(hours=2), war)
+    analyzer = A.NewsAnalyzer(
+        store, ("^GSPC", "^HSI"), results=BacktestResults({}), reactions=reactions,
+        fitted_path=tmp_path / "missing.pkl", clock=lambda: NOW)
+    [analysis] = analyzer.analyze_recent(24)
+    assert analyzer.model.models == {}
+    outlook = analysis.outlooks["^GSPC"]
+    assert not outlook.has_prediction and outlook.action == "hold"
+    assert all(not f.available for f in outlook.forecasts.values())
+    assert len(analysis.similar) == A.TOP_SIMILAR  # similar events need no fitted model
+    assert analysis.warnings == []
 
 
 # ---- processing ---------------------------------------------------------------------------------

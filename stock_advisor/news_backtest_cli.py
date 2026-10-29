@@ -12,6 +12,9 @@ Side effects (all under data/cache/news/model/):
   horizons may still have been missing) are added on each run; old rows are reused.
 * results.json: the results, read back by `load_results` (Tasks 5.1 to 5.3 use
   `load_results().is_proven(target, horizon)`).
+* fitted.pkl: the final models fitted on all events (`model.save_fitted`). The watcher, report
+  and dashboard load it and never fit themselves. `--fit-only` rewrites just this file from the
+  cached reactions, without the walk-forward backtest (results.json stays as it is).
 
 The news store is opened read-only (SQLite URI mode=ro), so a running backfill is never
 blocked or changed.
@@ -23,6 +26,7 @@ import argparse
 import json
 import math
 import sqlite3
+import time
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -40,6 +44,7 @@ from stock_advisor.news.model import (
     NewsModel,
     load_event_records,
     return_kind,
+    save_fitted,
 )
 from stock_advisor.news.reactions import HORIZONS, PriceLoader, build_reaction_table
 from stock_advisor.news.settings import DEFAULT_DB_PATH, NEWS_CACHE_DIR
@@ -49,6 +54,8 @@ MODEL_CACHE_DIR = NEWS_CACHE_DIR / "model"
 REACTIONS_FILE = "reactions.parquet"
 RESULTS_FILE = "results.json"
 RESULTS_PATH = MODEL_CACHE_DIR / RESULTS_FILE
+FITTED_FILE = "fitted.pkl"
+FITTED_PATH = MODEL_CACHE_DIR / FITTED_FILE
 RESULTS_VERSION = 1
 
 # Cached reactions for events newer than this are rebuilt on every run, because their later
@@ -544,9 +551,14 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--db", type=Path, default=DEFAULT_DB_PATH,
                         help="News store (opened read-only; default: %(default)s).")
     parser.add_argument("--cache-dir", type=Path, default=MODEL_CACHE_DIR,
-                        help="Where reactions.parquet and results.json go (default: %(default)s).")
+                        help="Where reactions.parquet, results.json and fitted.pkl go "
+                             "(default: %(default)s).")
     parser.add_argument("--rebuild-reactions", action="store_true",
                         help="Ignore the cached reaction table and rebuild it.")
+    parser.add_argument("--fit-only", action="store_true",
+                        help="Only fit the final models on the cached reactions and save "
+                             "fitted.pkl; skip the walk-forward backtest and leave "
+                             "results.json as it is.")
     return parser
 
 
@@ -578,11 +590,25 @@ def main(argv: Optional[Sequence[str]] = None, price_loader: Optional[PriceLoade
     reactions = load_or_build_reactions(
         events, targets, args.cache_dir / REACTIONS_FILE, price_loader, precisions,
         builder=reaction_builder, rebuild=args.rebuild_reactions)
+    fitted_path = args.cache_dir / FITTED_FILE
+    if args.fit_only:
+        model = NewsModel(EventLibrary(events), reactions, price_loader=price_loader)
+        started = time.monotonic()
+        model.fit(targets, args.horizons)
+        print(f"Fitted {len(model.models)} target/horizon pairs in "
+              f"{time.monotonic() - started:.0f} s.")
+        print(f"Saved {save_fitted(model.models, fitted_path, len(model.library))}")
+        return 0
     run = run_backtest(events, reactions, targets, args.horizons, args.min_events, price_loader)
     window = window_section(run)
     print_report(run, args.category_horizon, window)
     path = save_results(results_payload(run, args.db, window), args.cache_dir / RESULTS_FILE)
     print(f"\nSaved {path}")
+    # The walk-forward already cached each pair's features on this library, so the final fit
+    # on all events is cheap. The live watcher, report and dashboard load these models.
+    run.model.fit(targets, args.horizons)
+    save_fitted(run.model.models, fitted_path, len(run.model.library))
+    print(f"Saved {fitted_path} ({len(run.model.models)} fitted target/horizon pairs)")
     return 0
 
 

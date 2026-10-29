@@ -306,6 +306,7 @@ def main(
     price_loader=None,
     results=None,
     reactions=None,
+    fitted=None,
     finbert=None,
     embedder=None,
     on_new_events: Optional[NewEventsHook] = None,
@@ -337,7 +338,7 @@ def main(
     store = A.open_store(args.db)
     try:
         analyzer = NewsAnalyzer(store, targets, results=results, reactions=reactions,
-                                price_loader=price_loader)
+                                fitted=fitted, price_loader=price_loader)
         if args.watch or args.collect:
             if sources is None:
                 sources = A.build_watch_sources(holdings)

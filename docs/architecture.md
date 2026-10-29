@@ -22,9 +22,9 @@ sources -> store -> scoring -> categories -> events -> reactions -> model + wind
 | Categories | `news/categories.py` | Nearest seed-phrase centroid by embedding, with keyword overrides where the match is weak. Categories include trade_tariffs, monetary_policy, war_conflict, cyber_security, financial_crisis, geopolitical_tension, company_results and other. |
 | Events | `news/events.py`, `news/article.py` | Clusters headlines into events (cosine similarity 0.60 to the event centroid, 12 h window, 48 h maximum span). High impact means a macro category with strong tone or three or more sources. `article.py` fetches the body of high-impact events, skipping paywalled domains and honouring robots.txt. |
 | Reactions | `news/reactions.py` | Cumulative return paths per event and target: 1m, 5m, 15m, 1h, 4h and the 1st, 2nd, 3rd, 5th and 10th close. Uses 1m bars, then 60m bars, then daily bars. Missing data is NaN. Stocks also get a market-adjusted return. |
-| Model | `news/model.py` | For each target and horizon: similarity-weighted mean reaction of the 20 most similar earlier events, plus a ridge regression on category, tone, source count, high-impact flag and 20-day volatility. Uses only earlier events. |
+| Model | `news/model.py` | For each target and horizon: similarity-weighted mean reaction of the 20 most similar earlier events, plus a ridge regression on category, tone, source count, high-impact flag and 20-day volatility. Uses only earlier events. Live code never fits: it loads the backtest's saved models (`fitted.pkl`) and runs only the one-row analog search. |
 | Window | `news/window.py` | From the paths of similar earlier events, the median and quartiles of the peak time, shown as "exit within X-Y". |
-| Backtest | `news_backtest_cli.py` | Walk-forward by calendar year. Writes `results.json`. A target and horizon is `proven` when n >= 30, abs(t) >= 2 and hit rate > 0.5. |
+| Backtest | `news_backtest_cli.py` | Walk-forward by calendar year. Writes `results.json` and `fitted.pkl` (`--fit-only` writes only `fitted.pkl`). A target and horizon is `proven` when n >= 30, abs(t) >= 2 and hit rate > 0.5. |
 | Analysis | `news/analysis.py` | Shared layer that returns data and prints nothing: `NewsAnalyzer`, `process_new` (score, categorize, cluster), and the watcher's source groups. |
 | Output | `news_cli.py`, `report.py`, `app.py`, `news/notify.py` | CLI text, a `news` column in the report, the dashboard News tab, Telegram alerts. |
 
@@ -51,6 +51,7 @@ and link only, never the stored summary.
 | `news/news.db` | the store above |
 | `news/model/reactions.parquet` | reaction table cache; new events are added on each backtest run |
 | `news/model/results.json` | backtest results read by the CLI, report and dashboard |
+| `news/model/fitted.pkl` | ridge models fitted on all events, loaded by the watcher, CLI, report and dashboard (pickle; local cache) |
 | `news/backfill_status.json`, `backfill.lock`, `backfill_log.txt` | backfill progress, lock, log |
 | `news/watcher_log.txt` | watcher output |
 

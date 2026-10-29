@@ -22,15 +22,24 @@ events runs as chunked matrix products over the earlier rows only; each event ke
 candidate list (5k most similar earlier events) that is shared by every target and horizon.
 New, later events append without recomputing older ones (`EventLibrary.extend`).
 
+Live code never fits: the backtest CLI fits on all events and saves the ridge models
+(`save_fitted`); the watcher, report and dashboard load them (`load_fitted`) into
+`NewsModel.models`. `predict` then needs only the one-row analog search, never the all-pairs
+candidate table that `fit` builds (30-60 min and several GB on the live store).
+
 `walk_forward` is the out-of-sample check (expanding window by calendar year) that decides
 whether a target and horizon is `proven` (decision 2026-10-27: unproven predictions only warn).
 """
 
 from __future__ import annotations
 
+import logging
 import math
+import os
+import pickle
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Callable, Dict, Iterable, List, Optional, Sequence, Tuple
 
 import numpy as np
@@ -40,6 +49,9 @@ from stock_advisor.news.categories import CATEGORIES
 from stock_advisor.news.reactions import HORIZONS
 from stock_advisor.news.scoring import embedding_from_bytes
 
+logger = logging.getLogger(__name__)
+
+FITTED_VERSION = 1
 DEFAULT_K = 20
 CANDIDATE_FACTOR = 5  # candidates kept per event = factor * k, filtered per target/horizon
 DEFAULT_ALPHAS: Tuple[float, ...] = (0.01, 0.1, 1.0, 10.0, 100.0, 1000.0, 10000.0)
@@ -489,6 +501,76 @@ def _fit_with_cv(x: np.ndarray, y: np.ndarray, times: np.ndarray, realized: np.n
     if best_resid is None:
         best_resid = y - ridge.predict(x)
     return _Fitted(ridge, best_alpha, best_resid, float("nan"), len(y))
+
+
+# ---- saving and loading fitted models -------------------------------------------------------
+
+
+@dataclass
+class FittedFile:
+    """The fitted models as read back from the file written by `save_fitted`."""
+
+    generated_at: str  # ISO time the file was written
+    library_size: int  # events the models were fitted on
+    models: Dict[Tuple[str, str], _Fitted]
+
+
+def save_fitted(models: Dict[Tuple[str, str], _Fitted], path: Path, library_size: int,
+                generated_at: Optional[datetime] = None) -> Path:
+    """Write the fitted models to `path` (a pickle; a local cache, not for untrusted files).
+
+    Plain dicts and arrays are stored, not the private dataclasses, so renaming `_Fitted`
+    later does not break old files. Written to a temp file then renamed, so a reader (the
+    watcher) never sees a half-written file.
+    """
+    path = Path(path)
+    when = generated_at or datetime.now(timezone.utc)
+    payload = {
+        "version": FITTED_VERSION,
+        "generated_at": when.isoformat(timespec="seconds"),
+        "library_size": int(library_size),
+        "models": [{
+            "target": target, "horizon": horizon,
+            "mean": f.ridge.mean, "scale": f.ridge.scale, "coef": f.ridge.coef,
+            "intercept": float(f.ridge.intercept), "alpha": float(f.alpha),
+            "residuals": f.residuals, "vol_fill": float(f.vol_fill), "n_train": int(f.n_train),
+        } for (target, horizon), f in models.items()],
+    }
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_name(path.name + ".tmp")
+    with open(tmp, "wb") as handle:
+        pickle.dump(payload, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    os.replace(tmp, path)
+    return path
+
+
+def load_fitted(path: Path) -> Optional[FittedFile]:
+    """Read a file written by `save_fitted`. None (with a warning) when it is missing,
+    unreadable or of another version: a bad file must never stop the monitor."""
+    path = Path(path)
+    if not path.exists():
+        logger.warning("No fitted models at %s; run news_backtest_cli (or --fit-only) first", path)
+        return None
+    try:
+        with open(path, "rb") as handle:
+            payload = pickle.load(handle)
+        if payload.get("version") != FITTED_VERSION:
+            logger.warning("Fitted models at %s have version %r, expected %d; ignoring them",
+                           path, payload.get("version"), FITTED_VERSION)
+            return None
+        models = {
+            (m["target"], m["horizon"]): _Fitted(
+                _Ridge(np.asarray(m["mean"]), np.asarray(m["scale"]), np.asarray(m["coef"]),
+                       float(m["intercept"])),
+                float(m["alpha"]), np.asarray(m["residuals"]), float(m["vol_fill"]),
+                int(m["n_train"]))
+            for m in payload["models"]
+        }
+        return FittedFile(str(payload["generated_at"]), int(payload["library_size"]), models)
+    except Exception as exc:  # truncated, garbage or from another program
+        logger.warning("Could not read fitted models at %s (%s); ignoring them", path,
+                       type(exc).__name__)
+        return None
 
 
 # ---- public results -------------------------------------------------------------------------

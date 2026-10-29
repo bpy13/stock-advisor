@@ -330,6 +330,51 @@ def test_new_event_query_matches_library_row():
     np.testing.assert_array_equal(idx, inside_idx[-1])
 
 
+# ---- saved fitted models --------------------------------------------------------------------
+
+
+def test_save_load_round_trip_gives_the_same_predictions(tmp_path):
+    events = make_events(600, seed=21)
+    reactions = make_reactions(events, 21, planted=True, targets=("^GSPC", "XLK"),
+                               horizons=("1d", "5d"))
+    fitted_model = NewsModel(EventLibrary(events), reactions).fit(["^GSPC", "XLK"], ["1d", "5d"])
+    assert len(fitted_model.models) == 4
+    path = M.save_fitted(fitted_model.models, tmp_path / "sub" / "fitted.pkl", len(events))
+    assert not list(tmp_path.rglob("*.tmp"))  # the temp file was renamed away
+
+    loaded = M.load_fitted(path)
+    assert loaded.library_size == 600 and loaded.generated_at
+    assert set(loaded.models) == set(fitted_model.models)
+
+    # A fresh model on the live library that never fits: only the loaded models.
+    live = NewsModel(EventLibrary(events), reactions)
+    live.models = loaded.models
+    outside = new_event("war_conflict", datetime(2023, 6, 1, tzinfo=timezone.utc), seed=21)
+    for event in (events[100], events[400], events[-1], outside):
+        for target, horizon in fitted_model.models:
+            a = fitted_model.predict(event, target, horizon)
+            b = live.predict(event, target, horizon)
+            assert (b.predicted, b.low, b.high) == pytest.approx((a.predicted, a.low, a.high))
+            assert (b.n_train, b.alpha) == (a.n_train, a.alpha)
+            assert not np.isnan(b.predicted)
+
+
+def test_load_fitted_returns_none_for_missing_garbage_and_wrong_version(tmp_path):
+    assert M.load_fitted(tmp_path / "missing.pkl") is None
+    garbage = tmp_path / "garbage.pkl"
+    garbage.write_bytes(b"not a pickle at all")
+    assert M.load_fitted(garbage) is None
+    empty = tmp_path / "empty.pkl"
+    empty.write_bytes(b"")
+    assert M.load_fitted(empty) is None
+    old = tmp_path / "old.pkl"
+    M.save_fitted({}, old, 0)
+    assert M.load_fitted(old).models == {}
+    import pickle
+    old.write_bytes(pickle.dumps({"version": 99, "models": []}))
+    assert M.load_fitted(old) is None
+
+
 # ---- store loader ---------------------------------------------------------------------------
 
 

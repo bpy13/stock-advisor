@@ -239,8 +239,11 @@ python -m stock_advisor.news_cli --collect      # fetch and score first
 python -m stock_advisor.news_cli --watch        # keep polling; prints new high-impact events
 python -m stock_advisor.news_cli --watch --no-alerts   # watch without Telegram
 
-# Walk-forward backtest; saves data/cache/news/model/results.json
+# Walk-forward backtest; saves data/cache/news/model/results.json and fitted.pkl
+# (the models the watcher, report and dashboard load; they never fit themselves)
 python -m stock_advisor.news_backtest_cli
+# Refit and save only fitted.pkl from the cached reactions (no backtest; results.json unchanged)
+python -m stock_advisor.news_backtest_cli --fit-only
 
 # Record today's 1-minute and 60-minute bars (Yahoo keeps 1m for only ~30 days); no options
 python scripts/record_minutes.py

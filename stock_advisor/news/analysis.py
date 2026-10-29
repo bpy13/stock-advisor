@@ -15,6 +15,8 @@ Rules this layer keeps:
   passed the walk-forward test (decision 2026-10-27: unproven predictions only warn).
 * Guardian items carry the headline and link only. Item summaries are read for outlet names
   (`source_key`) and never copied into the results.
+* Nothing here fits a model: `refresh` loads the models the backtest saved (fitted.pkl). With
+  no such file predictions are NaN, while similar events and windows still work.
 * With too little history, predictions are NaN and the window says "not enough similar events";
   nothing raises.
 """
@@ -46,6 +48,7 @@ TOP_SIMILAR = 5
 MAX_HEADLINES = 5
 BUSY_TIMEOUT_MS = 30_000
 REACTIONS_PATH = NEWS_CACHE_DIR / "model" / "reactions.parquet"
+FITTED_PATH = NEWS_CACHE_DIR / "model" / "fitted.pkl"  # same file as news_backtest_cli.FITTED_PATH
 BACKFILL_STATUS_PATH = NEWS_CACHE_DIR / "backfill_status.json"
 REACTION_COLUMNS = ["event_id", "target", "horizon", "raw", "adjusted", "start_ts",
                     "start_source"]
@@ -205,8 +208,10 @@ def read_reactions(path: Optional[Path] = None) -> pd.DataFrame:
 class NewsAnalyzer:
     """Builds the prediction model once (`refresh`) and analyzes events against it.
 
-    `reactions` overrides the cached reaction file (tests). `results` is a
-    `news_backtest_cli.BacktestResults` (default: results.json). `price_loader` feeds the
+    The model loads the fitted models saved by news_backtest_cli (fitted.pkl) and never fits.
+    `reactions` overrides the cached reaction file and `fitted` (a `model.FittedFile`) the
+    fitted file (tests); `reactions_path` and `fitted_path` point at other files. `results` is
+    a `news_backtest_cli.BacktestResults` (default: results.json). `price_loader` feeds the
     volatility feature (None: skipped).
     """
 
@@ -217,6 +222,8 @@ class NewsAnalyzer:
         results=None,
         reactions: Optional[pd.DataFrame] = None,
         reactions_path: Optional[Path] = None,
+        fitted=None,
+        fitted_path: Optional[Path] = None,
         price_loader=None,
         threshold_pct: float = NEWS_ACTION_THRESHOLD_PCT,
         top_similar: int = TOP_SIMILAR,
@@ -230,6 +237,8 @@ class NewsAnalyzer:
         self.results = results if results is not None else load_results()
         self._fixed_reactions = reactions
         self.reactions_path = reactions_path
+        self._fixed_fitted = fitted
+        self.fitted_path = fitted_path
         self.price_loader = price_loader
         self.threshold_pct = threshold_pct
         self.top_similar = top_similar
@@ -241,14 +250,30 @@ class NewsAnalyzer:
     # -- model ---------------------------------------------------------------------------------
 
     def refresh(self) -> None:
-        """(Re)build the event library and fit the model from the store and the reaction file."""
-        from stock_advisor.news.model import EventLibrary, NewsModel, load_event_records
+        """(Re)build the event library from the store and load the backtest's fitted models.
+
+        Never fits: fitting builds the all-pairs analog table, which takes 30-60 minutes on the
+        live store. With no fitted file, `model.models` stays empty and predictions are NaN.
+        """
+        from stock_advisor.news.model import (
+            EventLibrary,
+            NewsModel,
+            load_event_records,
+            load_fitted,
+        )
 
         records = load_event_records(self.store)
         reactions = (self._fixed_reactions if self._fixed_reactions is not None
                      else read_reactions(self.reactions_path))
         model = NewsModel(EventLibrary(records), reactions, price_loader=self.price_loader)
-        model.fit(self.targets, self.horizons)
+        fitted = (self._fixed_fitted if self._fixed_fitted is not None
+                  else load_fitted(self.fitted_path if self.fitted_path is not None
+                                   else FITTED_PATH))
+        if fitted is not None:
+            wanted = {(t, h) for t in self.targets for h in self.horizons}
+            model.models = {k: v for k, v in fitted.models.items() if k in wanted}
+            logger.info("Fitted models generated %s on %d events", fitted.generated_at,
+                        fitted.library_size)
         self.model = model
         self.refreshed_at = self.clock()
         logger.info("Model ready: %d events, %d fitted target/horizon pairs",

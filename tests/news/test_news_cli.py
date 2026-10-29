@@ -4,13 +4,16 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 
 import numpy as np
+import pandas as pd
 import pytest
 
 from stock_advisor import news_cli
 from stock_advisor.news import analysis as A
 from stock_advisor.news import categories
+from stock_advisor.news.model import FittedFile, load_fitted
 from stock_advisor.news.models import NewsItem
 from stock_advisor.news.scoring import EMBED_DIM
 from stock_advisor.news.store import NewsStore
@@ -20,11 +23,13 @@ from tests.news.test_analysis import (
     FakeEmbedder,
     FakeFinBert,
     add_event,
+    fit_and_save,
     past_history,
 )
 
 NOW = datetime.now(timezone.utc)  # the CLI uses the real clock; events are placed relative to it
 UNPROVEN = "\u26a0 unproven"
+EMPTY_FITTED = FittedFile("2026-01-01T00:00:00+00:00", 0, {})  # no models: predictions are n/a
 
 
 def price_loader(symbol, interval):
@@ -32,12 +37,20 @@ def price_loader(symbol, interval):
 
 
 def run_cli(db, argv, reactions, proven=(), **kwargs):
+    """Run the CLI on a tmp store. With reactions, fit and load models like the backtest does;
+    without, an empty reaction table and an empty fitted file (never the real data files)."""
     lines = []
     results = BacktestResults({"results": [
         {"target": t, "horizon": h, "proven": True} for t, h in proven]})
+    if reactions is None:
+        reactions, fitted = pd.DataFrame(columns=A.REACTION_COLUMNS), EMPTY_FITTED
+    else:
+        with NewsStore(db) as store:
+            path = fit_and_save(store, reactions, Path(db).with_name("fitted.pkl"))
+        fitted = load_fitted(path)
     code = news_cli.main(["--db", str(db), "--targets", "^GSPC", "^HSI", *argv],
                          price_loader=price_loader, results=results, reactions=reactions,
-                         out=lines.append, **kwargs)
+                         fitted=fitted, out=lines.append, **kwargs)
     return code, "\n".join(lines)
 
 
@@ -177,7 +190,9 @@ def test_watch_slow_group_runs_on_its_own_schedule(tmp_path):
     ticks = iter(range(0, 10_000, 60))  # a fake clock that moves 60 s per call
     news_cli.main(["--db", str(db), "--watch", "--targets", "^GSPC"],
                   sources=A.WatchSources([fast], [slow]), price_loader=price_loader,
-                  results=BacktestResults({}), reactions=None, finbert=FakeFinBert(),
+                  results=BacktestResults({}),
+                  reactions=pd.DataFrame(columns=A.REACTION_COLUMNS), fitted=EMPTY_FITTED,
+                  finbert=FakeFinBert(),
                   embedder=FakeEmbedder(), out=lambda *_: None, sleep=lambda s: None,
                   clock=lambda: float(next(ticks)), max_cycles=10, slow_interval=300,
                   background_slow=False)
