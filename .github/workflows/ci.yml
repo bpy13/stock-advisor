@@ -1,0 +1,34 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      # The offline tests use fake embedders and scorers, so the heavy model packages
+      # (torch, transformers, sentence-transformers) are left out to keep the job fast.
+      - name: Install dependencies
+        run: |
+          grep -vE '^(torch|transformers|sentence-transformers)\b' requirements.txt > requirements-ci.txt
+          python -m pip install --upgrade pip
+          pip install -r requirements-ci.txt
+
+      # "slow" tests load a real model from the local cache; everything else uses
+      # synthetic data and fakes, with no network calls.
+      - name: Run offline tests
+        run: python -m pytest -q -m "not slow"
