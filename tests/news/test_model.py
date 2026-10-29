@@ -246,11 +246,44 @@ def test_fit_respects_train_end():
 def test_score_predictions_rules():
     rng = np.random.default_rng(12)
     actual = rng.normal(0, 1, 200)
-    n, hit, signed, t, proven = M.score_predictions(actual + rng.normal(0, 0.5, 200), actual)
-    assert n == 200 and hit > 0.7 and signed > 0 and t > 2 and proven
-    assert not M.score_predictions(-actual, actual)[4]  # wrong direction is never proven
-    assert not M.score_predictions(actual[:20], actual[:20])[4]  # too few
-    assert not M.score_predictions(np.ones(200), actual)[4]  # one sign only: no t-stat
+    day = 86_400 * 1_000_000_000
+    days = np.arange(200) * day  # every event on its own day
+    pred = actual + rng.normal(0, 0.5, 200)
+    n, hit, signed, t, proven, n_days = M.score_predictions(pred, actual, days, min_days=100)
+    assert n == 200 and n_days == 200 and hit > 0.7 and signed > 0 and t > 2 and proven
+    assert not M.score_predictions(-actual, actual, days, 100)[4]  # wrong direction
+    assert not M.score_predictions(actual[:20], actual[:20], days[:20], 10)[4]  # too few
+    assert not M.score_predictions(np.ones(200), actual, days, 100)[4]  # one sign only
+
+
+def test_proven_needs_250_distinct_days():
+    assert M.MIN_PROVEN_DAYS == 250
+    day = 86_400 * 1_000_000_000
+    rng = np.random.default_rng(5)
+    actual = rng.normal(0, 1, 2000)
+    pred = actual + rng.normal(0, 0.5, 2000)
+    # 2000 events but only 4 trading days (events within a day differ by an hour): not proven,
+    # however large n and t are.
+    few = (np.arange(2000) % 4) * day + (np.arange(2000) // 4) * 1_000
+    n, _, _, t, proven, n_days = M.score_predictions(pred, actual, few)
+    assert n == 2000 and t > 10 and n_days == 4 and not proven
+    # The same events spread over 249 days still fail; over 250 days they pass.
+    assert not M.score_predictions(pred, actual, (np.arange(2000) % 249) * day)[4]
+    assert M.score_predictions(pred, actual, (np.arange(2000) % 250) * day)[4]
+
+
+def test_walk_forward_reports_days_and_uses_reaction_start():
+    events = make_events(1200, seed=1)
+    reactions = make_reactions(events, 1, planted=True)
+    model = NewsModel(EventLibrary(events), reactions)
+    result = model.walk_forward("^GSPC", "1d")
+    assert result.proven and 250 <= result.n_days <= result.n
+    # Same events, but every reaction starts on one of 3 days: n stays, days collapse.
+    squeezed = reactions.copy()
+    squeezed["start_ts"] = pd.Timestamp("2020-01-01", tz="UTC") + pd.to_timedelta(
+        np.arange(len(squeezed)) % 3, unit="D")
+    result = NewsModel(EventLibrary(events), squeezed).walk_forward("^GSPC", "1d")
+    assert result.n_days <= 3 and not result.proven
 
 
 # ---- analog search and the library ----------------------------------------------------------

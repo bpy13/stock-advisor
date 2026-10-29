@@ -286,8 +286,9 @@ a limit, and their wrapper scripts restart them. Set the limit in GB with
 - **`⚠ unproven`**: the backtest has not shown, on held-out later years, that this target and
   horizon beats chance. Treat the number as a note, not a signal. It never changes the
   price-based recommendation.
-- **Proven rule**: a target and horizon is proven when it has at least 30 out-of-sample events,
-  an absolute Welch t-stat of at least 2 and a hit rate above 50%. A proven "reduce" or "add"
+- **Proven rule**: a target and horizon is proven when it has at least 30 out-of-sample events
+  on at least 250 distinct trading days (events on one day share one market move), an
+  absolute Welch t-stat of at least 2 and a hit rate above 50%. A proven "reduce" or "add"
   moves the price-based recommendation one step (default awaiting your confirmation, see
   `docs/decisions.md`).
 - **Action**: predicted 1-day move at or below -1.5% says reduce; at or above +1.5% says add;
@@ -301,34 +302,15 @@ More detail: [docs/architecture.md](docs/architecture.md) and
 
 ## Backtest results
 
-Latest news-model run: 2026-10-29 05:10 HKT (`generated_at` 2026-10-28T21:10:37Z in
-`results.json`). It covered 321,373 news events from 1990-01-01 to 2026-10-28, 37 targets
-(16 index and sector targets plus the portfolio's holdings, not listed here) and 10 horizons
-from 1 minute to 10 days.
+**No valid backtest yet, and no result is proven.** The run of 2026-10-29 published here
+earlier measured the wrong thing. Valid 1-day reactions existed only for events of 22-27 Oct
+2026, so each test measured what the market did on those 3-4 trading days, not what news
+did. The news history covers 1990-2002 and 2026 so far, and the cached daily prices started
+in 2006 until Task 6.2i (in `docs/plans/`) fixed that.
 
-**Out of sample, nothing is proven yet.** The walk-forward test scored 271 target/horizon
-pairs (99 more were skipped for too few price reactions). Every pair had 0 out-of-sample
-events, so none meets the proven rule (n >= 30, |t| >= 2, hit rate > 50%). The news history
-backfill is still running; the backtest is rerun once it has filled in older years.
-
-**In-sample category screen** from the same run: Hang Seng Index, 1-day reaction after an
-event, categories with at least 30 events (means and t-stats rounded):
-
-| Event category | Events | Mean 1-day return | t-stat | Passes \|t\| >= 2? |
-|---|---:|---:|---:|:---:|
-| company_corporate_action | 71 | +0.285% | +6.70 | yes |
-| company_results | 108 | +0.194% | +4.73 | yes |
-| election_politics | 78 | -0.213% | -3.82 | yes |
-| energy_commodities | 45 | +0.075% | +0.95 | no |
-| financial_crisis | 55 | -0.002% | -0.03 | no |
-| war_conflict | 34 | -0.005% | -0.05 | no |
-| other | 442 | +0.001% | +0.03 | no |
-
-Takeaway: three categories clear |t| >= 2 in sample, but the screen tests 15 categories
-across 37 targets and 8 horizons with no out-of-sample confirmation, so they are leads to
-test, not signals to trade. The S&P 500 1-day rows are left out on purpose: every category
-there, including "other", shows about +0.5% a day with t above 9. That pattern points to a
-data problem in that reaction series, not a news effect.
+Next: the price fix ("max" now means all of Yahoo's history), a rebuilt reaction table, and a
+rerun of the backtest under the 250-day rule (a result needs events on at least 250 distinct
+trading days). The results will replace this note.
 
 Reproduce (needs the news backfill first; writes `data/cache/news/model/results.json`):
 

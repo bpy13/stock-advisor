@@ -93,8 +93,10 @@ def run_cli(tmp_path, builder, *extra):
 def test_cli_prints_table_saves_results_and_finds_planted_effect(tmp_path, capsys):
     categories = build_store(tmp_path / "news.db")
     builder = FakeBuilder(categories)
-    assert run_cli(tmp_path, builder) == 0
+    # 100 days: the 600 synthetic events are too few for a category to reach the default 250.
+    assert run_cli(tmp_path, builder, "--min-days", "100") == 0
     out = capsys.readouterr().out
+    assert " days " in out and "d)" in out  # day counts in both tables
 
     assert "Walk-forward results" in out
     for column in ("n", "hit_rate", "mean_signed", "t_stat", "proven"):
@@ -111,6 +113,9 @@ def test_cli_prints_table_saves_results_and_finds_planted_effect(tmp_path, capsy
                                                                         ("XLK", "1h")}
     gspc = by_pair[("^GSPC", "1d")]
     assert gspc["proven"] and gspc["n"] >= 400 and gspc["hit_rate"] > 0.7
+    assert 100 <= gspc["n_days"] <= gspc["n"]
+    assert saved["min_days"] == 100 and saved["proven_rule"]["min_days"] == 100
+    assert all("n_days" in row for row in saved["categories"])
     assert gspc["years"][0] == 2017  # the first year only trains
     assert not by_pair[("XLK", "1d")]["proven"]
     assert set(saved["market_moving"]) == {"war_conflict", "monetary_policy"}
@@ -230,12 +235,47 @@ def test_category_summary_flags_moving_categories(tmp_path):
     store.close()
     reactions = FakeBuilder(categories)(
         [B._ReactionEvent(e.id, e.started_at) for e in events], ["^GSPC", "XLK"])
-    summary = B.category_summary(events, reactions, ["^GSPC", "XLK"], ["1d"])
+    # With the default 250 distinct days, ~130 events per category are never enough.
+    default = B.category_summary(events, reactions, ["^GSPC", "XLK"], ["1d"])
+    assert not default["moves"].any() and (default["n_days"] <= default["n"]).all()
+    assert B.market_moving_from_rows(default.to_dict(orient="records")) == []
+    summary = B.category_summary(events, reactions, ["^GSPC", "XLK"], ["1d"], min_days=50)
     flags = {(r.target, r.category): r.moves for r in summary.itertuples()}
     assert flags[("^GSPC", "war_conflict")] and flags[("^GSPC", "monetary_policy")]
     gspc_war = summary[(summary.target == "^GSPC") & (summary.category == "war_conflict")]
     assert gspc_war["mean_return"].iloc[0] < -0.015
     assert not any(v for (t, _), v in flags.items() if t == "XLK")
+
+
+def test_category_days_count_reaction_start_days_not_events(tmp_path):
+    categories = build_store(tmp_path / "news.db", n=400)
+    store = B.ReadOnlyStore(tmp_path / "news.db")
+    events = B.load_event_records(store)
+    store.close()
+    reactions = FakeBuilder(categories)(
+        [B._ReactionEvent(e.id, e.started_at) for e in events], ["^GSPC"])
+    # Every reaction starts on one of 5 days: many events, 5 distinct days.
+    reactions["start_ts"] = pd.Timestamp("2020-03-02", tz="UTC") + pd.to_timedelta(
+        np.arange(len(reactions)) % 5, unit="D")
+    summary = B.category_summary(events, reactions, ["^GSPC"], ["1d"], min_days=1)
+    assert (summary["n_days"] <= 5).all() and (summary["n"] > 50).any()
+    rows = [{"category": "x", "target": "^GSPC", "horizon": "1d", "moves": True, "n_days": 10}]
+    assert B.market_moving_from_rows(rows, min_days=10) == ["x"]
+    assert B.market_moving_from_rows(rows) == []  # 10 < 250
+    assert B.market_moving_from_rows([{**rows[0], "n_days": None}], min_days=1) == []
+
+
+def test_load_results_reads_an_older_file_as_nothing_proven(tmp_path):
+    old = {"version": 1, "results": [{"target": "^GSPC", "horizon": "1d", "proven": True}],
+           "market_moving": ["war_conflict"]}
+    path = tmp_path / "results.json"
+    path.write_text(json.dumps(old), encoding="utf-8")
+    results = B.load_results(path)
+    assert not results.is_proven("^GSPC", "1d") and results.market_moving() == []
+    new = {**old, "version": B.RESULTS_VERSION}
+    path.write_text(json.dumps(new), encoding="utf-8")
+    results = B.load_results(path)
+    assert results.is_proven("^GSPC", "1d") and results.market_moving() == ["war_conflict"]
 
 
 def test_results_json_has_no_nan(tmp_path):

@@ -486,6 +486,23 @@ write to or diagnose the real store: one at a time, never while
     `read_reactions` loading all 119M rows of reactions.parquet (almost all without a
     return). It now streams the file and keeps only known rows of the live targets: a real
     refresh peaks at 3.3 GB (was 10–14 GB). `refresh` also drops the old model first.
+- [ ] **Task 6.2i: data fixes before any real backtest** (added 2026-10-30; Brian approved
+  questions 1, 3 and 4 of the reaction-table review) (sonnet, then a long job)
+  - Why: valid reactions covered only 22–27 Oct 2026 (3–4 trading days). News covers
+    1990–2002 and 2026; cached daily prices started in 2006 because `period="max"` is cut to
+    20 years in market_data.py; empty reaction rows are never rebuilt. The README's backtest
+    tables (485f4d4) measured those few days, not news effects.
+  - Files: `stock_advisor/market_data.py` ("max" = all of yfinance's history, and an older
+    cut cache is refetched once), `stock_advisor/news/model.py` and
+    `stock_advisor/news_backtest_cli.py` (MIN_PROVEN_DAYS = 250 distinct trading days of
+    out-of-sample events for "proven", and the same for market-moving categories; the day
+    count printed and saved in results.json), README.md (the backtest tables replaced by "no
+    valid backtest yet" and why); tests.
+  - Then: `news_backtest_cli --rebuild-reactions` run alone in the background, with the
+    memory guard; its run time and day counts recorded.
+  - Done when: tests pass; a real `fetch_price_history(["^GSPC"], period="max")` starts in
+    1927 or the first year yfinance has; the rebuilt table has 1-day reactions for 1990–2002
+    events; the backtest summary shows the day counts.
 - [ ] **Task 6.2f: rerun the backtest after the backfill completes** (added 2026-10-28, plan
   review; waiting on time, probably a later session)
   - Done when: `--status` shows every source complete (or capped with the limit recorded) and

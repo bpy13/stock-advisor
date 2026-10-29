@@ -26,10 +26,17 @@ def normalize_symbol(symbol: str) -> str:
 
 
 def _period_to_days(period: str) -> int:
-    """Approximate a Yahoo Finance period string (e.g. "2y", "6mo") as days."""
+    """Approximate a Yahoo Finance period string (e.g. "2y", "6mo") as days.
+
+    "max" has no day count (it means all history, see `_period_cutoff`); "ytd" is the days
+    since 1 January.
+    """
     normalized = period.strip().lower()
-    if normalized in ("max", "ytd"):
-        return 20 * 365
+    if normalized == "ytd":
+        today = pd.Timestamp.now().normalize()
+        return (today - pd.Timestamp(year=today.year, month=1, day=1)).days + 1
+    if normalized == "max":
+        raise ValueError('"max" has no day count')
     if normalized.endswith("mo"):
         return int(normalized[:-2]) * 31
     if normalized.endswith("y"):
@@ -39,8 +46,24 @@ def _period_to_days(period: str) -> int:
     raise ValueError(f"Unsupported period format: {period!r}")
 
 
+def _period_cutoff(period: str) -> Optional[pd.Timestamp]:
+    """Earliest timestamp a period covers (UTC); None for "max" (everything)."""
+    if period.strip().lower() == "max":
+        return None
+    return pd.Timestamp.now(tz="UTC") - pd.Timedelta(days=_period_to_days(period))
+
+
 def _cache_file(symbol: str) -> Path:
     return CACHE_DIR / f"{symbol.replace('.', '_')}.parquet"
+
+
+def _max_marker(symbol: str) -> Path:
+    """Sidecar file: exists only when the cache came from a period="max" fetch (full history).
+
+    Caches written before this marker existed may have been cut to 20 years, so they are
+    refetched once with period="max" when "max" is requested.
+    """
+    return _cache_file(symbol).with_suffix(".max")
 
 
 def _read_cache(symbol: str) -> Optional[pd.DataFrame]:
@@ -74,12 +97,24 @@ def _fetch_symbol_history(
     if not use_cache or interval != "1d":
         return yf.Ticker(symbol).history(period=period, interval=interval, auto_adjust=False)
 
-    cutoff = pd.Timestamp.now(tz="UTC") - pd.Timedelta(days=_period_to_days(period))
+    cutoff = _period_cutoff(period)  # None for "max": no cut
+    is_max = cutoff is None
     cached = _read_cache(symbol)
-    covers_period = cached is not None and cached.index.min() <= cutoff
+    has_full_history = _max_marker(symbol).exists()
+    if cached is None:
+        covers_period = False
+    elif has_full_history:
+        covers_period = True  # the cache holds everything Yahoo has, whatever the period
+    elif is_max:
+        covers_period = False  # may have been cut: refetch once with period="max"
+    else:
+        covers_period = cached.index.min() <= cutoff
+
+    def _slice(frame: pd.DataFrame) -> pd.DataFrame:
+        return frame if is_max else frame[frame.index >= cutoff]
 
     if cached is not None and covers_period and _cache_is_fresh(symbol):
-        return cached[cached.index >= cutoff]
+        return _slice(cached)
 
     if cached is not None and covers_period:
         # Cache covers the requested range but may be missing the latest bars.
@@ -92,12 +127,16 @@ def _fetch_symbol_history(
         else:
             merged = cached
         _write_cache(symbol, merged)
-        return merged[merged.index >= cutoff]
+        return _slice(merged)
 
     # No cache, or cache doesn't go back far enough: fetch the full period fresh.
     fresh = yf.Ticker(symbol).history(period=period, interval=interval, auto_adjust=False)
     if not fresh.empty:
         _write_cache(symbol, fresh)
+        if is_max:
+            _max_marker(symbol).write_text("full history\n", encoding="utf-8")
+        else:
+            _max_marker(symbol).unlink(missing_ok=True)  # the cache now holds a shorter span
     return fresh
 
 

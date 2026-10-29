@@ -63,6 +63,9 @@ BAND_LEVEL = 0.8  # the uncertainty band covers the middle 80% of out-of-fold er
 # `proven` bar, matching validation.rank_metrics and plan Task 4.4.
 PROVEN_MIN_N = 30
 PROVEN_MIN_ABS_T = 2.0
+# Events on the same trading day share one market move, so n alone overstates the evidence.
+# `proven` also needs the out-of-sample events to fall on this many distinct trading days.
+MIN_PROVEN_DAYS = 250
 
 INTRADAY_HORIZONS = ("1m", "5m", "15m", "1h", "4h")
 _INTRADAY_SECONDS = {"1m": 60, "5m": 300, "15m": 900, "1h": 3600, "4h": 14400}
@@ -347,12 +350,24 @@ class EventLibrary:
 # ---- reactions, analogs, volatility ---------------------------------------------------------
 
 
+_NS_PER_DAY = 86_400 * 1_000_000_000
+
+
 @dataclass
 class _Outcomes:
     """One target and horizon's reactions aligned to library order."""
 
     values: np.ndarray  # NaN where unknown
     realized_ns: np.ndarray  # when the reaction was surely finished; int64 max where unknown
+    # Where the reaction starts (the reaction table's start_ts, else the event time), in ns.
+    # None means "use the event time".
+    start_ns: Optional[np.ndarray] = None
+
+
+def count_distinct_days(times_ns: np.ndarray) -> int:
+    """Number of distinct UTC calendar days among timestamps in ns."""
+    times_ns = np.asarray(times_ns, dtype="int64")
+    return int(len(np.unique(times_ns // _NS_PER_DAY))) if len(times_ns) else 0
 
 
 def _outcomes(library: EventLibrary, reactions: pd.DataFrame, target: str,
@@ -377,7 +392,9 @@ def _outcomes(library: EventLibrary, reactions: pd.DataFrame, target: str,
     values[pos] = vals
     known = ~np.isnan(vals)
     realized[pos[known]] = starts[known] + _realized_lag(horizon)
-    return _Outcomes(values, realized)
+    start_ns = library.times.copy()
+    start_ns[pos] = starts
+    return _Outcomes(values, realized, start_ns)
 
 
 def _select_analogs(cand_idx: np.ndarray, cand_sim: np.ndarray, query_ns: np.ndarray,
@@ -615,6 +632,7 @@ class EvalResult:
     proven: bool
     years: List[int] = field(default_factory=list)
     predictions: Optional[pd.DataFrame] = None  # event_id, started_at, predicted, actual
+    n_days: int = 0  # distinct trading days of the out-of-sample events (see MIN_PROVEN_DAYS)
 
 
 def _welch_t(a: np.ndarray, b: np.ndarray) -> float:
@@ -624,19 +642,28 @@ def _welch_t(a: np.ndarray, b: np.ndarray) -> float:
     return float((a.mean() - b.mean()) / denom) if denom > 0 else float("nan")
 
 
-def score_predictions(predicted: np.ndarray, actual: np.ndarray) -> Tuple[int, float, float,
-                                                                          float, bool]:
-    """(n, hit rate, mean signed return, Welch t, proven) for out-of-sample predictions.
+def score_predictions(predicted: np.ndarray, actual: np.ndarray, days_ns: np.ndarray,
+                      min_days: int = MIN_PROVEN_DAYS
+                      ) -> Tuple[int, float, float, float, bool, int]:
+    """(n, hit rate, mean signed return, Welch t, proven, distinct days) for out-of-sample
+    predictions.
 
-    proven = n >= 30, |t| >= 2 with the up-minus-down spread positive, and hit rate > 0.5
-    (the bar of plan Task 4.4 and validation.rank_metrics).
+    `days_ns` is each event's reaction start in ns, aligned with `predicted`. The reaction
+    start (not the headline time) is used because events before one market open, or over a
+    weekend, all react in the same trading session; the CLI falls back to the event time when
+    the reaction table has no start for an event.
+
+    proven = n >= 30, events on at least `min_days` distinct days, |t| >= 2 with the
+    up-minus-down spread positive, and hit rate > 0.5 (plan Task 4.4, validation.rank_metrics).
     """
     predicted, actual = np.asarray(predicted, float), np.asarray(actual, float)
+    days_ns = np.asarray(days_ns, dtype="int64")
     ok = ~np.isnan(predicted) & ~np.isnan(actual)
-    predicted, actual = predicted[ok], actual[ok]
+    predicted, actual, days_ns = predicted[ok], actual[ok], days_ns[ok]
     n = len(actual)
     if n == 0:
-        return 0, float("nan"), float("nan"), float("nan"), False
+        return 0, float("nan"), float("nan"), float("nan"), False, 0
+    n_days = count_distinct_days(days_ns)
     sign = np.sign(predicted)
     decided = (sign != 0) & (actual != 0)
     hit = float((np.sign(actual[decided]) == sign[decided]).mean()) if decided.any() else float("nan")
@@ -645,10 +672,10 @@ def score_predictions(predicted: np.ndarray, actual: np.ndarray) -> Tuple[int, f
     t = _welch_t(up, down)
     spread = (up.mean() - down.mean()) if len(up) and len(down) else float("nan")
     proven = bool(
-        n >= PROVEN_MIN_N and t == t and abs(t) >= PROVEN_MIN_ABS_T and spread > 0
-        and hit == hit and hit > 0.5
+        n >= PROVEN_MIN_N and n_days >= min_days and t == t and abs(t) >= PROVEN_MIN_ABS_T
+        and spread > 0 and hit == hit and hit > 0.5
     )
-    return n, hit, signed, t, proven
+    return n, hit, signed, t, proven, n_days
 
 
 # ---- the model ------------------------------------------------------------------------------
@@ -830,11 +857,15 @@ class NewsModel:
 
     # -- out-of-sample check ---------------------------------------------------------------
 
-    def walk_forward(self, target: str, horizon: str, min_train_years: int = 1) -> EvalResult:
+    def walk_forward(self, target: str, horizon: str, min_train_years: int = 1,
+                     min_days: int = MIN_PROVEN_DAYS) -> EvalResult:
         """Expanding window by calendar year: for each year, fit on events whose reaction was
         known by 1 January and predict that year's events. Features are as-of each event, so
-        nothing from the future leaks in."""
+        nothing from the future leaks in. `proven` also needs `min_days` distinct trading days."""
         fs = self.features(target, horizon)
+        start_ns = self.outcomes(target, horizon).start_ns
+        if start_ns is None:
+            start_ns = fs.times
         rows_all = np.arange(len(fs.y))
         years = pd.DatetimeIndex(fs.times.astype("datetime64[ns]")).year.to_numpy()
         preds, actual, ids, used_years = [], [], [], []
@@ -856,10 +887,10 @@ class NewsModel:
         if not preds:
             return EvalResult(target, horizon, 0, float("nan"), float("nan"), float("nan"), False)
         p, a = np.concatenate(preds), np.concatenate(actual)
-        n, hit, signed, t, proven = score_predictions(p, a)
+        n, hit, signed, t, proven, n_days = score_predictions(p, a, start_ns[ids], min_days)
         frame = pd.DataFrame({
             "event_id": [self.library.events[i].id for i in ids],
             "started_at": pd.to_datetime(fs.times[ids], utc=True),
             "predicted": p, "actual": a,
         })
-        return EvalResult(target, horizon, n, hit, signed, t, proven, used_years, frame)
+        return EvalResult(target, horizon, n, hit, signed, t, proven, used_years, frame, n_days)

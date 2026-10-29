@@ -24,7 +24,7 @@ sources -> store -> scoring -> categories -> events -> reactions -> model + wind
 | Reactions | `news/reactions.py` | Cumulative return paths per event and target: 1m, 5m, 15m, 1h, 4h and the 1st, 2nd, 3rd, 5th and 10th close. Uses 1m bars, then 60m bars, then daily bars. Missing data is NaN. Stocks also get a market-adjusted return. |
 | Model | `news/model.py` | For each target and horizon: similarity-weighted mean reaction of the 20 most similar earlier events, plus a ridge regression on category, tone, source count, high-impact flag and 20-day volatility. Uses only earlier events. Live code never fits: it loads the backtest's saved models (`fitted.pkl`) and runs only the one-row analog search. |
 | Window | `news/window.py` | From the paths of similar earlier events, the median and quartiles of the peak time, shown as "exit within X-Y". |
-| Backtest | `news_backtest_cli.py` | Walk-forward by calendar year. Writes `results.json` and `fitted.pkl` (`--fit-only` writes only `fitted.pkl`). A target and horizon is `proven` when n >= 30, abs(t) >= 2 and hit rate > 0.5. |
+| Backtest | `news_backtest_cli.py` | Walk-forward by calendar year. Writes `results.json` and `fitted.pkl` (`--fit-only` writes only `fitted.pkl`). A target and horizon is `proven` when n >= 30 on >= 250 distinct trading days, abs(t) >= 2 and hit rate > 0.5. |
 | Analysis | `news/analysis.py` | Shared layer that returns data and prints nothing: `NewsAnalyzer`, `process_new` (score, categorize, cluster), and the watcher's source groups. |
 | Output | `news_cli.py`, `report.py`, `app.py`, `news/notify.py` | CLI text, a `news` column in the report, the dashboard News tab, Telegram alerts. |
 

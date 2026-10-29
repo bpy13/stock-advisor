@@ -166,6 +166,84 @@ def test_use_cache_false_always_calls_yfinance():
     assert _FakeTicker.calls[1]["period"] == "3d"
 
 
+class _LongHistoryTicker:
+    """Has 30 years of daily bars for period="max"; only recent bars for start=..."""
+
+    calls = []
+
+    def __init__(self, symbol):
+        self.symbol = symbol
+
+    def history(self, period=None, start=None, interval="1d", auto_adjust=False):
+        _LongHistoryTicker.calls.append({"period": period, "start": start})
+        today = pd.Timestamp.now().normalize()
+        if start is not None:
+            return _history_frame([today], [130.0])
+        # Ends two days ago so the incremental "today" bar is new.
+        dates = pd.date_range(today - pd.Timedelta(days=30 * 365), today - pd.Timedelta(days=2),
+                              freq="30D")
+        return _history_frame(dates, list(range(len(dates))))
+
+
+@pytest.fixture
+def long_history(monkeypatch):
+    monkeypatch.setattr(market_data.yf, "Ticker", _LongHistoryTicker)
+    _LongHistoryTicker.calls = []
+    return _LongHistoryTicker
+
+
+def _age_cache(symbol):
+    import os
+
+    old = pd.Timestamp.now().timestamp() - (market_data.CACHE_TTL_HOURS + 1) * 3600
+    os.utime(market_data._cache_file(symbol), (old, old))
+
+
+def test_max_returns_all_history_not_twenty_years(long_history):
+    result = market_data.fetch_price_history(["^GSPC"], period="max")["^GSPC"]
+
+    assert long_history.calls == [{"period": "max", "start": None}]
+    assert result.index.min() < pd.Timestamp.now(tz="America/New_York") - pd.Timedelta(days=25 * 365)
+    # A fresh cache serves the whole history again without a network call.
+    again = market_data.fetch_price_history(["^GSPC"], period="max")["^GSPC"]
+    assert len(long_history.calls) == 1 and len(again) == len(result)
+
+
+def test_max_refetches_once_when_cache_may_have_been_cut(long_history):
+    # An old-style cache: 20 years only, no marker.
+    today = pd.Timestamp.now().normalize()
+    cut = _history_frame(pd.date_range(today - pd.Timedelta(days=20 * 365), today, freq="30D"),
+                         [1.0] * len(pd.date_range(today - pd.Timedelta(days=20 * 365), today,
+                                                   freq="30D")))
+    market_data._write_cache("^GSPC", cut)
+
+    first = market_data.fetch_price_history(["^GSPC"], period="max")["^GSPC"]
+    assert long_history.calls[-1]["period"] == "max" and len(first) > len(cut)
+    assert market_data._max_marker("^GSPC").exists()
+
+    # Afterwards the usual incremental update of recent bars works and keeps the history.
+    _age_cache("^GSPC")
+    second = market_data.fetch_price_history(["^GSPC"], period="max")["^GSPC"]
+    assert len(long_history.calls) == 2
+    assert long_history.calls[1]["start"] is not None and long_history.calls[1]["period"] is None
+    assert second.index.min() == first.index.min() and len(second) == len(first) + 1
+
+
+def test_full_history_cache_serves_shorter_periods_without_refetch(long_history):
+    market_data.fetch_price_history(["^GSPC"], period="max")
+    result = market_data.fetch_price_history(["^GSPC"], period="5y")["^GSPC"]
+
+    assert len(long_history.calls) == 1
+    assert result.index.min() >= pd.Timestamp.now(tz="America/New_York") - pd.Timedelta(days=5 * 366)
+
+
+def test_period_to_days_ytd_is_since_january_first():
+    days = market_data._period_to_days("ytd")
+    first = pd.Timestamp(year=pd.Timestamp.now().year, month=1, day=1)
+    assert days == (pd.Timestamp.now().normalize() - first).days + 1
+    assert market_data._period_cutoff("max") is None
+
+
 def test_cache_refetches_fresh_when_requested_period_exceeds_cached_range():
     market_data.fetch_price_history(["AAPL"], period="1d")
     assert len(_FakeTicker.calls) == 1

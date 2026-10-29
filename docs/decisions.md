@@ -65,6 +65,19 @@ rather than deleting them). Nothing Brian didn't say is recorded as his decision
   estimated 30–60 min and several GB) and stopped the watcher's polling meanwhile. Rejected:
   fitting on a side thread (keeps the cost every 6 hours).
 
+- 2026-10-30 (Brian): `period="max"` means as far back as yfinance covers (Task 6.2i). The
+  backtest's README tables are replaced by "no valid backtest yet"; the reaction table is
+  rebuilt; nothing is proven under 250 distinct trading days; the model fit waits for the
+  rebuild.
+- 2026-10-30 (Brian): the news module's goal is graded severity and per-stock sensitivity
+  leading to quantitative buy/sell suggestions. Write up the "news → factor shock → stock
+  sensitivity" design as a proposal for review (docs/proposals/2026-10-30-news-impact-design.md).
+- 2026-10-30 (Brian): start with the factors oil, US rates, China/HK tech, US tech, cyber
+  security and USD/CNY; add others (e.g. company announcements) only once these prove
+  effective.
+- 2026-10-30 (Brian): severity scoring may use the Claude API. A cost quote comes before any
+  paid run.
+
 ## UI
 
 - 2026-10-27 (Brian, Guardian key application): Guardian content is displayed only as the
