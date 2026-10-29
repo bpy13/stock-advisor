@@ -168,14 +168,14 @@ def test_reaction_cache_is_incremental(tmp_path):
 
     first = B.load_or_build_reactions(events[:150], ["^GSPC"], cache, no_prices,
                                       builder=builder, now=now)
-    assert len(first) == 150 * len(HORIZONS) and cache.exists()
+    assert len(first) == 150 and cache.exists()  # only the 1d row of each event has a return
     assert len(builder.calls[0][1]) == 150
 
     builder.calls.clear()
     second = B.load_or_build_reactions(events, ["^GSPC"], cache, no_prices,
                                        builder=builder, now=now)
     assert [len(ids) for _, ids in builder.calls] == [50]  # only the new events
-    assert len(second) == 200 * len(HORIZONS)
+    assert len(second) == 200
 
     # A run over a sub-range returns only its events but keeps the rest in the cache.
     builder.calls.clear()
@@ -193,6 +193,118 @@ def test_reaction_cache_is_incremental(tmp_path):
     assert 0 < len(rebuilt) < 200
     assert all(events[-1].started_at - timedelta(days=B.REFRESH_DAYS + 1)
                <= next(e.started_at for e in events if e.id == i) for i in rebuilt)
+
+
+def _events(tmp_path, n=100):
+    categories = build_store(tmp_path / "news.db", n=n)
+    store = B.ReadOnlyStore(tmp_path / "news.db")
+    events = B.load_event_records(store)
+    store.close()
+    return events, FakeBuilder(categories)
+
+
+_LONG_AGO_NOW = datetime(2030, 1, 1, tzinfo=timezone.utc)  # nothing counts as recent
+
+
+def test_compact_files_round_trip(tmp_path):
+    events, builder = _events(tmp_path, 100)
+    cache = tmp_path / "model" / B.REACTIONS_FILE
+    tried = cache.with_name(B.TRIED_FILE)
+    got = B.load_or_build_reactions(events, ["^GSPC", "XLK"], cache, no_prices,
+                                    builder=builder, now=_LONG_AGO_NOW)
+    # One build call per target; the result holds only known rows, in compact dtypes.
+    assert [t for t, _ in builder.calls] == [("^GSPC",), ("XLK",)]
+    assert len(got) == 200 and set(got["horizon"]) == {"1d"}
+    assert got["raw"].dtype == "float32" and got["event_id"].dtype == "category"
+    stored = pd.read_parquet(cache)
+    assert len(stored) == 200
+    assert not (stored["raw"].isna() & stored["adjusted"].isna()).any()  # no empty rows
+    pairs = pd.read_parquet(tried)
+    assert len(pairs) == 200 and not pairs.duplicated().any()  # one row per (event, target)
+    assert set(pairs["target"]) == {"^GSPC", "XLK"}
+    # Reading it back gives the same values as the first call.
+    again = B.load_or_build_reactions(events, ["^GSPC", "XLK"], cache, no_prices,
+                                      builder=builder, now=_LONG_AGO_NOW)
+    key = ["event_id", "target", "horizon"]
+    pd.testing.assert_frame_equal(
+        got.astype({c: object for c in key}).sort_values(key).reset_index(drop=True),
+        again.astype({c: object for c in key}).sort_values(key).reset_index(drop=True))
+    assert len(builder.calls) == 2  # nothing rebuilt
+
+
+def test_second_run_builds_only_the_new_target_and_pairs(tmp_path):
+    events, builder = _events(tmp_path, 100)
+    cache = tmp_path / "model" / B.REACTIONS_FILE
+    B.load_or_build_reactions(events[:80], ["^GSPC"], cache, no_prices, builder=builder,
+                              now=_LONG_AGO_NOW)
+    builder.calls.clear()
+    got = B.load_or_build_reactions(events, ["^GSPC", "XLK"], cache, no_prices,
+                                    builder=builder, now=_LONG_AGO_NOW)
+    assert [(t, len(ids)) for t, ids in builder.calls] == [(("^GSPC",), 20), (("XLK",), 100)]
+    assert len(got) == 200
+    assert len(pd.read_parquet(cache.with_name(B.TRIED_FILE))) == 200
+
+
+def test_rebuild_rebuilds_every_pair_and_keeps_other_rows(tmp_path):
+    events, builder = _events(tmp_path, 100)
+    cache = tmp_path / "model" / B.REACTIONS_FILE
+    B.load_or_build_reactions(events, ["^GSPC"], cache, no_prices, builder=builder,
+                              now=_LONG_AGO_NOW)
+    builder.calls.clear()
+    # A narrow --start/--end style run with --rebuild-reactions: only its 10 events are rebuilt,
+    # and the other 90 stay in both files.
+    got = B.load_or_build_reactions(events[:10], ["^GSPC"], cache, no_prices, builder=builder,
+                                    rebuild=True, now=_LONG_AGO_NOW)
+    assert [len(ids) for _, ids in builder.calls] == [10] and len(got) == 10
+    assert pd.read_parquet(cache)["event_id"].nunique() == 100
+    tried = pd.read_parquet(cache.with_name(B.TRIED_FILE))
+    assert len(tried) == 100 and not tried.duplicated().any()
+    builder.calls.clear()
+    B.load_or_build_reactions(events, ["^GSPC"], cache, no_prices, builder=builder,
+                              rebuild=True, now=_LONG_AGO_NOW)
+    assert [len(ids) for _, ids in builder.calls] == [100]
+    assert len(pd.read_parquet(cache)) == 100
+
+
+def test_pairs_without_prices_are_tried_once_and_not_stored(tmp_path):
+    events, _ = _events(tmp_path, 30)
+    calls = []
+
+    def empty_builder(events_, targets, price_loader=None):
+        calls.append(len(list(events_)))
+        return pd.DataFrame(columns=["event_id", "target", "horizon", "raw", "adjusted",
+                                     "start_ts", "start_source"])
+
+    cache = tmp_path / "model" / B.REACTIONS_FILE
+    for _ in range(2):
+        got = B.load_or_build_reactions(events, ["XLK"], cache, no_prices,
+                                        builder=empty_builder, now=_LONG_AGO_NOW)
+        assert got.empty
+    assert calls == [30]  # the second run knows the pairs were tried
+    assert len(pd.read_parquet(cache)) == 0
+    assert len(pd.read_parquet(cache.with_name(B.TRIED_FILE))) == 30
+
+
+def test_old_format_file_is_migrated_streamed(tmp_path, monkeypatch):
+    events, builder = _events(tmp_path, 100)
+    cache = tmp_path / "model" / B.REACTIONS_FILE
+    cache.parent.mkdir(parents=True)
+    # Old format: every horizon row, most with no return, float64, no tried file.
+    old = builder(events, ["^GSPC"])
+    old.loc[old.index[::3], ["raw", "adjusted"]] = float("nan")  # some events with no prices
+    old.to_parquet(cache, index=False)
+    n_known = int((old["raw"].notna() | old["adjusted"].notna()).sum())
+    assert len(old) == 100 * len(HORIZONS) and n_known < 100
+    monkeypatch.setattr(B, "_COPY_BATCH_ROWS", 64)  # many small batches: pairs straddle them
+    builder.calls.clear()
+    got = B.load_or_build_reactions(events, ["^GSPC"], cache, no_prices, builder=builder,
+                                    now=_LONG_AGO_NOW)
+    assert builder.calls == []  # every pair counts as tried, empty or not
+    assert len(got) == n_known
+    stored = pd.read_parquet(cache)
+    assert len(stored) == n_known and stored["raw"].dtype == "float32"
+    pairs = pd.read_parquet(cache.with_name(B.TRIED_FILE))
+    assert set(pairs["event_id"]) == {e.id for e in events} and len(pairs) <= 100 + 16
 
 
 def test_store_is_opened_read_only(tmp_path):

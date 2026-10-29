@@ -245,13 +245,21 @@ def test_build_reaction_table_shape_and_one_load_per_symbol_interval():
         SimpleNamespace(id="e1", started_at=utc("2024-01-03 00:00"), time_precision="day"),
         SimpleNamespace(id="e2", started_at=utc("2024-01-04 00:00"), time_precision="day"),
     ]
-    table = build_reaction_table(events, ["AAPL", "^GSPC"], loader)
+    compact = build_reaction_table(events, ["AAPL", "^GSPC"], loader)
+    first_calls = list(calls)
+    calls.clear()
+    assert compact["raw"].dtype == "float32"
+    assert not (compact["raw"].isna() & compact["adjusted"].isna()).any()  # no empty rows
+    assert 0 < len(compact) < 2 * 2 * len(HORIZONS)
+    table = build_reaction_table(events, ["AAPL", "^GSPC"], loader, keep_empty=True)
     assert list(table.columns) == [
         "event_id", "target", "horizon", "raw", "adjusted", "start_ts", "start_source"
     ]
     assert len(table) == 2 * 2 * len(HORIZONS)
-    assert len(calls) == len(set(calls))  # each (symbol, interval) loaded once
-    assert ("^GSPC", "1d") in calls
+    known = table[table["raw"].notna() | table["adjusted"].notna()]
+    assert len(known) == len(compact)
+    assert len(first_calls) == len(set(first_calls))  # each (symbol, interval) loaded once
+    assert ("^GSPC", "1d") in first_calls
 
     aapl = table[(table.target == "AAPL") & (table.event_id == "e1") & (table.horizon == "1d")].iloc[0]
     assert aapl.raw == pytest.approx(0.01)
@@ -276,6 +284,7 @@ def test_hong_kong_tickers_are_adjusted_by_the_hang_seng_index():
     events = [SimpleNamespace(id="e1", started_at=utc("2024-01-03 00:00"), time_precision="day")]
     table = build_reaction_table(events, ["0700.HK"], loader)
     row = table[table.horizon == "1d"].iloc[0]
+    assert row.event_id == "e1" and row.target == "0700.HK"
     assert row.adjusted == pytest.approx(0.01 - 0.001)
 
 

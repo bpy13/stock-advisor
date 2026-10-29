@@ -62,11 +62,15 @@ Limits and traps we live with. A bug that will be fixed goes in `open-items.md` 
   event library grows with it (measured 2026-10-29 on ~467k events: ~2.7 GB after a refresh,
   peak 3.3 GB during one, 4.4 GB after analyzing 10 events). A guard exit loses work in
   progress, so repeated code-86 restarts mean a real leak or limits that are too low.
-- **reactions.parquet is huge and mostly empty.** It holds a row for every event, target and
-  horizon (119M rows on 2026-10-29), but only ~0.1% have a return. The live code
-  (`analysis.read_reactions`) streams it in batches and keeps only known rows of its targets
-  (114k rows, 5 s, peak 1.35 GB). Never load it whole with `pd.read_parquet` in the watcher or
-  dashboard: that took 15+ GB. The backtest CLI still loads it whole (14+ GB): run it alone.
+- **reactions.parquet is now compact; an old one is converted on the next backtest run.** The
+  old file held a row for every event, target and horizon (119M rows on 2026-10-29, ~0.1% with
+  a return). Now `reactions.parquet` keeps only rows with a return, and the sidecar
+  `reactions_tried.parquet` lists every (event_id, target) pair already built, so empty pairs
+  are not rebuilt. `news_backtest_cli` builds one target at a time and rewrites both files
+  through temp files; it converts an old file in one streamed pass (never loaded whole).
+  Until the old file is converted, never load it with `pd.read_parquet` (15+ GB);
+  `analysis.read_reactions` streams either format and keeps only known rows of its targets.
+  The run reads the tried file for the pairs it needs and holds the known rows in memory.
 - **The watcher only runs while you are logged in.** It starts at login and stops at logout.
 - **SQLite still has one writer.** `news.db` uses WAL mode, so readers no longer block on the
   backfill's writes. Two writers still take turns: a writer waits up to 30 s for the lock, so

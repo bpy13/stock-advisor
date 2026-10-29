@@ -79,7 +79,27 @@ def _clean(frame: Optional[pd.DataFrame]) -> Optional[pd.DataFrame]:
     return frame.sort_index()
 
 
+# While `build_reaction_table` runs, the prepared series of each price frame are kept here
+# (key: id of the frame; the frame itself is stored too so the id cannot be reused). Without it
+# every event cleaned and sorted the whole price history again (about 4 ms per pair).
+_SERIES_MEMO: Optional[Dict[Tuple[int, str], Tuple[object, object]]] = None
+
+
+def _memoized(frame: Optional[pd.DataFrame], kind: str, make: Callable[[], object]):
+    if _SERIES_MEMO is None or frame is None:
+        return make()
+    key = (id(frame), kind)
+    hit = _SERIES_MEMO.get(key)
+    if hit is None:
+        hit = _SERIES_MEMO[key] = (frame, make())
+    return hit[1]
+
+
 def _intraday_series(frame: Optional[pd.DataFrame], interval: str) -> Optional[_Intraday]:
+    return _memoized(frame, interval, lambda: _intraday_series_uncached(frame, interval))
+
+
+def _intraday_series_uncached(frame: Optional[pd.DataFrame], interval: str) -> Optional[_Intraday]:
     frame = _clean(frame)
     if frame is None:
         return None
@@ -94,6 +114,10 @@ def _intraday_series(frame: Optional[pd.DataFrame], interval: str) -> Optional[_
 
 
 def _daily_series(frame: Optional[pd.DataFrame]) -> Optional[_Daily]:
+    return _memoized(frame, "1d", lambda: _daily_series_uncached(frame))
+
+
+def _daily_series_uncached(frame: Optional[pd.DataFrame]) -> Optional[_Daily]:
     frame = _clean(frame)
     if frame is None:
         return None
@@ -323,40 +347,93 @@ class _CachingLoader:
         return self._memo[key]
 
 
+_NAT_NS = np.iinfo(np.int64).min  # how a missing start time is held in the int64 column
+_SOURCES: Tuple[str, ...] = ("1m", "60m", "1d")  # values of start_source
+
+
 def build_reaction_table(
     events: Iterable[object],
     targets: Sequence[str],
     price_loader: PriceLoader = default_price_loader,
+    keep_empty: bool = False,
 ) -> pd.DataFrame:
-    """Long table of reactions: one row per event, target and horizon.
+    """Long table of reactions: one row per event, target and horizon *with a known return*.
 
-    Columns: event_id, target, horizon, raw, adjusted, start_ts, start_source. Each event needs
-    `id` and `started_at`; `time_precision` is read when present (default "exact").
-    `price_loader(symbol, interval)` returns a frame or None; it is called once per symbol and
-    interval ("1m", "60m", "1d"), so a caller can back it with its own cache.
+    Columns: event_id, target, horizon, start_source (categories), raw, adjusted (float32),
+    start_ts (UTC). A row is kept when raw or adjusted is known; rows with no price are dropped
+    as they are made (they were 99.9% of a full rebuild, which would not fit in memory as
+    Python tuples). `keep_empty=True` keeps every row (tests, small inputs).
+
+    Every (event, target) pair of the call counts as *tried*, whether or not it produced rows:
+    the caller (`news_backtest_cli.load_or_build_reactions`) records them in
+    reactions_tried.parquet. Rows are collected in typed `array.array` columns, about 30 bytes
+    each, and the frame is made once at the end.
+
+    Each event needs `id` and `started_at`; `time_precision` is read when present (default
+    "exact"). `price_loader(symbol, interval)` returns a frame or None; it is called once per
+    symbol and interval ("1m", "60m", "1d"), so a caller can back it with its own cache.
     """
+    from array import array
+
     from stock_advisor.config import MARKET_INDEX_FOR
 
     loader = _CachingLoader(price_loader)
     events = list(events)
+    event_ids = list(dict.fromkeys(e.id for e in events))  # type: ignore[attr-defined]
+    event_code = {i: n for n, i in enumerate(event_ids)}
+    target_names = list(dict.fromkeys(targets))
 
     def prices_for(symbol: str) -> Dict[str, Optional[pd.DataFrame]]:
         return {interval: loader(symbol, interval) for interval in ("1m", "60m", "1d")}
 
-    rows = []
-    for target in targets:
-        own = prices_for(target)
-        index_symbol = MARKET_INDEX_FOR(target)
-        market = None if index_symbol == target.strip().upper() else prices_for(index_symbol)
-        for event in events:
-            precision = getattr(event, "time_precision", "exact") or "exact"
-            start_ts, source, reaction = compute_reaction_path(
-                event.started_at, precision, own, market  # type: ignore[attr-defined]
-            )
-            for horizon in HORIZONS:
-                raw, adjusted = reaction[horizon]
-                rows.append((event.id, target, horizon, raw, adjusted, start_ts, source))  # type: ignore[attr-defined]
-    return pd.DataFrame(
-        rows,
-        columns=["event_id", "target", "horizon", "raw", "adjusted", "start_ts", "start_source"],
-    )
+    ev_col, tg_col, hz_col, src_col = array("i"), array("h"), array("b"), array("b")
+    raw_col, adj_col, ts_col = array("f"), array("f"), array("q")
+    nan = float("nan")
+    global _SERIES_MEMO
+    _SERIES_MEMO = {}
+    try:
+        for t_code, target in enumerate(target_names):
+            own = prices_for(target)
+            index_symbol = MARKET_INDEX_FOR(target)
+            market = None if index_symbol == target.strip().upper() else prices_for(index_symbol)
+            for event in events:
+                precision = getattr(event, "time_precision", "exact") or "exact"
+                start_ts, source, reaction = compute_reaction_path(
+                    event.started_at, precision, own, market  # type: ignore[attr-defined]
+                )
+                ts_ns = _NAT_NS if start_ts is None else int(start_ts.as_unit("ns").value)
+                src = -1 if source is None else _SOURCES.index(source)
+                code = event_code[event.id]  # type: ignore[attr-defined]
+                for h_code, horizon in enumerate(HORIZONS):
+                    raw, adjusted = reaction[horizon]
+                    if not keep_empty and raw != raw and adjusted != adjusted:
+                        continue
+                    ev_col.append(code)
+                    tg_col.append(t_code)
+                    hz_col.append(h_code)
+                    src_col.append(src)
+                    raw_col.append(raw if raw == raw else nan)
+                    adj_col.append(adjusted if adjusted == adjusted else nan)
+                    ts_col.append(ts_ns)
+    finally:
+        _SERIES_MEMO = None
+
+    def category(codes: "array", names: Sequence[str]) -> pd.Categorical:
+        return pd.Categorical.from_codes(np.frombuffer(codes, dtype=codes.typecode)
+                                         if len(codes) else np.zeros(0, dtype=np.int8),
+                                         categories=list(names))
+
+    start_ts = pd.DatetimeIndex(
+        np.frombuffer(ts_col, dtype="int64").view("datetime64[ns]") if len(ts_col)
+        else np.zeros(0, dtype="datetime64[ns]")).tz_localize("UTC")
+    return pd.DataFrame({
+        "event_id": category(ev_col, event_ids),
+        "target": category(tg_col, target_names),
+        "horizon": category(hz_col, HORIZONS),
+        "raw": np.frombuffer(raw_col, dtype="float32") if len(raw_col)
+        else np.zeros(0, dtype="float32"),
+        "adjusted": np.frombuffer(adj_col, dtype="float32") if len(adj_col)
+        else np.zeros(0, dtype="float32"),
+        "start_ts": start_ts,
+        "start_source": category(src_col, _SOURCES),
+    })

@@ -498,6 +498,11 @@ write to or diagnose the real store: one at a time, never while
     out-of-sample events for "proven", and the same for market-moving categories; the day
     count printed and saved in results.json), README.md (the backtest tables replaced by "no
     valid backtest yet" and why); tests.
+  - Code part done in a2065f1 (^GSPC now from 1927, ^HSI from 1986, checked live).
+  - Before the rebuild (added 2026-10-30): the rebuild would hold ~117M rows as Python
+    objects (estimated 25+ GB). reactions.parquet keeps only rows with a return; a small
+    `reactions_tried.parquet` records the (event, target) pairs already built; the build runs
+    one target at a time and appends to the files; the backtest reads the table compactly.
   - Then: `news_backtest_cli --rebuild-reactions` run alone in the background, with the
     memory guard; its run time and day counts recorded.
   - Done when: tests pass; a real `fetch_price_history(["^GSPC"], period="max")` starts in

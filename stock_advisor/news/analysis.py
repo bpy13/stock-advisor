@@ -197,11 +197,11 @@ def read_reactions(path: Optional[Path] = None,
                    targets: Optional[Sequence[str]] = None) -> pd.DataFrame:
     """The cached reaction table written by news_backtest_cli, or an empty table.
 
-    Only the rows of `targets` (all when None) with a known return are kept. On 2026-10-29
-    the file held 119M rows, almost all without a return (114k known for the 24 live
-    targets). Read whole, it took 15+ GB in the dashboard; even a filtered `read_table`
-    peaked at 8 GB. So the file is streamed one batch at a time and only matching rows are
-    kept, with the text columns as categories.
+    Only the rows of `targets` (all when None) with a known return are kept. The current file
+    already holds only known rows; the old format (before the compact rewrite) held 119M rows
+    on 2026-10-29, almost all without a return. Read whole, that took 15+ GB in the dashboard;
+    even a filtered `read_table` peaked at 8 GB. So the file is streamed one batch at a time
+    and only matching rows are kept, with the text columns as categories.
     """
     import pyarrow as pa
     import pyarrow.compute as pc

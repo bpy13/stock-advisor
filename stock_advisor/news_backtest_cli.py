@@ -9,8 +9,12 @@ hit rate > 0.5; see
 targets (input for the high-impact `market_moving` hook).
 
 Side effects (all under data/cache/news/model/):
-* reactions.parquet: cache of the reaction table. New events (and recent ones whose later
-  horizons may still have been missing) are added on each run; old rows are reused.
+* reactions.parquet: cache of the reaction table, only rows with a known return (raw or
+  adjusted). New events (and recent ones whose later horizons may still have been missing) are
+  added on each run; old rows are reused.
+* reactions_tried.parquet: one row per (event_id, target) pair already built, with or without
+  reactions. It tells a later run what not to build again. An old reactions.parquet with empty
+  rows and no tried file is converted on the next run (streamed).
 * results.json: the results, read back by `load_results` (Tasks 5.1 to 5.3 use
   `load_results().is_proven(target, horizon)`).
 * fitted.pkl: the final models fitted on all events (`model.save_fitted`). The watcher, report
@@ -26,6 +30,7 @@ from __future__ import annotations
 import argparse
 import json
 import math
+import os
 import sqlite3
 import time
 from dataclasses import dataclass, field
@@ -35,6 +40,9 @@ from typing import Callable, Dict, Iterable, List, Optional, Sequence
 
 import numpy as np
 import pandas as pd
+import pyarrow as pa
+import pyarrow.compute as pc
+import pyarrow.parquet as pq
 
 from stock_advisor.news.model import (
     MIN_PROVEN_DAYS,
@@ -55,6 +63,7 @@ from stock_advisor.news.window import HOLD_HORIZON, evaluate_window_rule, window
 
 MODEL_CACHE_DIR = NEWS_CACHE_DIR / "model"
 REACTIONS_FILE = "reactions.parquet"
+TRIED_FILE = "reactions_tried.parquet"  # every (event_id, target) pair already built
 RESULTS_FILE = "results.json"
 RESULTS_PATH = MODEL_CACHE_DIR / RESULTS_FILE
 FITTED_FILE = "fitted.pkl"
@@ -122,6 +131,118 @@ class _ReactionEvent:
     time_precision: str = "exact"
 
 
+_REACTION_SCHEMA = pa.schema([
+    ("event_id", pa.string()), ("target", pa.string()), ("horizon", pa.string()),
+    ("raw", pa.float32()), ("adjusted", pa.float32()),
+    ("start_ts", pa.timestamp("ns", tz="UTC")), ("start_source", pa.string()),
+])
+_TRIED_SCHEMA = pa.schema([("event_id", pa.string()), ("target", pa.string())])
+_CATEGORY_COLUMNS = ["event_id", "target", "horizon", "start_source"]
+_COPY_BATCH_ROWS = 262_144  # rows per batch when streaming a file
+_WRITE_BUFFER_ROWS = 1_000_000  # rows held before a row group is written
+
+
+class _ParquetSink:
+    """Writes tables to `path` in large row groups; `close` flushes the last one."""
+
+    def __init__(self, path: Path, schema: pa.Schema) -> None:
+        self.schema = schema
+        self._writer = pq.ParquetWriter(path, schema, compression="zstd")
+        self._buffer: List[pa.Table] = []
+        self._rows = 0
+
+    def write(self, table: pa.Table) -> None:
+        if table.num_rows == 0:
+            return
+        self._buffer.append(table.select(self.schema.names).cast(self.schema))
+        self._rows += table.num_rows
+        if self._rows >= _WRITE_BUFFER_ROWS:
+            self._flush()
+
+    def _flush(self) -> None:
+        if self._buffer:
+            self._writer.write_table(pa.concat_tables(self._buffer))
+            self._buffer, self._rows = [], 0
+
+    def close(self) -> None:
+        self._flush()
+        self._writer.close()
+
+
+def _known_mask(table: pa.Table):
+    """Rows where raw or adjusted holds a number (null and NaN both count as unknown)."""
+    def has_value(name: str):
+        return pc.fill_null(pc.invert(pc.is_nan(table[name])), False)
+    return pc.or_(has_value("raw"), has_value("adjusted"))
+
+
+def _iter_batches(path: Path, columns: Optional[List[str]] = None):
+    """Batches of a parquet file as tables, one at a time (never the whole file)."""
+    for batch in pq.ParquetFile(path).iter_batches(batch_size=_COPY_BATCH_ROWS, columns=columns):
+        yield pa.Table.from_batches([batch])
+
+
+def _iter_reactions(path: Path):
+    """Batches of the reactions file in the stored schema (an interrupted migration can leave
+    float64 returns)."""
+    for table in _iter_batches(path):
+        yield table.select(_REACTION_SCHEMA.names).cast(_REACTION_SCHEMA)
+
+
+def _atomic_replace(tmp: Path, final: Path) -> None:
+    os.replace(tmp, final)  # readers never see a half-written file
+
+
+def _migrate_old_format(cache_path: Path, tried_path: Path) -> None:
+    """Old reactions.parquet (a row for every horizon, 99.9% empty, no tried file).
+
+    One streamed pass: the unique (event_id, target) pairs become reactions_tried.parquet and
+    only the rows with a return are written back to reactions.parquet. The real old file is
+    119M rows, so it is never loaded whole.
+    """
+    tmp_r = cache_path.with_name(cache_path.name + ".tmp")
+    tmp_t = tried_path.with_name(tried_path.name + ".tmp")
+    r_sink, t_sink = _ParquetSink(tmp_r, _REACTION_SCHEMA), _ParquetSink(tmp_t, _TRIED_SCHEMA)
+    last_pairs = None
+    try:
+        for table in _iter_batches(cache_path):
+            pairs = table.select(["event_id", "target"]).group_by(
+                ["event_id", "target"], use_threads=False).aggregate([])
+            if last_pairs is not None and pairs.num_rows:
+                # The same pair can straddle two batches; a duplicate is harmless but wasteful.
+                first = pairs.slice(0, 1).to_pylist()[0]
+                if (first["event_id"], first["target"]) == last_pairs:
+                    pairs = pairs.slice(1)
+            if pairs.num_rows:
+                last = pairs.slice(pairs.num_rows - 1).to_pylist()[0]
+                last_pairs = (last["event_id"], last["target"])
+            t_sink.write(pairs)
+            r_sink.write(table.filter(_known_mask(table)))
+    except BaseException:
+        r_sink.close()
+        t_sink.close()
+        tmp_r.unlink(missing_ok=True)
+        tmp_t.unlink(missing_ok=True)
+        raise
+    r_sink.close()
+    t_sink.close()
+    _atomic_replace(tmp_t, tried_path)  # first: the old file stays valid beside it
+    _atomic_replace(tmp_r, cache_path)
+
+
+def _tried_event_ids(tried_path: Path, target: str) -> pd.Index:
+    """Event ids already built for `target`."""
+    if not tried_path.exists():
+        return pd.Index([], dtype=object)
+    table = pq.read_table(tried_path, columns=["event_id"], filters=[("target", "=", target)])
+    return pd.Index(table["event_id"].to_pylist(), dtype=object)
+
+
+def _to_frame(tables: List[pa.Table]) -> pd.DataFrame:
+    table = pa.concat_tables(tables) if tables else _REACTION_SCHEMA.empty_table()
+    return table.to_pandas(categories=_CATEGORY_COLUMNS)
+
+
 def load_or_build_reactions(
     events: Sequence[EventRecord],
     targets: Sequence[str],
@@ -132,53 +253,104 @@ def load_or_build_reactions(
     rebuild: bool = False,
     now: Optional[datetime] = None,
 ) -> pd.DataFrame:
-    """Reaction rows for `events` x `targets`, reusing the parquet cache at `cache_path`.
+    """Known reactions for `events` x `targets`, reusing the parquet cache at `cache_path`.
 
-    Only (event, target) pairs missing from the cache, or whose event started within
-    REFRESH_DAYS of `now`, are built. Cached rows for other events are kept in the file
-    (a run limited by --start/--end must not wipe them) but left out of the result.
+    Two files: `cache_path` holds only rows with a return; the sidecar reactions_tried.parquet
+    (same folder) holds every (event_id, target) pair already built, with or without rows. Only
+    pairs missing from the tried file, or whose event started within REFRESH_DAYS of `now`, are
+    built (all requested pairs when `rebuild`). Targets are built one at a time and the files
+    are rewritten through a temp file and `os.replace`, so memory stays near one target's work
+    plus the known rows. Rows of other events or targets are copied across untouched (a run
+    limited by --start/--end must not wipe them) but left out of the result. An old-format
+    file (empty rows, no tried file) is converted first, streamed.
+
+    Returns the known rows (categories for the text columns, float32 returns).
     """
     precisions = precisions or {}
     now = now or datetime.now(timezone.utc)
-    cached = None
-    if cache_path.exists() and not rebuild:
-        cached = pd.read_parquet(cache_path)
+    tried_path = cache_path.with_name(TRIED_FILE)
+    if cache_path.exists() and not tried_path.exists():
+        _migrate_old_format(cache_path, tried_path)
+
+    targets = list(dict.fromkeys(targets))
+    ids = [e.id for e in events]
     fresh_cutoff = now - timedelta(days=REFRESH_DAYS)
-    stale_ids = {e.id for e in events if e.started_at >= fresh_cutoff}
-
-    built = []
+    stale = np.array([e.started_at >= fresh_cutoff for e in events], dtype=bool)
+    todo_masks = {}
     for target in targets:
-        have = set()
-        if cached is not None:
-            have = set(cached.loc[cached["target"] == target, "event_id"])
-        todo = [
-            _ReactionEvent(e.id, e.started_at, precisions.get(e.id, "exact"))
-            for e in events if e.id not in have or e.id in stale_ids
-        ]
-        if todo:
-            kwargs = {} if price_loader is None else {"price_loader": price_loader}
-            built.append(builder(todo, [target], **kwargs))
-
-    if built:
-        new_rows = pd.concat(built, ignore_index=True)
-        if cached is not None:
-            replaced = cached.set_index(["event_id", "target"]).index.isin(
-                new_rows.set_index(["event_id", "target"]).index)
-            merged = pd.concat([cached[~replaced], new_rows], ignore_index=True)
+        if rebuild:
+            todo_masks[target] = np.ones(len(events), dtype=bool)
         else:
-            merged = new_rows
-        merged["start_ts"] = pd.to_datetime(merged["start_ts"], utc=True)
-        merged["start_source"] = merged["start_source"].astype(object)
-        cache_path.parent.mkdir(parents=True, exist_ok=True)
-        merged.to_parquet(cache_path, index=False)
-    else:
-        merged = cached if cached is not None else pd.DataFrame(
-            columns=["event_id", "target", "horizon", "raw", "adjusted", "start_ts",
-                     "start_source"])
+            have = _tried_event_ids(tried_path, target)
+            todo_masks[target] = ~pd.Index(ids).isin(have) | stale
+    # Rows to drop from the old files: the pairs about to be rebuilt. Pairs never built have no
+    # rows, so for a normal run only the recent events can have any.
+    replace_ids = pa.array(ids if rebuild else [i for i, s in zip(ids, stale) if s],
+                           type=pa.string())
+    id_array = pa.array(ids, type=pa.string())
+    target_array = pa.array(targets, type=pa.string())
 
-    ids = {e.id for e in events}
-    keep = merged["event_id"].isin(ids) & merged["target"].isin(list(targets))
-    return merged[keep].reset_index(drop=True)
+    def wanted(table: pa.Table):
+        return pc.and_(pc.is_in(table["event_id"], value_set=id_array),
+                       pc.is_in(table["target"], value_set=target_array))
+
+    def replaced(table: pa.Table):
+        return pc.and_(pc.is_in(table["event_id"], value_set=replace_ids),
+                       pc.is_in(table["target"], value_set=target_array))
+
+    result: List[pa.Table] = []
+    if not any(mask.any() for mask in todo_masks.values()):
+        if cache_path.exists():
+            for table in _iter_reactions(cache_path):
+                result.append(table.filter(wanted(table)))
+        return _to_frame(result)
+
+    cache_path.parent.mkdir(parents=True, exist_ok=True)
+    tmp_r = cache_path.with_name(cache_path.name + ".tmp")
+    tmp_t = tried_path.with_name(tried_path.name + ".tmp")
+    r_sink, t_sink = _ParquetSink(tmp_r, _REACTION_SCHEMA), _ParquetSink(tmp_t, _TRIED_SCHEMA)
+    try:
+        kwargs = {} if price_loader is None else {"price_loader": price_loader}
+        for target in targets:
+            mask = todo_masks[target]
+            todo = [
+                _ReactionEvent(e.id, e.started_at, precisions.get(e.id, "exact"))
+                for e, needed in zip(events, mask) if needed
+            ]
+            if not todo:
+                continue
+            frame = builder(todo, [target], **kwargs)
+            frame = frame.assign(
+                start_ts=pd.to_datetime(frame["start_ts"], utc=True),
+                raw=frame["raw"].astype("float32"), adjusted=frame["adjusted"].astype("float32"),
+                **{c: frame[c].astype(object) for c in _CATEGORY_COLUMNS})
+            table = pa.Table.from_pandas(frame[_REACTION_SCHEMA.names], schema=_REACTION_SCHEMA,
+                                         preserve_index=False)
+            table = table.filter(_known_mask(table))
+            r_sink.write(table)
+            result.append(table)
+            t_sink.write(pa.table({"event_id": pa.array([t.id for t in todo], pa.string()),
+                                   "target": pa.array([target] * len(todo), pa.string())}))
+            del frame, table
+        if cache_path.exists():
+            for table in _iter_reactions(cache_path):
+                keep =table.filter(pc.invert(replaced(table)))
+                r_sink.write(keep)
+                result.append(keep.filter(wanted(keep)))
+        if tried_path.exists():
+            for table in _iter_batches(tried_path):
+                t_sink.write(table.filter(pc.invert(replaced(table))))
+    except BaseException:
+        r_sink.close()
+        t_sink.close()
+        tmp_r.unlink(missing_ok=True)
+        tmp_t.unlink(missing_ok=True)
+        raise
+    r_sink.close()
+    t_sink.close()
+    _atomic_replace(tmp_t, tried_path)
+    _atomic_replace(tmp_r, cache_path)
+    return _to_frame(result)
 
 
 # ---- category summary -------------------------------------------------------------------------
