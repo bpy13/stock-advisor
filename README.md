@@ -1,5 +1,7 @@
 # Stock Advisor
 
+[![CI](https://github.com/bpy13/stock-advisor/actions/workflows/ci.yml/badge.svg)](https://github.com/bpy13/stock-advisor/actions/workflows/ci.yml)
+
 Produces a buy/sell/hold report for a list of stocks based purely on **relative
 valuation vs. their own historical price**, with cross-stock correlation context
 and portfolio-aware adjustments. Price data comes from Yahoo Finance via
@@ -291,6 +293,46 @@ Unregister-ScheduledTask -TaskName stock_advisor_news_watcher -Confirm:$false
 
 More detail: [docs/architecture.md](docs/architecture.md) and
 [docs/known-issues.md](docs/known-issues.md).
+
+## Backtest results
+
+Latest news-model run: 2026-10-29 05:10 HKT (`generated_at` 2026-10-28T21:10:37Z in
+`results.json`). It covered 321,373 news events from 1990-01-01 to 2026-10-28, 37 targets
+(16 index and sector targets plus the portfolio's holdings, not listed here) and 10 horizons
+from 1 minute to 10 days.
+
+**Out of sample, nothing is proven yet.** The walk-forward test scored 271 target/horizon
+pairs (99 more were skipped for too few price reactions). Every pair had 0 out-of-sample
+events, so none meets the proven rule (n >= 30, |t| >= 2, hit rate > 50%). The news history
+backfill is still running; the backtest is rerun once it has filled in older years.
+
+**In-sample category screen** from the same run: Hang Seng Index, 1-day reaction after an
+event, categories with at least 30 events (means and t-stats rounded):
+
+| Event category | Events | Mean 1-day return | t-stat | Passes \|t\| >= 2? |
+|---|---:|---:|---:|:---:|
+| company_corporate_action | 71 | +0.285% | +6.70 | yes |
+| company_results | 108 | +0.194% | +4.73 | yes |
+| election_politics | 78 | -0.213% | -3.82 | yes |
+| energy_commodities | 45 | +0.075% | +0.95 | no |
+| financial_crisis | 55 | -0.002% | -0.03 | no |
+| war_conflict | 34 | -0.005% | -0.05 | no |
+| other | 442 | +0.001% | +0.03 | no |
+
+Takeaway: three categories clear |t| >= 2 in sample, but the screen tests 15 categories
+across 37 targets and 8 horizons with no out-of-sample confirmation, so they are leads to
+test, not signals to trade. The S&P 500 1-day rows are left out on purpose: every category
+there, including "other", shows about +0.5% a day with t above 9. That pattern points to a
+data problem in that reaction series, not a news effect.
+
+Reproduce (needs the news backfill first; writes `data/cache/news/model/results.json`):
+
+```powershell
+python -m stock_advisor.news_backtest_cli
+```
+
+The price-indicator backtest (`python -m stock_advisor.validate_cli`) prints its table and
+saves no results file, so no numbers from it are listed here.
 
 ## Project layout
 
