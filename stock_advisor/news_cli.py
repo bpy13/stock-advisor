@@ -28,6 +28,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Callable, Iterable, List, Optional, Sequence
 
+from stock_advisor import memory_guard
 from stock_advisor.config import normalize_target
 from stock_advisor.news import analysis as A
 from stock_advisor.news.analysis import EventAnalysis, NewsAnalyzer
@@ -343,6 +344,11 @@ def main(
             if sources is None:
                 sources = A.build_watch_sources(holdings)
         if args.watch:
+            # Only the long-running watcher gets a guard; the wrapper script restarts it on exit.
+            memory_guard.start_memory_guard(
+                "news watcher",
+                memory_guard.limit_from_env(memory_guard.WATCHER_LIMIT_ENV,
+                                            memory_guard.WATCHER_DEFAULT_GB))
             if on_new_events is None and not args.no_alerts:
                 from stock_advisor.news.notify import build_notifier
 

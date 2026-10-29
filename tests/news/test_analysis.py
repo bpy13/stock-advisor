@@ -343,3 +343,54 @@ def test_build_watch_sources_splits_cisa_out_of_the_fast_group(monkeypatch):
 def test_open_store_sets_busy_timeout(tmp_path):
     with A.open_store(tmp_path / "x.db") as s:
         assert s._conn.execute("PRAGMA busy_timeout").fetchone()[0] == A.BUSY_TIMEOUT_MS
+
+
+def write_reactions(path) -> None:
+    """A reaction file shaped like news_backtest_cli's: most rows have no return."""
+    start = pd.Timestamp("2026-10-01", tz="UTC")
+    rows = []
+    for i in range(300):
+        for target in ("^GSPC", "^HSI", "XLE"):
+            known = i % 50 == 0
+            rows.append({
+                "event_id": f"e{i}", "target": target, "horizon": "1d",
+                "raw": 0.01 * i if known else np.nan,
+                "adjusted": (0.005 * i if known else np.nan) if target != "^HSI" else np.nan,
+                "start_ts": start + pd.Timedelta(minutes=i), "start_source": "60m",
+            })
+    pd.DataFrame(rows).to_parquet(path)
+
+
+def test_read_reactions_keeps_known_rows_of_the_targets_only(tmp_path):
+    path = tmp_path / "reactions.parquet"
+    write_reactions(path)
+    frame = A.read_reactions(path, targets=["^GSPC", "^HSI"])
+    assert len(frame) == 12  # 6 known events x 2 targets; empty rows and XLE dropped
+    assert set(frame["target"]) == {"^GSPC", "^HSI"}
+    assert frame["raw"].notna().all()
+    assert isinstance(frame["event_id"].dtype, pd.CategoricalDtype)
+    row = frame[(frame["event_id"] == "e50") & (frame["target"] == "^GSPC")].iloc[0]
+    assert row["raw"] == pytest.approx(0.5) and row["adjusted"] == pytest.approx(0.25)
+    assert row["start_ts"] == pd.Timestamp("2026-10-01 00:50", tz="UTC")
+    assert len(A.read_reactions(path)) == 18  # no targets: every target
+
+
+def test_read_reactions_feeds_the_model_outcomes(tmp_path):
+    """Category columns from the streamed read still align with the event library."""
+    from stock_advisor.news.model import EventRecord, _outcomes
+
+    path = tmp_path / "reactions.parquet"
+    write_reactions(path)
+    start = datetime(2026, 10, 1, tzinfo=timezone.utc)
+    records = [EventRecord(id=f"e{i}", started_at=start + timedelta(minutes=i),
+                           embedding=unit(np.eye(DIM)[i % DIM] + 0.1)) for i in range(300)]
+    out = _outcomes(EventLibrary(records), A.read_reactions(path, ["^GSPC"]), "^GSPC", "1d")
+    assert np.count_nonzero(~np.isnan(out.values)) == 6
+    assert out.values[50] == pytest.approx(0.5)  # an index: the raw return
+
+
+def test_read_reactions_missing_or_unreadable_file_gives_empty_table(tmp_path):
+    assert A.read_reactions(tmp_path / "none.parquet", ["^GSPC"]).empty
+    bad = tmp_path / "bad.parquet"
+    bad.write_bytes(b"not parquet")
+    assert A.read_reactions(bad, ["^GSPC"]).empty

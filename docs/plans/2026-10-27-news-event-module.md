@@ -463,6 +463,29 @@ write to or diagnose the real store: one at a time, never while
   - Notes: the fitted ridge models are small (coefficients, alpha, vol_fill, residuals);
     pickle is fine for a local cache file. The analog features still use the live library,
     so new events get analogs from up-to-date history.
+- [ ] **Task 6.2h: memory guard for the watcher and dashboard** (added 2026-10-29; Brian:
+  "fix the memory leak issue so it doesn't happen again") (sonnet)
+  - Why: on 2026-10-29 the old-code watcher reached 21.4 GB and the dashboard 17.9 GB (both
+    fitting on refresh, fixed by 6.2g); RAM fell to 0.9 GB free. Nothing stops a future bug
+    from doing the same. Both wrapper scripts (`run_watcher.ps1`, `run_dashboard.ps1`) already
+    restart their process after any exit, so a process that exits itself above a limit is
+    restarted cleanly.
+  - Files: new `stock_advisor/memory_guard.py` (own private bytes via ctypes
+    `GetProcessMemoryInfo` on Windows, no new dependency; a daemon thread checking every 15 s;
+    a warning in the log at 75% of the limit; above the limit an error line with the size,
+    then `os._exit` with a fixed non-zero code; started at most once per process; limit from
+    an env var, defaults 8 GB watcher, 10 GB dashboard), `stock_advisor/news_cli.py` (start it
+    in `--watch` mode), `app.py` (start it once per process: Streamlit reruns the script),
+    `tests/test_memory_guard.py`; docs: known-issues (the limits, and that they must rise if
+    the store roughly doubles), architecture, README.
+  - Done when: tests pass (the guard exits above the limit, warns at 75%, starts once, with a
+    fake memory reader and fake exit); a real run of the guard with a tiny limit in a scratch
+    script exits with the code and logs the line; the watcher and dashboard are restarted on
+    the new code (Brian stops them by process id) and their logs show the guard started.
+  - Notes: the new-code dashboard still reached 18 GB after 6.2g. The cause was
+    `read_reactions` loading all 119M rows of reactions.parquet (almost all without a
+    return). It now streams the file and keeps only known rows of the live targets: a real
+    refresh peaks at 3.3 GB (was 10–14 GB). `refresh` also drops the old model first.
 - [ ] **Task 6.2f: rerun the backtest after the backfill completes** (added 2026-10-28, plan
   review; waiting on time, probably a later session)
   - Done when: `--status` shows every source complete (or capped with the limit recorded) and

@@ -102,6 +102,11 @@ here; a limit or trap we live with goes in `known-issues.md`. Each item in one p
   build the full table (estimate 30–60 min, several GB) while the main loop stops polling.
   Brian chose option A on 2026-10-29: now plan Task 6.2g. The watcher and
   backfill can still both cluster the same recent pending items at once.
+  2026-10-29 afternoon: the dashboard reached 18 GB on the 6.2g code too, from reading the
+  whole reactions file. Fixed in Task 6.2h (streamed read, plus a memory guard that restarts
+  the watcher above 8 GB and the dashboard above 10 GB). Still open: `--fit-only` and the
+  backtest load the whole reactions file (14+ GB) and must run alone; fitted.pkl does not
+  exist yet, so the live predictions stay n/a until that fit runs.
 - Watcher (Task 5.1): WAL mode is now Task 6.2b; store.py connects with a 30 s timeout. A cold
   `news_cli --collect` can block on GDELT 429 waits for many minutes (watch mode runs GDELT
   on a side thread, so it doesn't stall). The watcher log (data\cache\news\watcher_log.txt,

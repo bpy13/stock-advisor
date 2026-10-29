@@ -16,6 +16,12 @@ import streamlit as st
 
 from stock_advisor.config import DEFAULT_CONFIG
 from stock_advisor.market_data import fetch_close_prices, fetch_price_history
+from stock_advisor.memory_guard import (
+    DASHBOARD_DEFAULT_GB,
+    DASHBOARD_LIMIT_ENV,
+    limit_from_env,
+    start_memory_guard,
+)
 from stock_advisor.report import generate_report
 from stock_advisor.validation import (
     DEFAULT_METRICS,
@@ -25,6 +31,10 @@ from stock_advisor.validation import (
 )
 
 st.set_page_config(page_title="Stock Advisor", layout="wide")
+
+# A runaway dashboard exits and run_dashboard.ps1 restarts it. Streamlit reruns this script on
+# every interaction; the guard starts only once per process.
+start_memory_guard("dashboard", limit_from_env(DASHBOARD_LIMIT_ENV, DASHBOARD_DEFAULT_GB))
 
 
 @st.cache_data(ttl=900, show_spinner="Fetching data and analyzing...")

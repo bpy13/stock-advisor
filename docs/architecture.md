@@ -66,6 +66,10 @@ and link only, never the stored summary.
 Each register script finds the conda env's python at registration time and replaces an existing
 task of the same name.
 
+The watcher and the dashboard (`stock_advisor_dashboard`, `scripts/run_dashboard.ps1`) each start
+`memory_guard.py`, a daemon thread that reads the process's private bytes every 15 s. Above the
+limit it logs an error and calls `os._exit(86)`; the wrapper script then restarts the process.
+
 ## Watcher
 
 `news_cli --watch` polls EDGAR, RSS (without CISA) and yfinance headlines every 60 s. CISA,

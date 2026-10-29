@@ -55,6 +55,18 @@ Limits and traps we live with. A bug that will be fixed goes in `open-items.md` 
 - **Task Scheduler restart.** Its "restart on failure" only covers a failed launch, not a crash
   while running. `scripts/run_watcher.ps1` loops and restarts the watcher after 60 s on a
   non-zero exit code. A clean exit (code 0) ends the loop.
+- **Memory guard.** The watcher exits above 8 GB of private memory and the dashboard above
+  10 GB, with exit code 86 and an ERROR line in its log; the wrapper script restarts it. A
+  warning appears at 75%. Override with `STOCK_ADVISOR_WATCHER_MEMORY_GB` and
+  `STOCK_ADVISOR_DASHBOARD_MEMORY_GB`. Raise the limits if the news store roughly doubles: the
+  event library grows with it (measured 2026-10-29 on ~467k events: ~2.7 GB after a refresh,
+  peak 3.3 GB during one, 4.4 GB after analyzing 10 events). A guard exit loses work in
+  progress, so repeated code-86 restarts mean a real leak or limits that are too low.
+- **reactions.parquet is huge and mostly empty.** It holds a row for every event, target and
+  horizon (119M rows on 2026-10-29), but only ~0.1% have a return. The live code
+  (`analysis.read_reactions`) streams it in batches and keeps only known rows of its targets
+  (114k rows, 5 s, peak 1.35 GB). Never load it whole with `pd.read_parquet` in the watcher or
+  dashboard: that took 15+ GB. The backtest CLI still loads it whole (14+ GB): run it alone.
 - **The watcher only runs while you are logged in.** It starts at login and stops at logout.
 - **SQLite still has one writer.** `news.db` uses WAL mode, so readers no longer block on the
   backfill's writes. Two writers still take turns: a writer waits up to 30 s for the lock, so

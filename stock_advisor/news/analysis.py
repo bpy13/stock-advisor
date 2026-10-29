@@ -190,12 +190,39 @@ def strong_targets(analysis: EventAnalysis,
 # ---- reactions file -----------------------------------------------------------------------------
 
 
-def read_reactions(path: Optional[Path] = None) -> pd.DataFrame:
-    """The cached reaction table written by news_backtest_cli, or an empty table."""
+_TEXT_REACTION_COLUMNS = ["event_id", "target", "horizon", "start_source"]
+
+
+def read_reactions(path: Optional[Path] = None,
+                   targets: Optional[Sequence[str]] = None) -> pd.DataFrame:
+    """The cached reaction table written by news_backtest_cli, or an empty table.
+
+    Only the rows of `targets` (all when None) with a known return are kept. On 2026-10-29
+    the file held 119M rows, almost all without a return (114k known for the 24 live
+    targets). Read whole, it took 15+ GB in the dashboard; even a filtered `read_table`
+    peaked at 8 GB. So the file is streamed one batch at a time and only matching rows are
+    kept, with the text columns as categories.
+    """
+    import pyarrow as pa
+    import pyarrow.compute as pc
+    import pyarrow.dataset as ds
+
     path = Path(path) if path is not None else REACTIONS_PATH
     try:
         if path.exists():
-            return pd.read_parquet(path)
+            known = ((pc.is_valid(pc.field("raw")) & ~pc.is_nan(pc.field("raw")))
+                     | (pc.is_valid(pc.field("adjusted")) & ~pc.is_nan(pc.field("adjusted"))))
+            if targets is not None:
+                known = known & pc.field("target").isin(list(targets))
+            dataset = ds.dataset(path, format="parquet")
+            batches = [b for b in dataset.to_batches(filter=known, batch_size=65_536)
+                       if b.num_rows]
+            if not batches:
+                return pd.DataFrame(columns=REACTION_COLUMNS)
+            frame = pa.Table.from_batches(batches).to_pandas()
+            del batches
+            pa.default_memory_pool().release_unused()  # give the decode buffers back
+            return frame.astype({c: "category" for c in _TEXT_REACTION_COLUMNS if c in frame})
     except Exception as exc:  # a half-written or unreadable file must not stop the monitor
         logger.warning("Could not read %s (%s); predictions need the backtest first", path,
                        type(exc).__name__)
@@ -262,9 +289,12 @@ class NewsAnalyzer:
             load_fitted,
         )
 
+        # Drop the old model first: holding it while the new library loads doubled the peak
+        # (6.7 GB instead of 3.3 GB on the live store, 2026-10-29).
+        self.model = None
         records = load_event_records(self.store)
         reactions = (self._fixed_reactions if self._fixed_reactions is not None
-                     else read_reactions(self.reactions_path))
+                     else read_reactions(self.reactions_path, self.targets))
         model = NewsModel(EventLibrary(records), reactions, price_loader=self.price_loader)
         fitted = (self._fixed_fitted if self._fixed_fitted is not None
                   else load_fitted(self.fitted_path if self.fitted_path is not None

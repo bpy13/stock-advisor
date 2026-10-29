@@ -274,6 +274,11 @@ Get-ScheduledTask stock_advisor_news_watcher
 Unregister-ScheduledTask -TaskName stock_advisor_news_watcher -Confirm:$false
 ```
 
+Memory guard: the watcher and the dashboard exit (code 86) when they use more private memory than
+a limit, and their wrapper scripts restart them. Set the limit in GB with
+`STOCK_ADVISOR_WATCHER_MEMORY_GB` (default 8) and `STOCK_ADVISOR_DASHBOARD_MEMORY_GB`
+(default 10), in the environment or `.env`.
+
 ### How to read the output
 
 - **Predicted move**: for each target, 1m, 1h and 1d returns with an 80% range, for example
