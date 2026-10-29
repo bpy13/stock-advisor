@@ -29,6 +29,14 @@ jobs:
           pip install -r requirements-ci.txt
 
       # "slow" tests load a real model from the local cache; everything else uses
-      # synthetic data and fakes, with no network calls.
+      # synthetic data and fakes, with no network calls. The five deselected category tests
+      # are not marked slow, but they embed the category seed phrases with the real
+      # sentence-embedding model, which CI does not install or download.
       - name: Run offline tests
-        run: python -m pytest -q -m "not slow"
+        run: >-
+          python -m pytest -q -m "not slow"
+          --deselect tests/news/test_categories.py::test_keyword_override_beats_weak_centroid
+          --deselect tests/news/test_categories.py::test_overrides_for_bond_tenders_and_sector_updates
+          --deselect tests/news/test_categories.py::test_weak_match_falls_back_to_other
+          --deselect tests/news/test_categories.py::test_categorize_pending_fills_only_missing
+          --deselect tests/news/test_categories.py::test_single_stock_headlines_are_not_macro
