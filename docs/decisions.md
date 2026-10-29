@@ -59,6 +59,12 @@ rather than deleting them). Nothing Brian didn't say is recorded as his decision
   recommendation one step: "reduce" turns BUY→HOLD or HOLD→SELL; "add" turns SELL→HOLD or
   HOLD→BUY. The rationale gains a note. Unproven predictions never change it.
 
+- 2026-10-29 (Brian, accepted recommendation, option A): the backtest saves its fitted news
+  models to a file, and the watcher, CLI report and dashboard load that file instead of
+  fitting. Fitting on the live store builds the all-pairs analog table (467k events, an
+  estimated 30–60 min and several GB) and stopped the watcher's polling meanwhile. Rejected:
+  fitting on a side thread (keeps the cost every 6 hours).
+
 ## UI
 
 - 2026-10-27 (Brian, Guardian key application): Guardian content is displayed only as the

@@ -441,6 +441,28 @@ write to or diagnose the real store: one at a time, never while
   - Notes: the backfill needs several more daily runs (Guardian cursor 2002, NYT 2010,
     Wikipedia 2010, GDELT stalled; scoring lags fetching). Do not wait for it: 6.2f is the
     rerun.
+- [ ] **Task 6.2g: live code loads the backtest's fitted models** (added 2026-10-29; Brian
+  approved option A, decisions.md) (sonnet; before the watcher's next refit if possible)
+  - Why: since reactions.parquet exists (2026-10-29 03:54), each `NewsAnalyzer.refresh` fits
+    and so builds `EventLibrary.candidates()` for all ~467k events; the watcher stops polling
+    for that time (see open-items, "Watcher memory").
+  - Files: `stock_advisor/news_backtest_cli.py` (save the fitted models beside results.json,
+    e.g. `data/cache/news/model/fitted.pkl`, with the library size and generated_at),
+    `stock_advisor/news/model.py` (save/load helpers; a `NewsModel` that predicts from loaded
+    fits plus the one-row analog search), `stock_advisor/news/analysis.py` (`refresh` loads
+    the file and never calls `fit`; no file means no predictions, as today); tests in
+    `tests/news/test_model.py`, `tests/news/test_analysis.py`, the backtest CLI test file.
+  - Done when: tests pass, including one showing `refresh` never calls `fit` or
+    `candidates()`; a save/load round trip gives the same predictions as the in-memory model;
+    the real backtest's models are saved without rerunning the whole backtest (add a
+    `--fit-only` path that fits on the cached reactions, or note its run time if it is long);
+    a real `NewsAnalyzer.refresh` on the store takes about a minute and analyzing 10 recent
+    events gives non-n/a predictions where pairs were fitted; the watcher is restarted (Brian
+    stops it by process id: `Stop-Process`, the task restarts it in 60 s) and its log shows
+    "Model ready" with fitted pairs > 0 and cycles every ~1–2 minutes.
+  - Notes: the fitted ridge models are small (coefficients, alpha, vol_fill, residuals);
+    pickle is fine for a local cache file. The analog features still use the live library,
+    so new events get analogs from up-to-date history.
 - [ ] **Task 6.2f: rerun the backtest after the backfill completes** (added 2026-10-28, plan
   review; waiting on time, probably a later session)
   - Done when: `--status` shows every source complete (or capped with the limit recorded) and
