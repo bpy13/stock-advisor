@@ -305,7 +305,7 @@ def round_trip_pct(broker, market, kind, price, shares) -> float
     per market and the store's size on disk (no symbols).
   - Result (slot 1, 2026-11-10): daily 215 of 215 symbols (HK 89, US 119, other 7), 0 failed, 1,607,784 bars. Hourly 208 symbols (HK 89, US 119), 3 failed (no bars returned), store 144 MB. Flags (no_trade / big_move / gap): daily HK 5042 / 17 / 293, US 2113 / 186 / 0; hourly HK 1228 / 7 / 129079, US 430 / 43 / 2304. Fix found: Yahoo refuses a hourly window over 730 days, and the HK start date lands ahead of UTC, so every HK hourly fetch failed; `HOURLY_DAYS` is now 725. Finding: Yahoo's HK hourly bars start at :30 all day (13:30, 14:30, 15:30) but the canonical grid has 13:00, 14:00, 15:00, so about half the HK hourly bars are dropped and the gap count is huge; Task 2.9 should weigh this against Futu.
 
-- [ ] **Task 2.6: nightly refresh, and the minute recorder's size** — needs: Task 2.5
+- [ ] **Task 2.6: nightly refresh, and the minute recorder's size** (slot 1 only) — needs: Task 2.5
   - Code merged (slot 2, 2026-11-11); remaining: the live run of scripts/record_minutes.py and the size of data/cache/prices_intraday/1m/, slot 1 only.
   - Files: modify `scripts/record_minutes.py`, `tests/` file that covers it (create
     `tests/test_record_minutes.py` if none exists).
@@ -320,7 +320,7 @@ def round_trip_pct(broker, market, kind, price, shares) -> float
   - Done when: the test passes (sources faked: one raises, the others still run); one real
     run of the script ends with exit code 0 and the log shows a line per source.
 
-- [ ] **Task 2.7: Alpaca live load** — needs: Task 2.3, Task 2.5
+- [ ] **Task 2.7: Alpaca live load** (slot 1 only) — needs: Task 2.3, Task 2.5
   - Waits for Brian to create a free Alpaca account and put the two keys in `.env`
     (`docs/inbox.md`). If Brian reports that Alpaca refused the sign-up,
     this task instead extends the Futu source to US symbols (`US.AAPL`) and Task 2.8 loads
@@ -330,7 +330,7 @@ def round_trip_pct(broker, market, kind, price, shares) -> float
     the US stocks and funds; the `Result:` line says which feed answered (sip or iex) and
     the first hourly bar's date.
 
-- [ ] **Task 2.8: Futu live load** (waiting: inbox) — needs: Task 2.4, Task 2.5
+- [ ] **Task 2.8: Futu live load** (waiting: inbox) (slot 1 only) — needs: Task 2.4, Task 2.5
   - Waits for Brian to open a Futu account and start Futu OpenD on this PC (`docs/inbox.md`).
   - First verify the bar labelling on one liquid stock and one recent full day: print the
     day's hourly `time_key` values and volumes (a Hang Seng Index member, not a holding) and
