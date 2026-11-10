@@ -405,7 +405,8 @@ understate how much the two move together.
     twice the swing gets the larger share; a planted driver beta of 0.5 is recovered within
     0.1; a driver with no link gives |t| < 2 in a seeded test.
 
-- [ ] **Task 3.3: the analyzer CLI** — needs: Task 1.5, Task 3.1, Task 3.2 (taken: slot 4, 2026-11-11 00:35)
+- [x] **Task 3.3: the analyzer CLI** — needs: Task 1.5, Task 3.1, Task 3.2
+  - Result: analyze_cli.py and build_portfolio_report() built (from slot 3's salvaged draft, checked); 3 tests pass; real `cost` run prints 1.22% (Hang Seng Bank) and 0.37% (Futu); 471 tests pass, ruff clean. Real-portfolio run waits for Task 3.5.
   - Files: create `stock_advisor/analyze_cli.py`, `tests/test_analyze_cli.py`; add
     `build_portfolio_report()` to `stock_advisor/analyzer.py` (the one function the CLI and
     the dashboard both call).
