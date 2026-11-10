@@ -20,3 +20,5 @@ statsmodels>=0.14.0
 scikit-learn>=1.4.0
 python-dotenv>=1.0.0
 ruff>=0.6.0
+exchange_calendars>=4.13.0
+futu-api>=10.12.0
