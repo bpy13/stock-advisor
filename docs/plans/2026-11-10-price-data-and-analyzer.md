@@ -189,7 +189,7 @@ def round_trip_pct(broker, market, kind, price, shares) -> float
     gitignored) so Brian has a file to fill in.
   - Notes: do not read or print an existing `data/accounts.json`.
 
-- [ ] **Task 1.5: fee tables for two brokers** — needs: Task 1.4
+- [ ] **Task 1.5: fee tables for two brokers** — needs: Task 1.4 (taken: slot 3, 2026-11-10 12:24)
   - Files: create `stock_advisor/fees.py`, `tests/test_fees.py`.
   - The rates below were read from each broker's and regulator's own fee page on
     2026-11-10. Put each rate in one table at the top of the module
