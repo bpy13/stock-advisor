@@ -94,3 +94,7 @@ rather than deleting them). Nothing Brian didn't say is recorded as his decision
 
 - Remote: https://github.com/bpy13/stock-advisor.git (GitHub renamed it from stock_advisor;
   remote updated 2026-10-28).
+## Orchestrator answers (2026-11-10)
+
+- 2026-11-10 (Brian): the project needs replanning before a worker starts: "stock needs replanning on how to get better quality data, as well as considering the scope of other quant projects". Stock stays paused in the orchestrator.
+- 2026-11-10 (Brian): replaces the 2026-10-27 one-step default above: "the decision should be combined, making use of both data to give best recommendation". How to combine the price and news data is for the replanning.
