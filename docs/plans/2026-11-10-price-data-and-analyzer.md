@@ -326,6 +326,9 @@ def round_trip_pct(broker, market, kind, price, shares) -> float
     (`docs/inbox.md`). If Brian reports that Alpaca refused the sign-up,
     this task instead extends the Futu source to US symbols (`US.AAPL`) and Task 2.8 loads
     them; note that the Futu quota then has to cover about 215 stocks.
+  - First fix (found by slot 1, 2026-11-11): `stock_advisor/price_sources/alpaca.py` line 30
+    reads the keys with `os.environ.get` and never loads `.env`, so it reports them missing.
+    Read them with `news.settings.get_setting` (it loads `.env`), with a test. Never print them.
   - Run `prices_cli refresh --source alpaca` for daily and hourly bars.
   - Done when: `prices_cli status` shows Alpaca daily and hourly bars for at least 95% of
     the US stocks and funds; the `Result:` line says which feed answered (sip or iex) and
