@@ -171,7 +171,7 @@ def round_trip_pct(broker, market, kind, price, shares) -> float
   - Notes: typhoon closures are not in the library. Do not model them: a typhoon day shows
     up as a `gap_before` flag, which is correct.
 
-- [ ] **Task 1.4: accounts, cash and limits** `[parallel-ok]`
+- [ ] **Task 1.4: accounts, cash and limits** `[parallel-ok]` (taken: slot 4, 2026-11-10 12:12)
   - Files: create `stock_advisor/accounts.py`, `sample_data/accounts.json`,
     `tests/test_accounts.py`.
   - File format (JSON), as in the sample: `{"accounts": [{"name": "example", "broker":
@@ -312,7 +312,7 @@ def round_trip_pct(broker, market, kind, price, shares) -> float
   - Done when: the test passes (sources faked: one raises, the others still run); one real
     run of the script ends with exit code 0 and the log shows a line per source.
 
-- [ ] **Task 2.7: Alpaca live load** (waiting: inbox) — needs: Task 2.3, Task 2.5
+- [ ] **Task 2.7: Alpaca live load** — needs: Task 2.3, Task 2.5
   - Waits for Brian to create a free Alpaca account and put the two keys in `.env`
     (`docs/inbox.md`). If Brian reports that Alpaca refused the sign-up,
     this task instead extends the Futu source to US symbols (`US.AAPL`) and Task 2.8 loads
