@@ -25,3 +25,4 @@ not yet in the orchestrator's registry). Questions for Brian go to `docs/inbox.m
 
 ## Results
 - Task 1.2 (watchlist file) done by slot 1, 2026-11-10: 215 rows, 85 HK and 101 US stocks.
+- Task 1.5 (fee tables) done by slot 3, 2026-11-10: all worked totals match; round trip for HK$20,000 is 1.22% at Hang Seng Bank and 0.37% at Futu; 422 tests pass.
