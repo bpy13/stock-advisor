@@ -294,7 +294,7 @@ def round_trip_pct(broker, market, kind, price, shares) -> float
     symbol mapping, bar-end to bar-start, the quota stop, the closed-port error).
   - Notes: needs Task 2.3 only because both edit `price_sources/__init__.py`.
 
-- [ ] **Task 2.5: first full Yahoo load** — needs: Task 2.2
+- [ ] **Task 2.5: first full Yahoo load** — needs: Task 2.2 (taken: slot 1, 2026-11-10 12:45)
   - Files: none (a live run).
   - Run `prices_cli refresh --source yahoo --interval 1d`, then `--interval 60m`, for the
     whole watchlist, in the background, logging to `data/cache/store/refresh_log.txt`.
