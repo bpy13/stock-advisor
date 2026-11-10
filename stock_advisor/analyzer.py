@@ -169,3 +169,45 @@ def load_summary(accounts_path=None, as_of=None) -> PortfolioSummary:
     usd = float(fx.dropna().iloc[-1]) if fx is not None and not fx.dropna().empty else DEFAULT_USDHKD
     cash = sum(a.cash.get("HKD", 0.0) + a.cash.get("USD", 0.0) * usd for a in accounts)
     return summarize(trades, bars, fx, cash, as_of)
+
+
+@dataclass
+class PortfolioReport:
+    """Everything the CLI and the dashboard show for the portfolio."""
+    summary: PortfolioSummary
+    table: pd.DataFrame                # index symbol: weight, risk_share, group, market_beta, drivers
+    groups: list[list[str]]            # holdings that move together (two or more)
+    too_short: list[str]               # holdings with under a year of weekly returns
+    cash_set: bool                     # False when every account holds 0 cash
+    caveat: str = CAVEAT
+
+
+def build_portfolio_report(accounts_path=None, as_of=None) -> PortfolioReport:
+    """The one function the analyze CLI and the dashboard Portfolio tab call."""
+    from stock_advisor import risk  # imported here: risk pulls in sklearn and statsmodels
+
+    summary = load_summary(accounts_path, as_of)
+    accounts, _limits = accounts_mod.load_accounts(accounts_path)
+    cash_set = any(v > 0 for a in accounts for v in a.cash.values())
+    holdings = sorted(summary.weights)
+    wanted = holdings + sorted(set(risk.MARKETS.values()) | set(risk.DRIVERS.values()))
+    returns, too_short = risk.weekly_returns(wanted)
+    held = [s for s in holdings if s in returns]
+    table = pd.DataFrame(index=holdings, columns=["weight", "risk_share", "group", "market_beta", "drivers"])
+    table["weight"] = pd.Series(summary.weights)
+    all_groups: list[list[str]] = []
+    if held:
+        table["risk_share"] = risk.risk_shares(returns[held], {s: summary.weights[s] for s in held})
+        all_groups = risk.groups(returns[held])
+        for n, members in enumerate(all_groups, start=1):
+            for s in members:
+                table.loc[s, "group"] = n
+        for s in held:
+            exp = risk.exposures(returns, s)
+            table.loc[s, "market_beta"] = exp["market_beta"]
+            table.loc[s, "drivers"] = ", ".join(
+                f"{name} {d['coef']:+.2f} (t {d['t']:.1f})"
+                for name, d in exp["drivers"].items() if d["clear"])
+    table = table.sort_values("weight", ascending=False)
+    return PortfolioReport(summary=summary, table=table, groups=[g for g in all_groups if len(g) > 1],
+                           too_short=[s for s in too_short if s in holdings], cash_set=cash_set)
