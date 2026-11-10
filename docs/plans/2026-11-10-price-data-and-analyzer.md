@@ -259,7 +259,8 @@ def round_trip_pct(broker, market, kind, price, shares) -> float
   - Notes: sources register in a dict in `price_sources/__init__.py`; Tasks 2.3 and 2.4
     each add one line there, in separate commits.
 
-- [ ] **Task 2.3: Alpaca source (code and tests)** — needs: Task 2.2 (taken: slot 2, 2026-11-10 12:30)
+- [x] **Task 2.3: Alpaca source (code and tests)** — needs: Task 2.2
+  - Result: alpaca.py built (paging, sip-to-iex fallback, 30-minute to hourly build); 6 tests pass, ruff clean.
   - Files: create `stock_advisor/price_sources/alpaca.py`,
     `tests/test_price_source_alpaca.py`, `tests/fixtures/alpaca_bars.json`; modify
     `stock_advisor/price_sources/__init__.py`, `.env.example` (add blank
