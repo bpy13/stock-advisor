@@ -231,3 +231,4 @@ Brian's answers in the replanning session, word for word where quoted. Research 
   shares are, which accounts he holds, his cash, his holdings or his personal circumstances
   goes under `docs/private/` or `data/`; git ignores both. Tracked docs keep the tool's design
   only. The repo on GitHub is public.
+- 2026-11-10 (Brian): the Alpaca keys are in `.env` (inbox, Task 2.7) (Brian, 2026-11-10: "done").
