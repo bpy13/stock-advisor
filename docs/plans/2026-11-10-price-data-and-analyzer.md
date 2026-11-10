@@ -382,7 +382,8 @@ understate how much the two move together.
     invested holdings only, and dividends count as reinvested. Say this in the docstring;
     the CLI and the dashboard repeat it in one line.
 
-- [ ] **Task 3.2: groups, risk shares and exposures** `[parallel-ok]` — needs: Task 2.1 (taken: slot 4, 2026-11-10 12:10)
+- [x] **Task 3.2: groups, risk shares and exposures** `[parallel-ok]` — needs: Task 2.1
+  - Result: risk.py built; weekly_returns returns (frame, too_short list); 5 tests pass, ruff clean.
   - Files: create `stock_advisor/risk.py`, `tests/test_risk.py`.
   - `weekly_returns(symbols, years=3)` from adjusted daily bars; a symbol with under 52
     weeks is reported as too short and left out.
@@ -401,7 +402,7 @@ understate how much the two move together.
     twice the swing gets the larger share; a planted driver beta of 0.5 is recovered within
     0.1; a driver with no link gives |t| < 2 in a seeded test.
 
-- [ ] **Task 3.3: the analyzer CLI** — needs: Task 1.5, Task 3.1, Task 3.2
+- [ ] **Task 3.3: the analyzer CLI** — needs: Task 1.5, Task 3.1, Task 3.2 (taken: slot 3, 2026-11-10 13:00)
   - Files: create `stock_advisor/analyze_cli.py`, `tests/test_analyze_cli.py`; add
     `build_portfolio_report()` to `stock_advisor/analyzer.py` (the one function the CLI and
     the dashboard both call).
