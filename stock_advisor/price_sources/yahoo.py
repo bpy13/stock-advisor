@@ -9,7 +9,7 @@ import yfinance as yf
 from stock_advisor import calendars, quality
 
 log = logging.getLogger(__name__)
-HOURLY_DAYS = 729
+HOURLY_DAYS = 725  # Yahoo allows 730 days; the HK date start lands ahead of UTC
 _RENAME = {"Open": "open", "High": "high", "Low": "low", "Close": "close", "Volume": "volume"}
 _PRICE = ["open", "high", "low", "close"]
 

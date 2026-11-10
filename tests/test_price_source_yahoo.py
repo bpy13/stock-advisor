@@ -56,12 +56,12 @@ def test_hourly_keeps_canonical_starts_and_has_no_adjusted(monkeypatch):
     assert str(raw.index.tz) == "UTC" and odd not in raw.index
 
 
-def test_hourly_window_is_729_days(monkeypatch):
+def test_hourly_window_is_725_days(monkeypatch):
     ticker = _patch(monkeypatch, pd.DataFrame())
     yahoo.fetch("0700.HK", "60m", None, None)
     start = pd.Timestamp(ticker.calls[0]["start"])
     age = (pd.Timestamp.now() - start).days
-    assert 728 <= age <= 730
+    assert 724 <= age <= 726
 
 
 def test_hourly_skips_non_stock_markets(monkeypatch):

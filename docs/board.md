@@ -5,7 +5,7 @@ analyzer). Plan: `docs/plans/2026-11-10-price-data-and-analyzer.md` (waits for B
 not yet in the orchestrator's registry). Questions for Brian go to `docs/inbox.md`, never here.
 
 ## Workers
-- none (slot 3 finished Tasks 1.1, 1.5 and 2.2; slot 2 finished Tasks 1.3 and 2.1; slot 4 finished Task 1.4, accounts, cash and limits; copy of sample to data/accounts.json still to do in the main folder)
+- none (slot 1 finished Task 2.5; slot 3 finished Tasks 1.1, 1.5 and 2.2; slot 2 finished Tasks 1.3 and 2.1; slot 4 finished Task 1.4, accounts, cash and limits; copy of sample to data/accounts.json still to do in the main folder)
 
 ## Ready to build (once the plan is approved and registered)
 - Task 1.1 (two new dependencies), Task 1.2 (watchlist file), Task 1.4 (accounts, cash, limits).
@@ -29,3 +29,4 @@ not yet in the orchestrator's registry). Questions for Brian go to `docs/inbox.m
 - Task 3.1 (value, return and concentration) done by slot 5, 2026-11-10: analyzer.py with 6 hand-checked tests.
 - Task 1.5 (fee tables) done by slot 3, 2026-11-10: all worked totals match; round trip for HK$20,000 is 1.22% at Hang Seng Bank and 0.37% at Futu; 422 tests pass.
 - Task 2.2 (Yahoo into the store, prices CLI) done by slot 3, 2026-11-10: real run of 5 Hong Kong symbols gave 27,336 daily bars from 2000-01-03; tests and ruff pass.
+- Task 2.5 (first full Yahoo load) done by slot 1, 2026-11-10: daily 215/215 symbols, hourly 208 (3 failed), 144 MB; HK hourly grid mismatch noted on the plan.
