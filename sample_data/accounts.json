@@ -1,0 +1,6 @@
+{
+  "accounts": [
+    {"name": "example", "broker": "futu", "cash": {"HKD": 0, "USD": 0}, "trade_file": "data/transaction.csv"}
+  ],
+  "limits": {"max_position_weight": 0.25, "min_trade_hkd": 10000, "whole_board_lots": true}
+}
