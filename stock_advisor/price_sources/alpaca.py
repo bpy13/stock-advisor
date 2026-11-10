@@ -6,13 +6,13 @@ Needs ALPACA_API_KEY and ALPACA_API_SECRET in the environment (``.env``). Tries 
 from __future__ import annotations
 
 import logging
-import os
 from functools import lru_cache
 
 import pandas as pd
 import requests
 
 from stock_advisor import calendars, quality
+from stock_advisor.news.settings import get_setting
 
 log = logging.getLogger(__name__)
 URL = "https://data.alpaca.markets/v2/stocks/bars"
@@ -22,12 +22,17 @@ _MAP = {"t": "t", "o": "open", "h": "high", "l": "low", "c": "close", "v": "volu
 _state = {"feed": "sip"}  # the feed in use; switches to "iex" once for the run
 
 
+def _api_symbol(symbol: str) -> str:
+    """Yahoo writes share classes as BRK-B; Alpaca writes BRK.B."""
+    return symbol.replace("-", ".")
+
+
 def _empty() -> pd.DataFrame:
     return pd.DataFrame(columns=_COLS)
 
 
 def _headers() -> dict:
-    key, secret = os.environ.get("ALPACA_API_KEY"), os.environ.get("ALPACA_API_SECRET")
+    key, secret = get_setting("ALPACA_API_KEY"), get_setting("ALPACA_API_SECRET")
     if not key or not secret:
         raise RuntimeError("Alpaca keys missing: set ALPACA_API_KEY and ALPACA_API_SECRET in .env")
     return {"APCA-API-KEY-ID": key, "APCA-API-SECRET-KEY": secret}
@@ -71,7 +76,7 @@ def _frame(bars: list[dict]) -> pd.DataFrame:
 
 
 def _daily(symbol: str, adjustment: str, start, end) -> pd.DataFrame:
-    params = {"symbols": symbol, "timeframe": "1Day", "adjustment": adjustment,
+    params = {"symbols": _api_symbol(symbol), "timeframe": "1Day", "adjustment": adjustment,
               "start": str(pd.Timestamp(start).date()) if start is not None else "2000-01-01"}
     if end is not None:
         params["end"] = str(pd.Timestamp(end).date())
@@ -82,7 +87,7 @@ def _daily(symbol: str, adjustment: str, start, end) -> pd.DataFrame:
 
 
 def _hourly(symbol: str, start, end) -> pd.DataFrame:
-    params = {"symbols": symbol, "timeframe": "30Min", "adjustment": "raw",
+    params = {"symbols": _api_symbol(symbol), "timeframe": "30Min", "adjustment": "raw",
               "start": pd.Timestamp(start).strftime("%Y-%m-%d") if start is not None else "2016-01-01"}
     if end is not None:
         params["end"] = pd.Timestamp(end).strftime("%Y-%m-%d")
@@ -91,13 +96,19 @@ def _hourly(symbol: str, start, end) -> pd.DataFrame:
         return half
     # Each half-hour belongs to the canonical hourly bar that contains it (regular session only).
     starts: list[pd.Timestamp] = []
+    closes: list[pd.Timestamp] = []
     cal = calendars._calendar("US")
     for day in pd.DatetimeIndex(half.index.tz_convert("America/New_York").date).unique():
         day_starts = calendars.hourly_bar_starts("US", day)
         starts += day_starts
-        if day_starts:  # drop after-hours half-hours: a half-hour must end by the close
-            close = cal.session_close(pd.Timestamp(day).tz_localize(None).normalize())
-            half = half[~((half.index >= close) & (half.index < close + pd.Timedelta(hours=12)))]
+        if day_starts:
+            closes.append(cal.session_close(pd.Timestamp(day).tz_localize(None).normalize()))
+    # Drop after-hours half-hours (a half-hour must end by the close) in one pass, not per day.
+    if closes:
+        closes_idx = pd.DatetimeIndex(sorted(closes)).tz_convert("UTC")
+        pos_c = closes_idx.searchsorted(half.index, side="right") - 1
+        after = (pos_c >= 0) & (half.index < closes_idx[pos_c.clip(0)] + pd.Timedelta(hours=12))
+        half = half[~after]
     starts_idx = pd.DatetimeIndex(sorted(starts))
     pos = starts_idx.searchsorted(half.index, side="right") - 1
     valid = pos >= 0

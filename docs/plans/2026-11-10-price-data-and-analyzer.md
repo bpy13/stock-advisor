@@ -321,7 +321,8 @@ def round_trip_pct(broker, market, kind, price, shares) -> float
   - Done when: the test passes (sources faked: one raises, the others still run); one real
     run of the script ends with exit code 0 and the log shows a line per source.
 
-- [ ] **Task 2.7: Alpaca live load** (slot 1 only) — needs: Task 2.3, Task 2.5 (taken: slot 1, 2026-11-11 15:00)
+- [x] **Task 2.7: Alpaca live load** (slot 1 only) — needs: Task 2.3, Task 2.5
+  - Result (slot 1, 2026-11-11): the sip feed answered (no fallback to iex). Daily 117 of 117 US stocks and funds, first bar 2016-01-04; hourly 117 of 117, first bar 2016-01-04 14:30 UTC, last 2026-11-10; flags: daily no_trade 11 / big_move 42, hourly big_move 110 / gap 3552. Fixes: keys now read with `get_setting` (loads `.env`); Alpaca spells share classes `BRK.B`, so `_api_symbol` maps Yahoo `BRK-B`; the after-hours filter now runs in one pass. Finding: the hourly load is network-bound, about 110 requests (1.2 s each) and 2 to 5 minutes per symbol, so a full first load takes about 3 hours with 3 threads; later refreshes pass a start date and are short.
   - Waits for Brian to create a free Alpaca account and put the two keys in `.env`
     (`docs/inbox.md`). If Brian reports that Alpaca refused the sign-up,
     this task instead extends the Futu source to US symbols (`US.AAPL`) and Task 2.8 loads

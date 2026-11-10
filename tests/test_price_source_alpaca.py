@@ -94,9 +94,19 @@ def test_hourly_built_from_half_hours(monkeypatch):
 
 
 def test_missing_key_names_both_variables(monkeypatch):
-    monkeypatch.delenv("ALPACA_API_KEY")
+    monkeypatch.setattr(alpaca, "get_setting", lambda name: "")  # ignore any real .env
     with pytest.raises(RuntimeError, match="ALPACA_API_KEY.*ALPACA_API_SECRET"):
         alpaca.fetch("AAPL", "1d")
+
+
+def test_keys_come_from_get_setting(monkeypatch):
+    monkeypatch.delenv("ALPACA_API_KEY")
+    monkeypatch.setattr(alpaca, "get_setting", lambda name: "from-dotenv")
+    assert alpaca._headers()["APCA-API-KEY-ID"] == "from-dotenv"
+
+
+def test_share_class_symbol_uses_dot():
+    assert alpaca._api_symbol("BRK-B") == "BRK.B"
 
 
 def test_skips_non_us_and_other_kinds(monkeypatch):
