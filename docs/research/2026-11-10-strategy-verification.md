@@ -268,9 +268,47 @@ On Brian's two examples:
 - **Coca-Cola and Pepsi.** No peer-reviewed study of this pair was found. Course notes disagree
   on whether the two prices are tied together at all [summary]. The standard test is the
   Engle-Granger cointegration test (statsmodels `coint`), then the spread's speed of return.
-- **The largest stock.** The evidence found points the other way, as the table shows. A stretch
-  of mega-cap leadership (2015 to 2025) may explain the opposite impression; no figures for it
-  were confirmed. The test is cheap to rerun once point-in-time market values are available.
+- **The largest stock.** This row answers a rule Brian did not mean; Claude misread his example.
+  His rule is "last year's best stock", covered in 4a below. The row stays as evidence on size.
+
+### 4a. Last year's best stock, renewed each January
+
+Brian's rule (clarified 2026-11-10): find the stock with the highest return last year, hold it
+all this year, then switch to this year's best, and so on. The rule spread on social media in
+2026. Five tests of the same rule, all on S&P 500 stocks unless noted:
+
+| Source | How the data was handled | Period | The rule's result | The index |
+|---|---|---|---|---|
+| A post by @gurgavin, as quoted by the Ashoka Investments Club article [page: the quoting article] | Not stated; costs left out | 15 years from 2012 | 65.9% a year; beat the index in 11 of 15 years | 15.1% a year |
+| Same post | Same | 30 years | 25.6% a year; beat the index in 19 of 30 years; worst fall 97% | 10.1% a year |
+| Same post, selling at a 35% loss | Same | 30 years | 38.2% a year; 20 of 30 years; worst fall 59% | 10.1% a year |
+| Trade Intelligent (Substack) [page] | Not stated | End 1997 to 2025 | $10,000 became $172,727, about 10.7% a year [calc]. It was down to $727 at the end of 2011 and took 25 years to recover | $10,000 became $70,660, about 7.2% a year [calc] |
+| `thequietearth/backtester` on GitHub (MIT, one unnamed author) [page] | Members of the index as of each year, bankrupt and acquired stocks included, dividends included, 0.1% cost per trade | 1999 to 2025 | 9.5% a year; worst fall 98%; Sharpe 0.41 | SPY 8.4% a year, Sharpe 0.42. All members in equal amounts: 9.9% a year |
+| Same repository, run on today's members only | Survivors only | 1999 to 2025 | 19% a year | |
+| Malkiel and Michalka, Wealthfront letter, 2025 [page] | Last year's best 5 to 20 US stocks, 16 variants; costs left out | 1964 to 2023 | 9.64% a year on average; yearly swing 43%; beat the market in 46% of years | 10.37% a year; yearly swing 17% |
+
+What the tests of sections 1 to 3 say about it:
+- **The start date is a hidden choice.** From 2012 the rule earns 65.9% a year. From 1999 it earns
+  9.5%. The 2012 start comes right after the rule's 98% fall.
+- **Survivorship doubles the result.** Same rule, same years: 19% a year on today's members, 9.5%
+  on the members of each year [page].
+- **The Sharpe ratios cannot be told apart.** 0.41 over 27 years has a standard error of 0.20
+  (section 1a), so the 95% range is 0.02 to 0.80. SPY's 0.42 sits inside it [calc].
+- **The yearly win counts are weak evidence.** 11 of 15 years: a coin does that 5.9% of the time.
+  19 of 30: 10%. 20 of 30 with the stop-loss: 4.9%, but the 35% level is itself a chosen setting
+  [calc].
+- **One bet a year gives 27 to 30 cases.** With a yearly swing of at least 43% (the Wealthfront
+  figure for 5 to 20 stocks; one stock swings more), the rule would have to beat the index by 24
+  points a year, on average, to reach a t-stat of 3 in 30 years [calc: 3 × 43 / sqrt(30)].
+- **Whose numbers.** The best-controlled test is one person's repository, not a reviewed paper.
+  Wealthfront sells index funds. The social-media posts give no data source.
+
+[my view] The rule is the most concentrated form of the momentum signal in the table above:
+winners over 3 to 12 months tend to keep winning on average, across a wide group, with crashes
+after market falls. One stock a year keeps all of the noise and one case per year. The broad
+form (rank every watchlist stock by its 12-month return, every day) gives hundreds of cases a
+year and can pass or fail the gates of section 8. The one-stock form cannot be verified on any
+history that exists.
 
 ## 5. How research platforms gate signals
 
