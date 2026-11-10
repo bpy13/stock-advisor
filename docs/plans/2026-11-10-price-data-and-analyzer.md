@@ -305,7 +305,7 @@ def round_trip_pct(broker, market, kind, price, shares) -> float
     per market and the store's size on disk (no symbols).
   - Result (slot 1, 2026-11-10): daily 215 of 215 symbols (HK 89, US 119, other 7), 0 failed, 1,607,784 bars. Hourly 208 symbols (HK 89, US 119), 3 failed (no bars returned), store 144 MB. Flags (no_trade / big_move / gap): daily HK 5042 / 17 / 293, US 2113 / 186 / 0; hourly HK 1228 / 7 / 129079, US 430 / 43 / 2304. Fix found: Yahoo refuses a hourly window over 730 days, and the HK start date lands ahead of UTC, so every HK hourly fetch failed; `HOURLY_DAYS` is now 725. Finding: Yahoo's HK hourly bars start at :30 all day (13:30, 14:30, 15:30) but the canonical grid has 13:00, 14:00, 15:00, so about half the HK hourly bars are dropped and the gap count is huge; Task 2.9 should weigh this against Futu.
 
-- [ ] **Task 2.6: nightly refresh, and the minute recorder's size** — needs: Task 2.5
+- [ ] **Task 2.6: nightly refresh, and the minute recorder's size** — needs: Task 2.5 (taken: slot 2, 2026-11-11 09:00)
   - Files: modify `scripts/record_minutes.py`, `tests/` file that covers it (create
     `tests/test_record_minutes.py` if none exists).
   - After the script's existing 1-minute and 60-minute recording (unchanged), it runs the
