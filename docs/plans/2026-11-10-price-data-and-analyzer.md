@@ -213,7 +213,8 @@ def round_trip_pct(broker, market, kind, price, shares) -> float
 
 ## Phase 2 – The price store (sonnet)
 
-- [ ] **Task 2.1: store and quality flags** — needs: Task 1.3 (taken: slot 2, 2026-11-10 12:20)
+- [x] **Task 2.1: store and quality flags** — needs: Task 1.3
+  - Result: price_store.py and quality.py built; market derived from the symbol name; 13 tests pass, ruff clean.
   - Files: create `stock_advisor/price_store.py`, `stock_advisor/quality.py`,
     `tests/test_price_store.py`, `tests/test_quality.py`.
   - `write_bars` merges new raw bars into the stored raw file (new rows win on a duplicate

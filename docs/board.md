@@ -5,7 +5,7 @@ analyzer). Plan: `docs/plans/2026-11-10-price-data-and-analyzer.md` (waits for B
 not yet in the orchestrator's registry). Questions for Brian go to `docs/inbox.md`, never here.
 
 ## Workers
-- none (slot 3 finished Task 1.1; slot 2 finished Task 1.3, trading calendars, 396 tests pass)
+- none (slot 2 finished Task 2.1, price store and quality flags)
 
 ## Ready to build (once the plan is approved and registered)
 - Task 1.1 (two new dependencies), Task 1.2 (watchlist file), Task 1.4 (accounts, cash, limits).
@@ -25,3 +25,4 @@ not yet in the orchestrator's registry). Questions for Brian go to `docs/inbox.m
 
 ## Results
 - Task 1.2 (watchlist file) done by slot 1, 2026-11-10: 215 rows, 85 HK and 101 US stocks.
+- Task 2.1 (price store and quality flags) done by slot 2, 2026-11-10.
