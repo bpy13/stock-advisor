@@ -31,3 +31,4 @@ not yet in the orchestrator's registry). Questions for Brian go to `docs/inbox.m
 - Task 2.2 (Yahoo into the store, prices CLI) done by slot 3, 2026-11-10: real run of 5 Hong Kong symbols gave 27,336 daily bars from 2000-01-03; tests and ruff pass.
 - Task 2.3 (Alpaca source) done by slot 2, 2026-11-10: 6 tests pass with faked HTTP; no live call yet (Task 2.7).
 - Task 3.2 (groups, risk shares, exposures) done by slot 4, 2026-11-10: 5 tests pass.
+- Task 2.4 (Futu source) done by slot 2, 2026-11-10: 7 tests pass with a fake quote context; no live call yet (Task 2.8).

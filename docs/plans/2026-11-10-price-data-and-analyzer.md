@@ -276,7 +276,8 @@ def round_trip_pct(broker, market, kind, price, shares) -> float
   - Done when: the test file passes (HTTP faked: paging, the feed fallback, the 30-minute
     to hourly build, a missing key gives a clear error that names the two variables).
 
-- [ ] **Task 2.4: Futu source (code and tests)** — needs: Task 1.1, Task 2.3 (taken: slot 2, 2026-11-10 13:10)
+- [x] **Task 2.4: Futu source (code and tests)** — needs: Task 1.1, Task 2.3
+  - Result: futu.py built (paging, 60 per 30 s limiter, quota stop, closed-port error, end-to-start hourly mapping, HK only); 7 tests pass, ruff clean. Hourly end-label assumption still unverified (Task 2.8).
   - Files: create `stock_advisor/price_sources/futu.py`, `tests/test_price_source_futu.py`;
     modify `stock_advisor/price_sources/__init__.py`.
   - Connect `futu.OpenQuoteContext(host="127.0.0.1", port=11111)`; the gateway (Futu OpenD)
