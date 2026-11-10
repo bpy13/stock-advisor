@@ -131,6 +131,29 @@ Brian's answers in the replanning session, word for word where quoted. Research 
   first price Brian could have traded at after the news (the next bar, or the next market open),
   never from before the news.
 
+### Milestone 3 test rules (2026-11-10, after `docs/research/2026-11-10-strategy-verification.md`)
+- 2026-11-10 (Brian): "there are quantitative way to verify the strategies. Please conduct your
+  researches properly". He also said finding signals takes "many rounds of testing for various
+  strategies". So milestone 3 is a test bench and rounds of candidates, not one regression.
+- 2026-11-10 (Brian, "default"): every signal goes through a ledger and five gates: a written
+  reason; ranking power; money after costs; robustness; a hold-out opened once. Details in
+  `docs/milestones.md`, milestone 3.
+- 2026-11-10 (Brian): the pass mark is the strict one, a t-stat of 3: "strict is fine, as we
+  don't plan to frequently trade due to trade cost. It should be able to capture news induced
+  swing in the market". Claude's reading of the second sentence: news signals are a required
+  candidate family and are tested in the first round, with the event study.
+- 2026-11-10 (Brian, "similar with 2"): the Telegram alert bar is the strict one too. The past
+  hit rate must beat a coin flip with 95% confidence on cases that do not overlap. This replaces
+  "right at least 60% of the time in 30 or more past cases" in the entry below; the 2% predicted
+  move after costs stays.
+- 2026-11-10 (Brian): the past-year-winners signal "should be one of the many". No candidate is
+  favoured. Brian's rule "hold last year's best stock" was researched (section 4a of the research
+  file); its broad form, ranking every stock by its 12-month return, is the candidate.
+- 2026-11-10 (Claude's defaults, Brian may change any): the gate numbers that Brian did not
+  discuss one by one: deflated Sharpe ratio of 0.95, probability of backtest overfitting at most
+  0.05, false finds capped at 5% per round, a two-year hold-out that must keep half the effect,
+  a three-month live record before alerts, and proving the bench on the source papers' numbers.
+
 ### Alerts and recommendations
 - 2026-11-10 (Brian): "the Telegram alert should only be sent when a clear signal for selling or
   buying certain stock is found, and the recommendation should be given based on the current
@@ -141,7 +164,8 @@ Brian's answers in the replanning session, word for word where quoted. Research 
   trading costs is at least 2%, and forecasts that strong were right at least 60% of the time in
   30 or more past cases of the walk-forward test. Until a model has that record its signals
   show on the dashboard only, marked unproven. Replaces the 2026-10-27 alert rule (predicted
-  move of at least 1.5% on high-impact events).
+  move of at least 1.5% on high-impact events). The "60% in 30 cases" part was itself replaced
+  later on 2026-11-10: see "Milestone 3 test rules" above.
 - 2026-11-10 (Claude's default, Brian to confirm): position limits for a recommendation's
   amount: no stock above 25% of the portfolio (the existing rule), no trade under HK$10,000,
   sizes rounded to whole board lots; when cash is short the alert names the weakest holding to

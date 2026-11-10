@@ -356,8 +356,10 @@ already do. [my view] Keep the test inside the project, on the price store.
 
 ## 8. What this means for milestone 3 [my view]
 
-Milestone 3 as approved says "three models, one test". The research says the test is the larger
-part of the work. A proposal, for Brian's decision:
+Milestone 3 as first approved said "three models, one test". The research says the test is the
+larger part of the work. The proposal below went to Brian, who accepted it on 2026-11-10 with the
+strict pass mark; `docs/milestones.md` and `docs/decisions.md` ("Milestone 3 test rules") now
+carry it. The text stays as proposed:
 
 **The ledger.** Every test of every signal variant gets a line in a tracked file before it runs:
 what, why, horizon, universe, date. The count of independent tries (section 3c) comes from it.
