@@ -170,7 +170,7 @@ def round_trip_pct(broker, market, kind, price, shares) -> float
   - Notes: typhoon closures are not in the library. Do not model them: a typhoon day shows
     up as a `gap_before` flag, which is correct.
 
-- [ ] **Task 1.4: accounts, cash and limits** `[parallel-ok]`
+- [ ] **Task 1.4: accounts, cash and limits** `[parallel-ok]` (taken: slot 4, 2026-11-10 12:12)
   - Files: create `stock_advisor/accounts.py`, `sample_data/accounts.json`,
     `tests/test_accounts.py`.
   - File format (JSON), as in the sample: `{"accounts": [{"name": "example", "broker":
