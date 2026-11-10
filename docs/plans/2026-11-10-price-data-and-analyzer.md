@@ -122,7 +122,7 @@ def round_trip_pct(broker, market, kind, price, shares) -> float
 
 ## Phase 1 – Foundations (sonnet)
 
-- [ ] **Task 1.1: add the two new dependencies**
+- [ ] **Task 1.1: add the two new dependencies** (taken: slot 3, 2026-11-10 12:00)
   - Files: modify `environment.yml`, `requirements.txt`.
   - Add `exchange_calendars` (trading calendars) and `futu-api` (the only client for Futu's
     local gateway), pinned to the versions pip resolves. Install both into the existing env
