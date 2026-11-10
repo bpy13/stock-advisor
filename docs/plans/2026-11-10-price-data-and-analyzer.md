@@ -358,7 +358,7 @@ Method choices below are fixed by this plan. Returns for risk work are weekly (F
 to Friday close) because Hong Kong and US sessions do not overlap; daily returns would
 understate how much the two move together.
 
-- [ ] **Task 3.1: value, return and concentration** — needs: Task 1.4, Task 2.1
+- [ ] **Task 3.1: value, return and concentration** — needs: Task 1.4, Task 2.1 (taken: slot 5, 2026-11-10 12:05)
   - Files: create `stock_advisor/analyzer.py`, `tests/test_analyzer.py`.
   - Inputs: the trades of every account that has a `trade_file` (`transactions.
     load_transactions`), daily bars from `price_store.read_bars`, the cash in the accounts
@@ -380,7 +380,7 @@ understate how much the two move together.
     invested holdings only, and dividends count as reinvested. Say this in the docstring;
     the CLI and the dashboard repeat it in one line.
 
-- [ ] **Task 3.2: groups, risk shares and exposures** `[parallel-ok]` — needs: Task 2.1
+- [ ] **Task 3.2: groups, risk shares and exposures** `[parallel-ok]` — needs: Task 2.1 (taken: slot 4, 2026-11-10 12:10)
   - Files: create `stock_advisor/risk.py`, `tests/test_risk.py`.
   - `weekly_returns(symbols, years=3)` from adjusted daily bars; a symbol with under 52
     weeks is reported as too short and left out.
