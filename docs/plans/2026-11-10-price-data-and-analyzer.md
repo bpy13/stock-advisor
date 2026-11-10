@@ -134,7 +134,7 @@ def round_trip_pct(broker, market, kind, price, shares) -> float
     numpy 2.5), do not downgrade anything. For calendars try `pandas_market_calendars`
     instead. For Futu, write the error on a `Result:` line and post an inbox question.
 
-- [ ] **Task 1.2: the watchlist file** `[parallel-ok]`
+- [ ] **Task 1.2: the watchlist file** `[parallel-ok]` (taken: slot 1, 2026-11-10 12:05)
   - Files: create `config/watchlist.csv`, `stock_advisor/watchlist.py`,
     `tests/test_watchlist.py`.
   - `config/watchlist.csv` (tracked, Brian edits it): columns `symbol,market,kind,name`,
