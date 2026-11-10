@@ -11,13 +11,14 @@ Brian's answers are copied here word for word, then into `docs/decisions.md`.
 - Why it matters: the comparison of price sources (Task 2.9) and the 8-year hourly history wait for this. Every other task carries on.
 - Options: **Default:** you open the account and start OpenD when convenient, then answer "running". Or answer "skip Futu" and Hong Kong stays on Yahoo.
 
+## Answered
+
 **Are the two Alpaca keys in `.env`?** (plan 2026-11-10, Task 2.7)
 - What it is: Alpaca is a US broker whose free account gives 7 years of hourly US prices. It issues two keys. They go in the file `.env` as `ALPACA_API_KEY` and `ALPACA_API_SECRET`. Workers never open that file.
 - Example: with the keys, the tool fetches hourly prices for Apple back to 2019. Without them, US prices come from Yahoo only.
 - Why it matters: the US half of the source comparison waits for this. Alpaca may refuse the sign-up (not confirmed); then Futu serves the US prices instead.
 - Options: **Default:** create the free account, add the keys, answer "done". Or answer "Alpaca refused" and the worker switches the US prices to Futu.
-
-## Answered
+- Brian (2026-11-10): "done" (the Default: free account created, keys added to `.env`).
 
 **Should a proven news prediction move the buy/sell/hold signal by one step?** (from docs, `docs/decisions.md` 2026-10-27 "Brian to confirm", plan Task 5.2)
 - What it is: the report starts from a price-based signal (BUY, HOLD or SELL). Claude chose a default rule: when the news model has proven itself on held-out data for that horizon, a "reduce" prediction moves BUY to HOLD or HOLD to SELL, and an "add" prediction moves SELL to HOLD or HOLD to BUY. Unproven predictions never change the signal and only show a warning.
