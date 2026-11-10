@@ -358,7 +358,7 @@ Method choices below are fixed by this plan. Returns for risk work are weekly (F
 to Friday close) because Hong Kong and US sessions do not overlap; daily returns would
 understate how much the two move together.
 
-- [ ] **Task 3.1: value, return and concentration** — needs: Task 1.4, Task 2.1
+- [ ] **Task 3.1: value, return and concentration** — needs: Task 1.4, Task 2.1 (taken: slot 5, 2026-11-10 12:05)
   - Files: create `stock_advisor/analyzer.py`, `tests/test_analyzer.py`.
   - Inputs: the trades of every account that has a `trade_file` (`transactions.
     load_transactions`), daily bars from `price_store.read_bars`, the cash in the accounts
