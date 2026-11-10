@@ -1,0 +1,215 @@
+# Watchlist: edit freely. Columns: symbol,market,kind,name. Yahoo-style symbols. Holdings are added at run time, never listed here.
+# Hang Seng Index members: English Wikipedia 'Hang Seng Index', revision 1377881667 (table dated January 2026), read 2026-11-10. The page text says 88 members but its table lists 85.
+# S&P 100 members: English Wikipedia 'S&P 100', revision 1384685602 (as of 2026-09-21), read 2026-11-10.
+symbol,market,kind,name
+0005.HK,HK,stock,HSBC Holdings plc
+0388.HK,HK,stock,HKEx Limited
+0939.HK,HK,stock,China Construction Bank
+1299.HK,HK,stock,AIA Group Limited
+1398.HK,HK,stock,Industrial and Commercial Bank of China
+2318.HK,HK,stock,Ping An Insurance
+2388.HK,HK,stock,BOC Hong Kong (Holdings) Ltd
+2628.HK,HK,stock,China Life
+3968.HK,HK,stock,China Merchants Bank
+3988.HK,HK,stock,Bank of China Ltd
+0002.HK,HK,stock,CLP Holdings Limited
+0003.HK,HK,stock,Hong Kong and China Gas Company Limited
+0006.HK,HK,stock,Power Assets Holdings Limited
+0836.HK,HK,stock,China Resources Power
+1038.HK,HK,stock,Cheung Kong Infrastructure Holdings Limited
+2688.HK,HK,stock,ENN Energy
+0012.HK,HK,stock,Henderson Land Development Company Limited
+0016.HK,HK,stock,Sun Hung Kai Properties Limited
+0101.HK,HK,stock,Hang Lung Properties Limited
+0688.HK,HK,stock,China Overseas Land & Investment Limited
+0823.HK,HK,stock,Link REIT
+0960.HK,HK,stock,Longfor Properties
+1109.HK,HK,stock,China Resources Land Limited
+1113.HK,HK,stock,CK Asset Holdings
+1209.HK,HK,stock,China Resources Mixc Lifestyle
+1997.HK,HK,stock,Wharf Real Estate Investment Company Limited
+0001.HK,HK,stock,CK Hutchison Holdings Limited
+0027.HK,HK,stock,Galaxy Entertainment Group Ltd.
+0066.HK,HK,stock,MTR Corporation Ltd
+0175.HK,HK,stock,Geely Auto
+0241.HK,HK,stock,Alibaba Health
+0267.HK,HK,stock,CITIC Limited
+0285.HK,HK,stock,BYD Electronics
+0288.HK,HK,stock,WH Group
+0291.HK,HK,stock,China Resources Beer
+0300.HK,HK,stock,Midea Group
+0316.HK,HK,stock,Orient Overseas (International) Limited
+0322.HK,HK,stock,Tingyi
+0386.HK,HK,stock,Sinopec Corp
+0669.HK,HK,stock,Techtronic Industries
+0700.HK,HK,stock,Tencent Holdings Limited
+0762.HK,HK,stock,China Unicom
+0857.HK,HK,stock,PetroChina Company Limited
+0868.HK,HK,stock,Xinyi Glass
+0881.HK,HK,stock,Zhongsheng Group
+0883.HK,HK,stock,CNOOC Limited
+0941.HK,HK,stock,China Mobile Ltd
+0968.HK,HK,stock,Xinyi Solar
+0981.HK,HK,stock,Semiconductor Manufacturing International Corporation
+0992.HK,HK,stock,Lenovo
+1024.HK,HK,stock,Kuaishou
+1044.HK,HK,stock,Hengan International Group Co. Ltd
+1088.HK,HK,stock,China Shenhua Energy
+1093.HK,HK,stock,CSPC Pharmaceutical Group
+1099.HK,HK,stock,Sinopharm Group
+1177.HK,HK,stock,Sino Biopharm
+1211.HK,HK,stock,BYD Company
+1378.HK,HK,stock,China Hongqiao Group
+1810.HK,HK,stock,Xiaomi
+1876.HK,HK,stock,Budweiser Brewing Company APAC
+1928.HK,HK,stock,Sands China
+1929.HK,HK,stock,Chow Tai Fook
+2015.HK,HK,stock,Li Auto
+2020.HK,HK,stock,Anta Sports
+2057.HK,HK,stock,ZTO Express
+2269.HK,HK,stock,WuXi Biologics
+2313.HK,HK,stock,Shenzhou International
+2319.HK,HK,stock,Mengniu Dairy
+2331.HK,HK,stock,Li-Ning
+2359.HK,HK,stock,WuXi AppTec
+2382.HK,HK,stock,Sunny Optical
+2618.HK,HK,stock,JD Logistics
+2899.HK,HK,stock,Zijin Mining
+3690.HK,HK,stock,Meituan
+3692.HK,HK,stock,Hansoh Pharmaceutical Group
+6618.HK,HK,stock,JD Health
+6690.HK,HK,stock,Haier
+6862.HK,HK,stock,Haidilao
+9618.HK,HK,stock,JD.com
+9633.HK,HK,stock,Nongfu Spring
+9888.HK,HK,stock,Baidu
+9961.HK,HK,stock,Trip.com Group
+9988.HK,HK,stock,Alibaba Group
+9992.HK,HK,stock,Pop Mart
+9999.HK,HK,stock,NetEase
+AAPL,US,stock,Apple Inc.
+ABBV,US,stock,AbbVie
+ABT,US,stock,Abbott Laboratories
+ACN,US,stock,Accenture
+ADBE,US,stock,Adobe Inc.
+AMAT,US,stock,Applied Materials
+AMD,US,stock,Advanced Micro Devices
+AMGN,US,stock,Amgen
+AMT,US,stock,American Tower
+AMZN,US,stock,Amazon
+ANET,US,stock,Arista Networks
+AVGO,US,stock,Broadcom
+AXP,US,stock,American Express
+BA,US,stock,Boeing
+BAC,US,stock,Bank of America
+BKNG,US,stock,Booking Holdings
+BLK,US,stock,BlackRock
+BMY,US,stock,Bristol Myers Squibb
+BNY,US,stock,BNY Mellon
+BRK-B,US,stock,Berkshire Hathaway
+C,US,stock,Citigroup
+CAT,US,stock,Caterpillar Inc.
+CMCSA,US,stock,Comcast
+COF,US,stock,Capital One
+COP,US,stock,ConocoPhillips
+COST,US,stock,Costco
+CRM,US,stock,Salesforce
+CSCO,US,stock,Cisco
+CVS,US,stock,CVS Health
+CVX,US,stock,Chevron Corporation
+DE,US,stock,Deere & Company
+DELL,US,stock,Dell Technologies
+DHR,US,stock,Danaher Corporation
+DIS,US,stock,Walt Disney Company (The)
+DUK,US,stock,Duke Energy
+EMR,US,stock,Emerson Electric
+FDX,US,stock,FedEx
+GD,US,stock,General Dynamics
+GE,US,stock,GE Aerospace
+GEV,US,stock,GE Vernova
+GILD,US,stock,Gilead Sciences
+GM,US,stock,General Motors
+GOOG,US,stock,Alphabet Inc.
+GOOGL,US,stock,Alphabet Inc.
+GS,US,stock,Goldman Sachs
+HD,US,stock,Home Depot
+IBM,US,stock,IBM
+INTC,US,stock,Intel
+INTU,US,stock,Intuit
+ISRG,US,stock,Intuitive Surgical
+JNJ,US,stock,Johnson & Johnson
+JPM,US,stock,JPMorgan Chase
+KO,US,stock,Coca-Cola Company (The)
+LIN,US,stock,Linde plc
+LLY,US,stock,Eli Lilly and Company
+LMT,US,stock,Lockheed Martin
+LOW,US,stock,Lowe's
+LRCX,US,stock,Lam Research
+MA,US,stock,Mastercard
+MCD,US,stock,McDonald's
+MDLZ,US,stock,Mondelēz International
+MDT,US,stock,Medtronic
+META,US,stock,Meta Platforms
+MMM,US,stock,3M
+MO,US,stock,Altria
+MRK,US,stock,Merck & Co.
+MS,US,stock,Morgan Stanley
+MSFT,US,stock,Microsoft
+MU,US,stock,Micron Technology
+NEE,US,stock,NextEra Energy
+NFLX,US,stock,Netflix Inc.
+NOW,US,stock,ServiceNow
+NVDA,US,stock,Nvidia
+ORCL,US,stock,Oracle Corporation
+PANW,US,stock,Palo Alto Networks
+PEP,US,stock,PepsiCo
+PFE,US,stock,Pfizer
+PG,US,stock,Procter & Gamble
+PLTR,US,stock,Palantir Technologies
+PM,US,stock,Philip Morris International
+QCOM,US,stock,Qualcomm
+RTX,US,stock,RTX Corporation
+SBUX,US,stock,Starbucks
+SCHW,US,stock,Charles Schwab Corporation
+SNDK,US,stock,Sandisk
+SO,US,stock,Southern Company
+T,US,stock,AT&T
+TMO,US,stock,Thermo Fisher Scientific
+TMUS,US,stock,T-Mobile US
+TSLA,US,stock,Tesla Inc.
+TXN,US,stock,Texas Instruments
+UBER,US,stock,Uber
+UNH,US,stock,UnitedHealth Group
+UNP,US,stock,Union Pacific Corporation
+UPS,US,stock,United Parcel Service
+USB,US,stock,U.S. Bancorp
+V,US,stock,Visa Inc.
+VZ,US,stock,Verizon
+WFC,US,stock,Wells Fargo
+WMT,US,stock,Walmart
+XOM,US,stock,ExxonMobil
+2800.HK,HK,index_fund,Tracker Fund of Hong Kong
+2828.HK,HK,index_fund,Hang Seng China Enterprises ETF
+3033.HK,HK,index_fund,CSOP Hang Seng TECH ETF
+SPY,US,index_fund,SPDR S&P 500 ETF
+QQQ,US,index_fund,Invesco QQQ Trust
+XLK,US,index_fund,Select Sector SPDR US technology
+XLF,US,index_fund,Select Sector SPDR US financials
+XLE,US,index_fund,Select Sector SPDR US energy
+XLV,US,index_fund,Select Sector SPDR US health care
+XLI,US,index_fund,Select Sector SPDR US industrials
+XLY,US,index_fund,Select Sector SPDR US consumer discretionary
+XLP,US,index_fund,Select Sector SPDR US consumer staples
+XLU,US,index_fund,Select Sector SPDR US utilities
+XLB,US,index_fund,Select Sector SPDR US materials
+XLRE,US,index_fund,Select Sector SPDR US real estate
+XLC,US,index_fund,Select Sector SPDR US communication services
+^HSI,HK,index,Hang Seng Index
+^GSPC,US,index,S&P 500
+^NDX,US,index,Nasdaq-100
+CL=F,OTHER,driver,Crude oil futures
+^TNX,OTHER,driver,US 10-year Treasury yield
+KWEB,US,driver,KraneShares CSI China Internet ETF
+HACK,US,driver,Amplify Cybersecurity ETF
+CNY=X,OTHER,driver,USD/CNY
+HKD=X,OTHER,fx,USD/HKD

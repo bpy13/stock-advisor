@@ -22,3 +22,6 @@ not yet in the orchestrator's registry). Questions for Brian go to `docs/inbox.m
 - The 2026-10-27 news plan is closed (see its banner). Carried into the new plan: the scheduled
   tasks check (Task 4.1) and the dashboard browser check (Task 4.2). The Telegram live test
   moves to milestone 4.
+
+## Results
+- Task 1.2 (watchlist file) done by slot 1, 2026-11-10: 215 rows, 85 HK and 101 US stocks.

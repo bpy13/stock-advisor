@@ -133,7 +133,7 @@ def round_trip_pct(broker, market, kind, price, shares) -> float
     numpy 2.5), do not downgrade anything. For calendars try `pandas_market_calendars`
     instead. For Futu, write the error on a `Result:` line and post an inbox question.
 
-- [ ] **Task 1.2: the watchlist file** `[parallel-ok]` (taken: slot 1, 2026-11-10 12:05)
+- [x] **Task 1.2: the watchlist file** `[parallel-ok]`
   - Files: create `config/watchlist.csv`, `stock_advisor/watchlist.py`,
     `tests/test_watchlist.py`.
   - `config/watchlist.csv` (tracked, Brian edits it): columns `symbol,market,kind,name`,
@@ -154,6 +154,7 @@ def round_trip_pct(broker, market, kind, price, shares) -> float
     prints the row count per market and kind (expect HK stocks 75 to 95, US stocks 99 to 102).
   - Notes: read Wikipedia through its REST API with a descriptive User-Agent, once, by hand
     for this task; no code in the repo fetches it.
+  - Result: 215 rows. HK stock 85, US stock 101, HK index fund 3, US index fund 13, indexes 3, drivers 5, fx 1. The HSI Wikipedia table lists 85 members although its text says 88. Six of the old DEFAULT_HK_UNIVERSE symbols are no longer in the table (0011, 0017, 2007, 2018, 6098, 9901). US share classes use Yahoo form (BRK-B).
 
 - [ ] **Task 1.3: trading calendars** — needs: Task 1.1
   - Files: create `stock_advisor/calendars.py`, `tests/test_calendars.py`.
