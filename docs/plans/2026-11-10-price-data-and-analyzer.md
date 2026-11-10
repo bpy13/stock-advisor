@@ -259,7 +259,7 @@ def round_trip_pct(broker, market, kind, price, shares) -> float
   - Notes: sources register in a dict in `price_sources/__init__.py`; Tasks 2.3 and 2.4
     each add one line there, in separate commits.
 
-- [ ] **Task 2.3: Alpaca source (code and tests)** — needs: Task 2.2
+- [ ] **Task 2.3: Alpaca source (code and tests)** — needs: Task 2.2 (taken: slot 2, 2026-11-10 12:30)
   - Files: create `stock_advisor/price_sources/alpaca.py`,
     `tests/test_price_source_alpaca.py`, `tests/fixtures/alpaca_bars.json`; modify
     `stock_advisor/price_sources/__init__.py`, `.env.example` (add blank
@@ -294,7 +294,7 @@ def round_trip_pct(broker, market, kind, price, shares) -> float
     symbol mapping, bar-end to bar-start, the quota stop, the closed-port error).
   - Notes: needs Task 2.3 only because both edit `price_sources/__init__.py`.
 
-- [ ] **Task 2.5: first full Yahoo load** — needs: Task 2.2
+- [ ] **Task 2.5: first full Yahoo load** — needs: Task 2.2 (taken: slot 1, 2026-11-10 12:45)
   - Files: none (a live run).
   - Run `prices_cli refresh --source yahoo --interval 1d`, then `--interval 60m`, for the
     whole watchlist, in the background, logging to `data/cache/store/refresh_log.txt`.
@@ -358,7 +358,8 @@ Method choices below are fixed by this plan. Returns for risk work are weekly (F
 to Friday close) because Hong Kong and US sessions do not overlap; daily returns would
 understate how much the two move together.
 
-- [ ] **Task 3.1: value, return and concentration** — needs: Task 1.4, Task 2.1 (taken: slot 5, 2026-11-10 12:05)
+- [x] **Task 3.1: value, return and concentration** — needs: Task 1.4, Task 2.1
+  - Result: analyzer.py (`summarize`, `load_summary`, `PortfolioSummary`) and 6 hand-checked tests pass. Weights are shares of the holdings (cash excluded); unpriced holdings are valued at cost and kept in the weights.
   - Files: create `stock_advisor/analyzer.py`, `tests/test_analyzer.py`.
   - Inputs: the trades of every account that has a `trade_file` (`transactions.
     load_transactions`), daily bars from `price_store.read_bars`, the cash in the accounts

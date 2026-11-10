@@ -26,6 +26,7 @@ not yet in the orchestrator's registry). Questions for Brian go to `docs/inbox.m
 ## Results
 - Task 1.2 (watchlist file) done by slot 1, 2026-11-10: 215 rows, 85 HK and 101 US stocks.
 - Task 2.1 (price store and quality flags) done by slot 2, 2026-11-10.
+- Task 3.1 (value, return and concentration) done by slot 5, 2026-11-10: analyzer.py with 6 hand-checked tests.
 - Task 1.5 (fee tables) done by slot 3, 2026-11-10: all worked totals match; round trip for HK$20,000 is 1.22% at Hang Seng Bank and 0.37% at Futu; 422 tests pass.
 - Task 2.2 (Yahoo into the store, prices CLI) done by slot 3, 2026-11-10: real run of 5 Hong Kong symbols gave 27,336 daily bars from 2000-01-03; tests and ruff pass.
 - Task 3.2 (groups, risk shares, exposures) done by slot 4, 2026-11-10: 5 tests pass.
