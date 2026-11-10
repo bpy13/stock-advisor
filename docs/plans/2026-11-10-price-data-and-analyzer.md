@@ -156,7 +156,7 @@ def round_trip_pct(broker, market, kind, price, shares) -> float
   - Notes: read Wikipedia through its REST API with a descriptive User-Agent, once, by hand
     for this task; no code in the repo fetches it.
 
-- [ ] **Task 1.3: trading calendars** — needs: Task 1.1
+- [ ] **Task 1.3: trading calendars** — needs: Task 1.1 (taken: slot 2, 2026-11-10 12:10)
   - Files: create `stock_advisor/calendars.py`, `tests/test_calendars.py`.
   - Wrap `exchange_calendars` (`XHKG` for market HK, `XNYS` for US). `sessions()` returns
     the session dates. `hourly_bar_starts()` returns the canonical hourly bars of a session,
