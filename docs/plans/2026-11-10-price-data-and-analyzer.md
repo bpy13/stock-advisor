@@ -321,7 +321,7 @@ def round_trip_pct(broker, market, kind, price, shares) -> float
   - Done when: the test passes (sources faked: one raises, the others still run); one real
     run of the script ends with exit code 0 and the log shows a line per source.
 
-- [ ] **Task 2.7: Alpaca live load** (slot 1 only) — needs: Task 2.3, Task 2.5
+- [ ] **Task 2.7: Alpaca live load** (slot 1 only) — needs: Task 2.3, Task 2.5 (taken: slot 1, 2026-11-11 15:00)
   - Waits for Brian to create a free Alpaca account and put the two keys in `.env`
     (`docs/inbox.md`). If Brian reports that Alpaca refused the sign-up,
     this task instead extends the Futu source to US symbols (`US.AAPL`) and Task 2.8 loads
