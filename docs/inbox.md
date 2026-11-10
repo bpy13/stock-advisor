@@ -10,5 +10,13 @@ Brian's answers are copied here word for word, then into `docs/decisions.md`.
 - Example: the price signal says BUY for a holding, and the news model predicts -2% over 1 day with a proven record. The report then shows HOLD with a note. Without the rule it would still show BUY.
 - Why it matters: this decides how far the news model may override the price signal. A bigger or smaller step changes real recommendations once any prediction is proven.
 - Options: **Default:** keep the one-step rule as written. Or change the step size, or let news only add a warning and never change the signal.
+- Card sent 2026-11-10, card 11
+
+**Approve stock's milestones, and start its worker?** (orchestrator, 2026-11-10)
+- What it is: docs/milestones.md (draft) sets 3 goals: 1. news module finished and honestly backtested (what the open plan finishes); 2. graded severity and per-stock sensitivity (inferred); 3. proven predictions change the signal (inferred).
+- Example: once approved, a worker builds the open plan tasks (9 unticked), starting by checking Tasks 6.2g, 6.2h and 6.2i, whose code is already committed.
+- Why it matters: the project stays paused in the orchestrator until Brian approves. Task 5.4b (Telegram token) stays with Brian: workers never handle secrets.
+- Options: **Default:** approve milestone 1 as written and unpause; milestones 2 and 3 stay drafts. Or edit the file first.
+- Card sent 2026-11-10, card 10
 
 ## Answered
