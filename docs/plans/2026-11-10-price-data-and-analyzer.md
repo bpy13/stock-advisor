@@ -239,7 +239,7 @@ def round_trip_pct(broker, market, kind, price, shares) -> float
   - Notes: file names replace `.` and `^` and `=` with `_`. The store root comes from one
     module constant so tests point it at `tmp_path`.
 
-- [ ] **Task 2.2: Yahoo into the store, and the prices CLI** — needs: Task 1.2, Task 2.1
+- [ ] **Task 2.2: Yahoo into the store, and the prices CLI** — needs: Task 1.2, Task 2.1 (taken: slot 3, 2026-11-10 12:00)
   - Files: create `stock_advisor/price_sources/__init__.py`,
     `stock_advisor/price_sources/yahoo.py`, `stock_advisor/prices_cli.py`,
     `tests/test_price_source_yahoo.py`, `tests/test_prices_cli.py`.
