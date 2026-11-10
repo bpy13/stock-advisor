@@ -10,6 +10,7 @@ Brian's answers are copied here word for word, then into `docs/decisions.md`.
 - Example: with OpenD running, the tool fetches hourly prices for Tencent back to 2018. Without it, Hong Kong prices come from Yahoo only (2 years of hourly bars, known errors).
 - Why it matters: the comparison of price sources (Task 2.9) and the 8-year hourly history wait for this. Every other task carries on.
 - Options: **Default:** you open the account and start OpenD when convenient, then answer "running". Or answer "skip Futu" and Hong Kong stays on Yahoo.
+- Status (2026-11-10, orchestrator): Brian opened a Futu account; Futu shows "Account Application Under Review", opening expected in 1-2 business days. Not yet answered; Task 2.8 still waits.
 
 ## Answered
 
