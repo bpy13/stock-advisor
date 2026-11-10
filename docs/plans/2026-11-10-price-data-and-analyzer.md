@@ -305,8 +305,9 @@ def round_trip_pct(broker, market, kind, price, shares) -> float
     per market and the store's size on disk (no symbols).
   - Result (slot 1, 2026-11-10): daily 215 of 215 symbols (HK 89, US 119, other 7), 0 failed, 1,607,784 bars. Hourly 208 symbols (HK 89, US 119), 3 failed (no bars returned), store 144 MB. Flags (no_trade / big_move / gap): daily HK 5042 / 17 / 293, US 2113 / 186 / 0; hourly HK 1228 / 7 / 129079, US 430 / 43 / 2304. Fix found: Yahoo refuses a hourly window over 730 days, and the HK start date lands ahead of UTC, so every HK hourly fetch failed; `HOURLY_DAYS` is now 725. Finding: Yahoo's HK hourly bars start at :30 all day (13:30, 14:30, 15:30) but the canonical grid has 13:00, 14:00, 15:00, so about half the HK hourly bars are dropped and the gap count is huge; Task 2.9 should weigh this against Futu.
 
-- [ ] **Task 2.6: nightly refresh, and the minute recorder's size** (slot 1 only) — needs: Task 2.5 (taken: slot 1, 2026-11-11 13:00)
-  - Code merged (slot 2, 2026-11-11); remaining: the live run of scripts/record_minutes.py and the size of data/cache/prices_intraday/1m/, slot 1 only.
+- [x] **Task 2.6: nightly refresh, and the minute recorder's size** (slot 1 only) — needs: Task 2.5
+  - Result (slot 1, 2026-11-11): real run of scripts/record_minutes.py exit 0 in 41 min; the log has one line per source: yahoo done=423 failed=3 bars_added=119; alpaca done=0 failed=426 (keys missing); futu done=0 failed=426 (OpenD not running). Minute store `1m/`: 38 files, 9,535,493 bytes, 390,425 rows, 32 trading days (2026-09-28 to 2026-11-10), about 2.1 MB per stock per year (mixed HK and US; 37 news targets plus holdings). Bug found for Task 2.7: `price_sources/alpaca.py` reads `os.environ` directly and never loads `.env`, so Alpaca reports its keys missing even though Brian added them; use `news.settings.get_setting`.
+  - Code merged (slot 2, 2026-11-11); live run done by slot 1.
   - Files: modify `scripts/record_minutes.py`, `tests/` file that covers it (create
     `tests/test_record_minutes.py` if none exists).
   - After the script's existing 1-minute and 60-minute recording (unchanged), it runs the

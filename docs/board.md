@@ -34,4 +34,5 @@ not yet in the orchestrator's registry). Questions for Brian go to `docs/inbox.m
 - Task 3.2 (groups, risk shares, exposures) done by slot 4, 2026-11-10: 5 tests pass.
 - Task 2.4 (Futu source) done by slot 2, 2026-11-10: 7 tests pass with a fake quote context; no live call yet (Task 2.8).
 - Task 2.6 (nightly refresh code) partly done by slot 2, 2026-11-11: recorder script refreshes every source with one log line each, test passes; the live run and the 1m size measurement wait for slot 1 in the main folder.
+- Task 2.6 (nightly refresh, minute size) done by slot 1, 2026-11-11: live run exit 0, one log line per source; 1m store about 2.1 MB per stock per year; Alpaca ignores `.env` keys (bug noted on Task 2.7).
 - Task 3.3 (analyzer CLI) done by slot 4, 2026-11-11: cost command gives 1.22% and 0.37%; 471 tests pass; built from slot 3's salvaged draft.
