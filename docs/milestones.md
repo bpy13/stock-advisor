@@ -1,51 +1,87 @@
 # Milestones
 
-DRAFT, waiting for Brian's approval (orchestrator card)
+Approved by Brian on 2026-11-10 (replanning session). Plan for milestone 1:
+`docs/plans/2026-11-10-price-data-and-analyzer.md`.
 
 Workers build only toward the current milestone. Pending items that do not serve it wait.
 When every "done when" line holds, the orchestrator sends Brian one card: the milestone is reached,
-with the next one proposed for his approval. Lines marked "(inferred)" come from me, not from the
-docs; Brian should check them.
+with the next one proposed for his approval. Lines marked "(my default)" came from Claude; Brian
+accepted them with the milestones and may change them.
 
-Purpose (decisions.md, 2026-10-27): a news module that spots market-moving events early, finds
-similar past events, measures how markets reacted, and suggests actions, so Brian does not lag
-ordinary investors.
+Purpose (Brian, 2026-11-10): a portfolio analyzer that watches the news and sends a Telegram
+alert only when it finds a clear reason to buy or sell a named stock. A regression that uses
+both price and news produces the signal's strength and confidence. The recommendation fits the
+current portfolio: cash, risk, and the cost of the trade. Decisions: `docs/decisions.md`,
+section "Replanning (2026-11-10)". Research: `docs/research/2026-11-10-quant-landscape.md`.
 
-## Current: 1. News module finished and honestly backtested
-What the open plan (`docs/plans/2026-10-27-news-event-module.md`) finishes.
+## Current: 1. Clean price data and the portfolio analyzer
 Done when:
-- The reaction table is rebuilt with full price history (`period="max"`, decisions 2026-10-30) and
-  the backtest has run on it. `results.json` shows the distinct trading days behind each result
-  (nothing is "proven" under 250 days). Plan Tasks 6.2i and 6.2f.
-- The live watcher and dashboard load the saved fitted models and the memory guard, and their logs
-  show "Model ready" with fitted pairs above 0 (Tasks 6.2g, 6.2h; the code is committed, the live
-  restart is not checked).
-- The four scheduled tasks are Ready or Running, and one full live pass (collect, score, news_cli)
-  plus `python -m stock_advisor.cli` shows real values in the news column (Task 6.2).
-- The dashboard News tab is checked in a real browser (open item "Waiting on the user").
-- Open fixes done: GDELT timestamps re-checked on fresh data (6.2c); old rows re-categorized (6.2e).
-- Telegram: the first real alert reaches Brian's phone (Task 5.4b, the token and test message
-  already done; the first real alert needs predictions).
-- The pre-release review is done and fixes shipped; tests and `ruff check` pass; docs match
-  (Task 6.3). Tasks 5.4b and 6.2f may stay open per the plan.
+- **Watchlist.** One editable file lists the stocks the tool follows: the holdings, the Hang
+  Seng Index members, the 100 largest US stocks and the main index funds.
+- **Price store.** Daily bars for the watchlist are stored raw and adjusted, apart, against a
+  trading calendar (lunch break, half days, holidays). Each bar carries flags: no trades that
+  day, a move beyond a set limit, a gap. Hourly bars are stored the same way.
+- **Second sources.** Futu serves Hong Kong bars (8 years hourly, 20 years daily) and Alpaca's
+  free feed serves US bars (7 years hourly). If Alpaca refuses the sign-up,
+  Futu serves the US bars too. A report compares each with Yahoo over a shared period and
+  lists the differences. The store prefers the source the report shows is cleaner.
+- **Portfolio inputs.** The trade file stays as it is. One settings file lists the accounts
+  and the position limits. Each account has a broker, its cash in HKD and USD, and a fee
+  table. Which accounts Brian holds stays out of git (`data/accounts.json`). Fee tables
+  exist for Hang Seng Bank and Futu, so the tool gives the cost of any trade at each.
+- **Analyzer.** The dashboard and the CLI report show, for the portfolio: value, return with
+  and without the timing of deposits, deepest fall, yearly swing, groups of holdings that move
+  together, and concentration. For each holding: its share of the portfolio's risk, and how far
+  it follows the market and the six drivers Brian chose on 2026-10-30 (oil, US rates, China/HK
+  tech, US tech, cyber security, USD/CNY).
+- **Old plan closed.** The 2026-10-27 plan is marked closed. Its carry-overs are done: the
+  dashboard checked in a real browser, the four scheduled tasks checked.
+- The minute recorder keeps running; its stored size per stock per year is measured.
+- Tests and `ruff check` pass; README, architecture and known-issues match.
 
-## 2. Graded severity and per-stock sensitivity (inferred)
-From decisions 2026-10-30 (Brian) and the proposal `docs/proposals/2026-10-30-news-impact-design.md`,
-which is still only a proposal for Brian's review.
+## 2. News watch that filters
 Done when:
-- Brian has reviewed the proposal and decided what to build (inferred: this is the gate).
-- Each high-impact event gets a graded severity and factor shocks, for the six agreed factors:
-  oil, US rates, China/HK tech, US tech, cyber security, USD/CNY (decisions 2026-10-30).
-- Each holding has a measured sensitivity to those factors from daily prices (proposal step B,
-  inferred as a done-when line).
-- The report and dashboard show a quantitative buy/sell suggestion from severity and sensitivity.
-- Any paid Claude API run for severity had a cost quote first (decisions 2026-10-30).
+- Each story is linked to the watchlist stocks or drivers it concerns, or dropped.
+- Claude Haiku labels each linked story: relevant or not, event type, new or repeat, severity.
+  A 200-story sample with its measured cost came first, and Brian approved the cost.
+- A labelled history exists for the regression to learn from. Its one-time cost was quoted and
+  approved before the run.
+- New free sources feed the watch: US company filings by event type, US insider trades, US
+  and Hong Kong short-selling files, and Hong Kong and China news feeds whose terms allow it.
+- The dashboard News tab shows the labelled stories per holding. The old "high impact" flag
+  is gone.
 
-## 3. Proven predictions change the signal (inferred)
+## 3. The regression and its honest test
 Done when:
-- At least one target and horizon passes the "proven" bar on held-out data (250 or more distinct
-  trading days, decisions 2026-10-30), or the backtest honestly shows none do and Brian accepts
-  that (inferred).
-- A proven news action moves the price-based recommendation one step, as decided (2026-10-27, pending
-  Brian's confirmation); unproven predictions still show only a warning.
-- Category thresholds and the high-impact rule are revisited using the backtest (open items).
+- One table has a row per stock per day and per hour, with price inputs, news inputs and slow
+  signals (insider buying, short selling, momentum).
+- Three models are tested for the 1-hour, 1-day and 5-day horizons: price only, news only, and
+  combined. The test trains on earlier years and scores later ones, with a gap between them.
+- Every return is measured from the first price Brian could have traded at after the news,
+  with his trading cost subtracted. Results use medians and capped extremes, and t-stats
+  corrected for overlapping periods.
+- For each horizon the best model is chosen by its record on unseen years. A saved table shows
+  how often forecasts of each strength were right.
+- The report and dashboard show one label per stock from the 5-day forecast of the best model,
+  with the hour and 1-day forecasts beside it, each marked proven or unproven.
+
+## 4. Recommendations and Telegram alerts
+Done when:
+- Brian has chosen the account for new trades. Interactive Brokers gets a fee table first
+  if he wants it compared.
+- A recommendation names the stock, the direction, the amount and the account, and uses that
+  account's fee table. The amount respects the
+  cash, the position limits (no stock above 25%, no trade under HK$10,000, whole board lots:
+  my default) and the trade's cost. When cash is short it names the weakest holding to trim.
+- Telegram sends only when the predicted move after costs is at least 2%, and forecasts that
+  strong were right at least 60% of the time in 30 or more past cases. Other signals show on
+  the dashboard, marked unproven.
+- The first real alert reaches Brian's phone.
+- The pre-release review is done and its fixes shipped.
+
+## Later (not scheduled)
+- Graded severity and factor shocks (`docs/proposals/2026-10-30-news-impact-design.md`).
+- Projects that use minute bars (news reaction speed, volatility from 5-minute bars).
+- China A-shares through Stock Connect.
+- Reading positions and cash from a Futu account automatically.
+- Interactive Brokers: a fee table, and a third price source if Brian opens an account.

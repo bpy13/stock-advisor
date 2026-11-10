@@ -5,6 +5,18 @@ Brian's answers are copied here word for word, then into `docs/decisions.md`.
 
 ## Open
 
+**Is Futu OpenD running on this PC under your login?** (plan 2026-11-10, Task 2.8)
+- What it is: Futu is the broker whose free interface gives 8 years of hourly Hong Kong prices. Its small program, Futu OpenD, must run on this PC and be logged in to your Futu account. The tool then asks it for prices; the tool never sees your password.
+- Example: with OpenD running, the tool fetches hourly prices for Tencent back to 2018. Without it, Hong Kong prices come from Yahoo only (2 years of hourly bars, known errors).
+- Why it matters: the comparison of price sources (Task 2.9) and the 8-year hourly history wait for this. Every other task carries on.
+- Options: **Default:** you open the account and start OpenD when convenient, then answer "running". Or answer "skip Futu" and Hong Kong stays on Yahoo.
+
+**Are the two Alpaca keys in `.env`?** (plan 2026-11-10, Task 2.7)
+- What it is: Alpaca is a US broker whose free account gives 7 years of hourly US prices. It issues two keys. They go in the file `.env` as `ALPACA_API_KEY` and `ALPACA_API_SECRET`. Workers never open that file.
+- Example: with the keys, the tool fetches hourly prices for Apple back to 2019. Without them, US prices come from Yahoo only.
+- Why it matters: the US half of the source comparison waits for this. Alpaca may refuse the sign-up (not confirmed); then Futu serves the US prices instead.
+- Options: **Default:** create the free account, add the keys, answer "done". Or answer "Alpaca refused" and the worker switches the US prices to Futu.
+
 ## Answered
 
 **Should a proven news prediction move the buy/sell/hold signal by one step?** (from docs, `docs/decisions.md` 2026-10-27 "Brian to confirm", plan Task 5.2)

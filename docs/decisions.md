@@ -98,3 +98,112 @@ rather than deleting them). Nothing Brian didn't say is recorded as his decision
 
 - 2026-11-10 (Brian): the project needs replanning before a worker starts: "stock needs replanning on how to get better quality data, as well as considering the scope of other quant projects". Stock stays paused in the orchestrator.
 - 2026-11-10 (Brian): replaces the 2026-10-27 one-step default above: "the decision should be combined, making use of both data to give best recommendation". How to combine the price and news data is for the replanning.
+
+## Replanning (2026-11-10)
+
+Brian's answers in the replanning session, word for word where quoted. Research behind them:
+`docs/research/2026-11-10-quant-landscape.md`.
+
+### Goal and order of work
+- 2026-11-10 (Brian): the goal is to "establish portfolio analyzer, watch news and send Telegram
+  alert accordingly".
+- 2026-11-10 (Brian, accepted default): the portfolio analyzer and the news filter come first.
+  The combined model follows as a tested research track, and the best proven model sets the
+  BUY/HOLD/SELL label.
+- 2026-11-10 (Brian, accepted default): survey open-source quant projects and borrow their data
+  sources and methods, but keep this repo.
+- 2026-11-10 (Brian, accepted default): close the 2026-10-27 news plan. Carry over the dashboard
+  browser check, the scheduled-task check and the Telegram live test. Drop the reaction-table
+  rebuild, the backtest rerun and the re-categorizing of old headlines.
+
+### The model
+- 2026-11-10 (Brian): whether one combined regression replaces the separate price rule and news
+  model "should depends on test performance. In production (when sending alarm to telegram),
+  always use the best model, combined or not".
+- 2026-11-10 (Brian): "the signal strength and confidence should come from the regression (which
+  uses the news as input). Waiting for price to change is already too late, ideally I want to
+  catch the signal before that". So no alert rule waits for a price move to confirm the news.
+- 2026-11-10 (Brian, accepted default): the 5-trading-day forecast sets the label; the 1-hour
+  and 1-day forecasts show beside it.
+- 2026-11-10 (Brian): "the hourly definitely need staying. Minute could be useful for future
+  quant projects (need research)". The minute recorder keeps running.
+- 2026-11-10 (Claude's default, builder check): every backtest measures the return from the
+  first price Brian could have traded at after the news (the next bar, or the next market open),
+  never from before the news.
+
+### Alerts and recommendations
+- 2026-11-10 (Brian): "the Telegram alert should only be sent when a clear signal for selling or
+  buying certain stock is found, and the recommendation should be given based on the current
+  portfolio (considering opportunity costs, risks, available cash, etc.)". News items, unusual
+  moves and risk warnings go to the dashboard, not to Telegram (Claude's reading).
+- 2026-11-10 (Brian): the alert bar "should take into account the opportunity cost (the trade
+  cost). So basically the default". The default: send when the predicted move after Brian's
+  trading costs is at least 2%, and forecasts that strong were right at least 60% of the time in
+  30 or more past cases of the walk-forward test. Until a model has that record its signals
+  show on the dashboard only, marked unproven. Replaces the 2026-10-27 alert rule (predicted
+  move of at least 1.5% on high-impact events).
+- 2026-11-10 (Claude's default, Brian to confirm): position limits for a recommendation's
+  amount: no stock above 25% of the portfolio (the existing rule), no trade under HK$10,000,
+  sizes rounded to whole board lots; when cash is short the alert names the weakest holding to
+  trim.
+
+### Data
+- 2026-11-10 (Brian): "free tier news data is sufficient, what we need is stock data for
+  inference".
+- 2026-11-10 (Brian, accepted default): a Futu (moomoo) account and a free Alpaca account serve
+  as second price sources beside Yahoo. Brian opens the accounts and handles the login and the
+  key; workers never see them.
+- 2026-11-10 (Brian, accepted default): Claude Haiku classifies news stories (relevant or not,
+  event type, new or repeat, severity), replacing FinBERT's tone as the filter, after a
+  200-story sample and Brian's go on the measured cost. The API key stays Brian's.
+- 2026-11-10 (Brian, "default for now"): the watchlist is the holdings, the Hang Seng Index
+  members, the 100 largest US stocks and the main index funds, in a file Brian can edit. Markets:
+  Hong Kong and the US only.
+- 2026-11-10 (Brian, accepted default): Brian's broker offers no interface the tool could read,
+  so Brian keeps the trade file and a cash figure by hand. The tool has a fee table per
+  broker.
+- 2026-11-10 (research finding, not a decision): HKEX's terms of use forbid scripted access to
+  all its websites, so the 2026-10-27 rule (skip sites whose terms forbid it) keeps HKEX
+  announcements, directors' dealings and Stock Connect files out.
+
+### Accounts and approval
+- 2026-11-10 (Brian): approved the four milestones in `docs/milestones.md` and the position
+  limits above with an "ok" (the question said "ok" accepts them). His exact words name
+  his accounts, so they are in `docs/private/decisions-private.md`.
+- 2026-11-10 (Brian, accepted default): the account for new trades is decided at the start
+  of milestone 4.
+- Naming: "Futu" is the company, the account and the data interface. Earlier entries say
+  "moomoo" for the same thing (moomoo is Futu's app name outside Hong Kong).
+- 2026-11-10 (research finding, not a decision): Alpaca may refuse the sign-up (unconfirmed).
+  If so, Futu serves the US bars.
+
+### Builder check for milestone 1 (Claude's defaults, 2026-11-10; Brian may change any)
+- "The 100 largest US stocks" means the S&P 100 members: a published list, not a ranking that
+  changes daily.
+- Anything that names a holding (reports, logs, comparison detail) is written under `data/`,
+  which git ignores. Tracked files carry totals only. The watchlist file in git never lists
+  the holdings; they join at run time.
+- The price store appends raw bars and replaces adjusted bars whole on every refresh, because
+  an adjusted history changes after each dividend.
+- Hourly bars follow the trading session (Hong Kong from 09:30, the US from 09:30 New York
+  time), the same for every source, so sources can be compared bar by bar.
+- Quality flags: a daily move above 40% or an hourly move above 20% is flagged, not removed.
+- The analyzer measures risk on weekly returns, because Hong Kong and US sessions do not
+  overlap. Driver proxies are those of `docs/proposals/2026-10-30-news-impact-design.md`.
+- The trade file records no cash and no dividends. So portfolio returns cover the invested
+  holdings only and count dividends as reinvested; the dashboard says so.
+- Accounts, cash and limits live in `data/accounts.json`. Fee tables are code, with the source
+  page and date beside each rate.
+- The old report and the news module keep reading prices the old way until milestone 3; the
+  analyzer reads the new store.
+
+### Brokers and data accounts in milestone 1
+- 2026-11-10 (Brian): milestone 1 has fee tables for Hang Seng Bank and Futu, and uses Futu
+  and Alpaca as price sources. Interactive Brokers waits for later: no fee table now. His
+  exact words are in the private file.
+- 2026-11-10 (Brian, by saying "ok" to phases 2, 3 and 4 and settling phase 1 with the line
+  above): the milestone 1 plan `docs/plans/2026-11-10-price-data-and-analyzer.md` is approved.
+- 2026-11-10 (Brian): "git ignore any private info". Anything that says where Brian's money or
+  shares are, which accounts he holds, his cash, his holdings or his personal circumstances
+  goes under `docs/private/` or `data/`; git ignores both. Tracked docs keep the tool's design
+  only. The repo on GitHub is public.

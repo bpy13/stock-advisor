@@ -1,5 +1,10 @@
 # Plan: news event module (2026-10-27)
 
+**CLOSED on 2026-11-10 (Brian, replanning).** Nothing in this file is to be built. Tasks marked
+`- [~]` were open at closing; each says what became of it. The work continues in
+`docs/milestones.md` and `docs/plans/2026-11-10-price-data-and-analyzer.md`. Decision:
+`docs/decisions.md`, section "Replanning (2026-11-10)".
+
 ## Goal
 A separate news module that spots market-moving events as they break (new government
 policies, wars, security vulnerabilities, crashes), finds similar past events, measures how
@@ -309,7 +314,7 @@ report the item count and the earliest date reachable.
     `tests/news/test_notify.py`); `python -m stock_advisor.news.notify --setup` finds the chat
     id from the bot's latest update and saves it to `.env`; `--test` sends one message; with
     no token both commands say so and exit without a request.
-- [ ] **Task 5.4b: Telegram live test** (added 2026-10-28, plan review; waiting on Brian)
+- [~] **Task 5.4b: Telegram live test** (added 2026-10-28, plan review; waiting on Brian) (CLOSED 2026-11-10, not ticked: carried to milestone 4 (the first real alert))
   - Blocked until `.env` has a non-empty `TELEGRAM_BOT_TOKEN` (absent on 2026-10-28). Does not
     block 6.2 or 6.3; if still blocked at 6.3, the wrap-up leaves it in open-items.
   - Done when: `--setup` saves `TELEGRAM_CHAT_ID` to `.env`; `--test` delivers one message that
@@ -363,7 +368,7 @@ write to or diagnose the real store: one at a time, never while
     `--status` plus one `news_cli` run succeed while the watcher runs.
   - Notes: why now: the watcher, dashboard and daily backfill all hold the file at once since
     Brian registered the tasks; `delete` mode blocks every reader during a write.
-- [ ] **Task 6.2c: GDELT timestamps, verified on fresh data** (added 2026-10-28, plan review)
+- [~] **Task 6.2c: GDELT timestamps, verified on fresh data** (added 2026-10-28, plan review) (CLOSED 2026-11-10, not ticked: not finished; the remaining GDELT check stays in docs/open-items.md)
   (sonnet)
   - Facts on 2026-10-28 (read-only count): 169 GDELT items, one distinct `published_at`
     (2026-10-27T05:15Z), all stored by the pre-fix code (b8af5fe landed 18:08 HKT);
@@ -406,7 +411,7 @@ write to or diagnose the real store: one at a time, never while
     running; the cause is fixed or recorded in open-items.
   - Notes: suspects: "database is locked" from the watcher or dashboard writing while
     scoring (6.2b helps) or memory in FinBERT batches. (OneDrive sync is off, so not OneDrive.)
-- [ ] **Task 6.2e: re-categorize items scored before the single-stock fix** (added
+- [~] **Task 6.2e: re-categorize items scored before the single-stock fix** (added (CLOSED 2026-11-10, not ticked: dropped)
   2026-10-28, plan review) (sonnet)
   - Files: create `scripts/recategorize_news.py` (reuses `categories.py`; add a store query
     for all categorized rows beside `items_awaiting_category`); test with a `tmp_path` store.
@@ -419,7 +424,7 @@ write to or diagnose the real store: one at a time, never while
   - Notes: the first backfill run (18:55–23:24 HKT on 2026-10-27) categorized with the rules
     before 0fbfdf1 (19:53 HKT); `scores` has no categorized-at column, so recompute every
     categorized row and write only the differences.
-- [ ] **Task 6.2: scheduled tasks check and end-to-end run** (coordinator; after 6.2a–6.2e)
+- [~] **Task 6.2: scheduled tasks check and end-to-end run** (coordinator; after 6.2a–6.2e) (CLOSED 2026-11-10, not ticked: the scheduled-task check and the browser check moved to the 2026-11-10 plan (Tasks 4.1, 4.2); the rest dropped)
   - (plan review 2026-10-28) Brian registered all four tasks. Observed: `minute_recorder`
     Ready (first run 22:00 HKT), `news_backfill` Ready (daily 02:00), `news_watcher` Running
     since 00:42, `dashboard` Running on 8502. Registering is done; this task verifies.
@@ -441,7 +446,7 @@ write to or diagnose the real store: one at a time, never while
   - Notes: the backfill needs several more daily runs (Guardian cursor 2002, NYT 2010,
     Wikipedia 2010, GDELT stalled; scoring lags fetching). Do not wait for it: 6.2f is the
     rerun.
-- [ ] **Task 6.2g: live code loads the backtest's fitted models** (added 2026-10-29; Brian
+- [~] **Task 6.2g: live code loads the backtest's fitted models** (added 2026-10-29; Brian (CLOSED 2026-11-10, not ticked: code shipped (97acc98); live check not run)
   approved option A, decisions.md) (sonnet; before the watcher's next refit if possible)
   - Why: since reactions.parquet exists (2026-10-29 03:54), each `NewsAnalyzer.refresh` fits
     and so builds `EventLibrary.candidates()` for all ~467k events; the watcher stops polling
@@ -463,7 +468,7 @@ write to or diagnose the real store: one at a time, never while
   - Notes: the fitted ridge models are small (coefficients, alpha, vol_fill, residuals);
     pickle is fine for a local cache file. The analog features still use the live library,
     so new events get analogs from up-to-date history.
-- [ ] **Task 6.2h: memory guard for the watcher and dashboard** (added 2026-10-29; Brian:
+- [~] **Task 6.2h: memory guard for the watcher and dashboard** (added 2026-10-29; Brian: (CLOSED 2026-11-10, not ticked: code shipped (444b022); live check not run)
   "fix the memory leak issue so it doesn't happen again") (sonnet)
   - Why: on 2026-10-29 the old-code watcher reached 21.4 GB and the dashboard 17.9 GB (both
     fitting on refresh, fixed by 6.2g); RAM fell to 0.9 GB free. Nothing stops a future bug
@@ -486,7 +491,7 @@ write to or diagnose the real store: one at a time, never while
     `read_reactions` loading all 119M rows of reactions.parquet (almost all without a
     return). It now streams the file and keeps only known rows of the live targets: a real
     refresh peaks at 3.3 GB (was 10–14 GB). `refresh` also drops the old model first.
-- [ ] **Task 6.2i: data fixes before any real backtest** (added 2026-10-30; Brian approved
+- [~] **Task 6.2i: data fixes before any real backtest** (added 2026-10-30; Brian approved (CLOSED 2026-11-10, not ticked: code shipped; the rebuild-and-backtest job dropped)
   questions 1, 3 and 4 of the reaction-table review) (sonnet, then a long job)
   - Why: valid reactions covered only 22–27 Oct 2026 (3–4 trading days). News covers
     1990–2002 and 2026; cached daily prices started in 2006 because `period="max"` is cut to
@@ -508,14 +513,14 @@ write to or diagnose the real store: one at a time, never while
   - Done when: tests pass; a real `fetch_price_history(["^GSPC"], period="max")` starts in
     1927 or the first year yfinance has; the rebuilt table has 1-day reactions for 1990–2002
     events; the backtest summary shows the day counts.
-- [ ] **Task 6.2f: rerun the backtest after the backfill completes** (added 2026-10-28, plan
+- [~] **Task 6.2f: rerun the backtest after the backfill completes** (added 2026-10-28, plan (CLOSED 2026-11-10, not ticked: dropped)
   review; waiting on time, probably a later session)
   - Done when: `--status` shows every source complete (or capped with the limit recorded) and
     0 to score, categorize and cluster; `news_backtest_cli --rebuild-reactions` rerun (the
     cache predates the GDELT "batch" precision of 16bfaa6) and `results.json`
     replaced; the `proven` flags, the market-moving categories and the window section are
     quoted; the category thresholds and high-impact rule open items are revisited with them.
-- [ ] **Task 6.3: pre-release review, fixes, wrap-up, ship** (coordinator; after 6.2.
+- [~] **Task 6.3: pre-release review, fixes, wrap-up, ship** (coordinator; after 6.2. (CLOSED 2026-11-10, not ticked: dropped; the 2026-11-10 plan has its own review)
   5.4b and 6.2f may stay open: the wrap-up lists them in open-items, they do not block the
   ship)
 

@@ -10,3 +10,7 @@ venv/
 # but never committed since it may contain real holdings.
 data/*
 !data/.gitkeep
+
+# Private notes: where the user's accounts and money are, broker comparisons made
+# for him, his exact words about them. Never committed.
+docs/private/

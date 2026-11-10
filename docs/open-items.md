@@ -1,5 +1,10 @@
 # Open items
 
+**Replanning, 2026-11-10.** The news plan is closed. Items below about the reaction rebuild, the
+backtest rerun, `fitted.pkl` and re-categorizing are void; Task 4.4 of
+`docs/plans/2026-11-10-price-data-and-analyzer.md` removes them. Still live: the watcher,
+backfill and dashboard notes, and the GDELT blocker.
+
 As of 2026-10-27. Tick off, or move to `decisions.md` when settled. A bug that will be fixed goes
 here; a limit or trap we live with goes in `known-issues.md`. Each item in one place only.
 
@@ -50,7 +55,7 @@ here; a limit or trap we live with goes in `known-issues.md`. Each item in one p
   terms allow MarketWatch feeds; find working Yahoo, Nasdaq and US Treasury feed URLs. Poll
   CISA (5.7 MB per fetch) at most every 15 minutes.
 
-- News event module: see `docs/plans/2026-10-27-news-event-module.md`.
+- Current plan: `docs/plans/2026-11-10-price-data-and-analyzer.md` (the news plan is closed).
 
 - GDELT returns 429 under a full 10-query pass (one query gave up in the live run). The
   watcher polls it every 15 min; the Phase 4 backfill needs longer waits.
