@@ -157,7 +157,7 @@ def round_trip_pct(broker, market, kind, price, shares) -> float
     for this task; no code in the repo fetches it.
   - Result: 215 rows. HK stock 85, US stock 101, HK index fund 3, US index fund 13, indexes 3, drivers 5, fx 1. The HSI Wikipedia table lists 85 members although its text says 88. Six of the old DEFAULT_HK_UNIVERSE symbols are no longer in the table (0011, 0017, 2007, 2018, 6098, 9901). US share classes use Yahoo form (BRK-B).
 
-- [ ] **Task 1.3: trading calendars** — needs: Task 1.1
+- [ ] **Task 1.3: trading calendars** — needs: Task 1.1 (taken: slot 2, 2026-11-10 12:10)
   - Files: create `stock_advisor/calendars.py`, `tests/test_calendars.py`.
   - Wrap `exchange_calendars` (`XHKG` for market HK, `XNYS` for US). `sessions()` returns
     the session dates. `hourly_bar_starts()` returns the canonical hourly bars of a session,
@@ -171,7 +171,7 @@ def round_trip_pct(broker, market, kind, price, shares) -> float
   - Notes: typhoon closures are not in the library. Do not model them: a typhoon day shows
     up as a `gap_before` flag, which is correct.
 
-- [ ] **Task 1.4: accounts, cash and limits** `[parallel-ok]`
+- [ ] **Task 1.4: accounts, cash and limits** `[parallel-ok]` (taken: slot 4, 2026-11-10 12:12)
   - Files: create `stock_advisor/accounts.py`, `sample_data/accounts.json`,
     `tests/test_accounts.py`.
   - File format (JSON), as in the sample: `{"accounts": [{"name": "example", "broker":
