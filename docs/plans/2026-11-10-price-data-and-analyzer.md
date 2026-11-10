@@ -380,7 +380,7 @@ understate how much the two move together.
     invested holdings only, and dividends count as reinvested. Say this in the docstring;
     the CLI and the dashboard repeat it in one line.
 
-- [ ] **Task 3.2: groups, risk shares and exposures** `[parallel-ok]` — needs: Task 2.1
+- [ ] **Task 3.2: groups, risk shares and exposures** `[parallel-ok]` — needs: Task 2.1 (taken: slot 4, 2026-11-10 12:10)
   - Files: create `stock_advisor/risk.py`, `tests/test_risk.py`.
   - `weekly_returns(symbols, years=3)` from adjusted daily bars; a symbol with under 52
     weeks is reported as too short and left out.
