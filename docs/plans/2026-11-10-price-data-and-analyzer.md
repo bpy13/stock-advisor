@@ -68,7 +68,7 @@ build those on top of this data.
   dashboard: never stop it by task name; Task 4.2 restarts it by process id). `news.db` is not
   used by this plan. No task here is CPU-heavy, so none goes through the job queue; a task
   that turns out to need more than a few minutes of full CPU uses
-  `bot-stream\tools\queue\hkq.ps1` (lane `cpu`).
+  `.claude\job-queue\jobq.ps1` (lane `cpu`).
 - **Old code stays.** `market_data.py`, the report and the news module keep working as they
   are. The analyzer and the new CLIs read the store. Milestone 3 retires the old paths.
 
