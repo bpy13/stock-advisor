@@ -236,3 +236,7 @@ Brian's answers in the replanning session, word for word where quoted. Research 
   signals, reported apart from the buy-only results. Short sales go through moomoo (Futu), and
   the cost includes moomoo's interest on borrowed shares (inbox, pairs question) (Brian,
   2026-11-11: "then allow shorting via moomoo, taking the charges interest into account").
+
+### Portfolio report check (2026-11-11)
+- The analyzer's report on the real portfolio (plan 2026-11-10, Task 3.5) is accepted as right. (Brian, 2026-11-11: "looks about right")
+- Futu: the account application must be redone (HKID rejected); Task 2.8 keeps waiting. (Brian, 2026-11-11: "they rejected my HKID, not sure why, had to redo and wait again")

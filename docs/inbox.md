@@ -11,14 +11,16 @@ Brian's answers are copied here word for word, then into `docs/decisions.md`.
 - Why it matters: the comparison of price sources (Task 2.9) and the 8-year hourly history wait for this. Every other task carries on.
 - Options: **Default:** you open the account and start OpenD when convenient, then answer "running". Or answer "skip Futu" and Hong Kong stays on Yahoo.
 - Status (2026-11-10, orchestrator): Brian opened a Futu account; Futu shows "Account Application Under Review", opening expected in 1-2 business days. Not yet answered; Task 2.8 still waits.
+- Brian (2026-11-11): "they rejected my HKID, not sure why, had to redo and wait again". Stays open; Task 2.8 keeps waiting for the account.
 
+## Answered
 **Do the numbers in your saved portfolio report look right?** (plan 2026-11-10, Task 3.5)
 - What it is: the analyzer ran on your real trades and wrote a report to `data/reports/portfolio-2026-11-11.md` (not in git). It shows value, return, deepest fall, yearly swing, each holding's share of risk, groups and concentration. 19 of 22 holdings have prices; 3 have none and count at cost.
 - Example: if the report shows a return of +40% but your own statement says +15%, tell us which number is wrong.
 - Why it matters: only you know your true holdings and returns. The automatic checks (weights sum to 1, no empty values) cannot catch a wrong trade record or a wrong price. Nothing waits on your answer.
 - Options: **Default:** "ok" (nothing looks wrong). Or name the number that looks wrong.
+- Brian (2026-11-11): "looks about right" (accepts the Default "ok").
 
-## Answered
 **Can you restart the dashboard and look at its Portfolio and News tabs?** (plan 2026-11-10, Task 4.2)
 - What it is: the dashboard is the web page at http://localhost:8502. The copy now running started on 2026-10-31, so it lacks the new Portfolio tab. A restart loads the new code. The system refused the worker's attempt to stop that process.
 - Example: in PowerShell, run `Stop-Process -Id (Get-NetTCPConnection -LocalPort 8502 -State Listen).OwningProcess`. The restart script starts the dashboard again within about 30 seconds. Then open http://localhost:8502 and click the Portfolio and News tabs.
