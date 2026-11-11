@@ -12,6 +12,12 @@ Brian's answers are copied here word for word, then into `docs/decisions.md`.
 - Options: **Default:** you open the account and start OpenD when convenient, then answer "running". Or answer "skip Futu" and Hong Kong stays on Yahoo.
 - Status (2026-11-10, orchestrator): Brian opened a Futu account; Futu shows "Account Application Under Review", opening expected in 1-2 business days. Not yet answered; Task 2.8 still waits.
 
+**Do the numbers in your saved portfolio report look right?** (plan 2026-11-10, Task 3.5)
+- What it is: the analyzer ran on your real trades and wrote a report to `data/reports/portfolio-2026-11-11.md` (not in git). It shows value, return, deepest fall, yearly swing, each holding's share of risk, groups and concentration. 19 of 22 holdings have prices; 3 have none and count at cost.
+- Example: if the report shows a return of +40% but your own statement says +15%, tell us which number is wrong.
+- Why it matters: only you know your true holdings and returns. The automatic checks (weights sum to 1, no empty values) cannot catch a wrong trade record or a wrong price. Nothing waits on your answer.
+- Options: **Default:** "ok" (nothing looks wrong). Or name the number that looks wrong.
+
 ## Answered
 
 **Should milestone 3's test bench also test pairs trades, which buy one stock and sell its partner short?** (Brian's chat, 2026-11-11; `docs/milestones.md`, milestone 3)

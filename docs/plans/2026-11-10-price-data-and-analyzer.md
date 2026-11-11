@@ -438,13 +438,14 @@ understate how much the two move together.
   - Done when: the Streamlit `AppTest` test passes with a faked report (tab renders, the
     cash note appears, an exception shows an error and the News tab still renders).
 
-- [ ] **Task 3.5: the analyzer on the real portfolio** (checkpoint) (taken: slot 1, 2026-11-11 12:00) — needs: Task 2.5, Task 3.4
+- [x] **Task 3.5: the analyzer on the real portfolio** (checkpoint) — needs: Task 2.5, Task 3.4
   - Files: none (a live run).
   - Run `analyze_cli --save` on the real data. Check and print pass or fail only: weights
     sum to 1 (±0.001); risk shares sum to 1; no NaN in the headline numbers; every holding
     is priced, too short, or listed as unpriced; the run takes under 60 seconds.
   - Checkpoint: post one inbox question asking Brian to read the saved report (give its
     path) and say whether any number looks wrong. Nothing waits on the answer.
+  - Result (slot 1, 2026-11-11): all checks pass. 22 holdings: 19 priced, 0 too short, 3 unpriced (valued at cost). Weights sum to 1, risk shares sum to 1 (22 rows), no NaN in the headline numbers. Run time 56 s, close to the 60 s limit. Report saved to `data/reports/portfolio-2026-11-11.md`. Checkpoint question posted in the inbox.
   - Done when: all checks pass; the `Result:` line gives the counts (holdings priced, too
     short, unpriced) and the run time.
 
