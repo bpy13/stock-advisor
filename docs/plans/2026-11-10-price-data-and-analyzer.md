@@ -424,7 +424,8 @@ understate how much the two move together.
   - Done when: the test file passes (store and accounts faked); the `cost` command run for
     real prints 1.22% (Hang Seng Bank) and 0.37% (Futu) for the example above.
 
-- [ ] **Task 3.4: the dashboard Portfolio tab** — needs: Task 3.3 (taken: slot 1, 2026-11-11 14:30)
+- [x] **Task 3.4: the dashboard Portfolio tab** — needs: Task 3.3
+  - Result (slot 1, 2026-11-11): app.py has a Portfolio tab (Report, Portfolio, News): metrics, value chart with the deepest fall shaded, per-holding table, groups, caveat, cost-of-a-trade form; report cached 1 hour, cleared by Run report. 3 AppTest tests pass (tab renders, cash note, error leaves the News tab); 476 tests pass, ruff clean. Not yet seen in a real browser (Task 4.2).
   - Files: modify `app.py`; create or extend `tests/test_app_portfolio.py`.
   - Add a third tab "Portfolio" (tabs become Report, Portfolio, News) that renders
     `build_portfolio_report()`: headline numbers as metrics, the value and deepest-fall
