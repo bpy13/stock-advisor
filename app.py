@@ -222,6 +222,70 @@ def _render_backfill(status: dict) -> None:
     st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
 
 
+# ---- Portfolio tab ----------------------------------------------------------------------------
+
+
+@st.cache_data(ttl=3600, show_spinner="Analyzing the portfolio...")
+def _portfolio_report():
+    from stock_advisor.analyzer import build_portfolio_report  # imported here: pulls in sklearn
+    return build_portfolio_report()
+
+
+@st.cache_data(ttl=3600)
+def _trade_cost_text(symbol: str, amount: float) -> str:
+    from stock_advisor.analyze_cli import cost_report
+    return cost_report(symbol, amount)
+
+
+def _render_portfolio_tab() -> None:
+    try:
+        rep = _portfolio_report()
+    except Exception as exc:  # a missing store or accounts file must not break the other tabs
+        st.error(f"Could not build the portfolio analysis: {exc}")
+        return
+    s = rep.summary
+    st.subheader("Portfolio (HKD)")
+    cols = st.columns(4)
+    cols[0].metric("Value today", f"{s.value_today:,.0f}")
+    cols[1].metric("Return, no deposit timing", _pct(s.return_without_timing))
+    cols[2].metric("Return with timing (a year)", _pct(s.return_with_timing))
+    cols[3].metric("Deepest fall", _pct(s.deepest_fall, signed=False))
+    cols = st.columns(4)
+    cols[0].metric("Yearly swing", _pct(s.yearly_swing, signed=False))
+    cols[1].metric("Three largest holdings", _pct(s.top3_weight, signed=False))
+    cols[2].metric("Effective holdings", f"{s.effective_holdings:.1f}")
+    cols[3].metric("Cash", f"{s.cash:,.0f}")
+    if not rep.cash_set:
+        st.info("Cash is not set: edit data/accounts.json")
+    if s.value_series is not None and not s.value_series.empty:
+        fig = go.Figure(go.Scatter(x=s.value_series.index, y=s.value_series.values, name="Value"))
+        if s.fall_start is not None and s.fall_end is not None:
+            fig.add_vrect(x0=s.fall_start, x1=s.fall_end, fillcolor="red", opacity=0.15,
+                          line_width=0, annotation_text="deepest fall")
+        fig.update_layout(title="Value of the holdings", height=350, margin=dict(t=40, b=20))
+        st.plotly_chart(fig, use_container_width=True)
+    if s.unpriced:
+        st.warning(f"No price in the store (valued at cost): {', '.join(s.unpriced)}")
+    if rep.too_short:
+        st.warning(f"Under a year of history (no risk numbers): {', '.join(rep.too_short)}")
+    st.subheader("Per holding")
+    st.dataframe(rep.table, use_container_width=True)
+    if rep.groups:
+        st.subheader("Groups that move together")
+        for group in rep.groups:
+            st.write(", ".join(group))
+    st.caption(rep.caveat)
+    st.subheader("Cost of a trade")
+    c1, c2 = st.columns(2)
+    symbol = c1.text_input("Symbol", "0005.HK", key="cost_symbol").strip().upper()
+    amount = c2.number_input("Amount (value of the trade)", min_value=1.0, value=20000.0, step=1000.0)
+    if symbol:
+        try:
+            st.code(_trade_cost_text(symbol, float(amount)))
+        except (Exception, SystemExit) as exc:  # cost_report exits when a US price is missing
+            st.error(f"Could not price the trade: {exc}")
+
+
 def _render_news_tab() -> None:
     st.subheader("Recent news events")
     col1, col2, col3 = st.columns([2, 2, 1])
@@ -260,9 +324,13 @@ with st.sidebar:
     if st.button("Run report", type="primary"):
         st.cache_data.clear()
 
-tab_report, tab_news = st.tabs(["Report", "News"])
+tab_report, tab_portfolio, tab_news = st.tabs(["Report", "Portfolio", "News"])
 
-# The News tab renders before the report so a failed report (st.stop below) cannot hide it.
+# The Portfolio and News tabs render before the report so a failed report (st.stop below)
+# cannot hide them.
+with tab_portfolio:
+    _render_portfolio_tab()
+
 with tab_news:
     _render_news_tab()
 
