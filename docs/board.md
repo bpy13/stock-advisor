@@ -39,3 +39,4 @@ not yet in the orchestrator's registry). Questions for Brian go to `docs/inbox.m
 - Task 2.7 (Alpaca live load) done by slot 1, 2026-11-11: sip feed; daily and hourly 117 of 117 US symbols, first bar 2016-01-04; 473 tests pass.
 - Task 3.4 (dashboard Portfolio tab) done by slot 1, 2026-11-11: 3 AppTest tests pass; 476 tests pass, ruff clean; browser check is Task 4.2.
 - Task 3.5 (analyzer on the real portfolio) done by slot 1, 2026-11-11: 22 holdings (19 priced, 3 unpriced), all checks pass, run 56 s; Brian to read the saved report (inbox).
+- Task 4.2 (dashboard in a browser) waiting on Brian, slot 1, 2026-11-11: port 8502 answers 200 but runs the old code from 2026-10-31; the restart was refused, so Brian restarts it and views the tabs (inbox).

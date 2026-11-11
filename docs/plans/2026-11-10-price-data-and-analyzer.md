@@ -459,7 +459,8 @@ understate how much the two move together.
     recorder log has that night's line per source. Quote the states on the `Result:` line.
     If the 22:00 run has not happened yet, leave the task open and take another.
 
-- [ ] **Task 4.2: the dashboard in a real browser** (taken: slot 1, 2026-11-11 12:00) — needs: Task 3.5
+- [ ] **Task 4.2: the dashboard in a real browser** (waiting: inbox) — needs: Task 3.5
+  - Result (slot 1, 2026-11-11): http://localhost:8502 answers 200 on the old server (process started 2026-10-31, before the Portfolio tab; `app.py` changed 2026-11-11). The permission classifier refused stopping that process, so no restart was made; the orchestrator said to ask Brian (inbox).
   - Files: none.
   - Restart the dashboard so it loads the new code: find the process listening on port 8502
     (`Get-NetTCPConnection -LocalPort 8502`), stop that process id, and let
