@@ -12,13 +12,14 @@ Brian's answers are copied here word for word, then into `docs/decisions.md`.
 - Options: **Default:** you open the account and start OpenD when convenient, then answer "running". Or answer "skip Futu" and Hong Kong stays on Yahoo.
 - Status (2026-11-10, orchestrator): Brian opened a Futu account; Futu shows "Account Application Under Review", opening expected in 1-2 business days. Not yet answered; Task 2.8 still waits.
 
+## Answered
+
 **Should milestone 3's test bench also test pairs trades, which buy one stock and sell its partner short?** (Brian's chat, 2026-11-11; `docs/milestones.md`, milestone 3)
 - What it is: pairs trading watches two stocks that usually move together. When they drift apart, it buys the one that fell behind and sells the other short. Statistical arbitrage does the same across many stocks at once. Milestone 3's money test (gate 3) checks buying only: the top-ranked stocks against the whole watchlist. A short sale never enters it.
 - Example: HSBC and Standard Chartered usually move together. One month HSBC falls 6% while Standard Chartered stays flat. A pairs trade buys HSBC and sells Standard Chartered short; it profits if the gap closes. The buy-only bench can test only "buy HSBC", which also carries the whole market's fall.
-- Why it matters: every pairs study found tests both sides together; none tests buying only (`docs/research/2026-11-10-strategy-verification.md`, line 249). So a buy-only test may reject an idea that works as a pair. The same studies show profits after costs mostly shrank to 0.05%–0.36% a month since the 2000s. Adding short sales means a cost of borrowing stock, and your brokers may not allow it (not checked).
+- Why it matters: every pairs study found tests both sides together; none tests buying only (`docs/research/2026-11-10-strategy-verification.md`, line 249). So a buy-only test may reject an idea that works as a pair. The same studies show profits after costs mostly shrank to 0.05% to 0.36% a month since the 2000s. Adding short sales means a cost of borrowing stock, and your brokers may not allow it (not checked).
 - Options: **Default:** keep the bench buy-only; "links between stocks" and "return to the average" enter as buy-only signals, as written now. Or (b) add a long-short version of gate 3 for pairs signals only, with borrowing costs, reported apart from the buy-only results. Or (c) leave pairs to a later project and drop them from milestone 3.
-
-## Answered
+- Brian (2026-11-11): "then allow shorting via moomoo, taking the charges interest into account" (option b, a long-short version of gate 3, with moomoo's interest on borrowed shares as the cost).
 
 **Are the two Alpaca keys in `.env`?** (plan 2026-11-10, Task 2.7)
 - What it is: Alpaca is a US broker whose free account gives 7 years of hourly US prices. It issues two keys. They go in the file `.env` as `ALPACA_API_KEY` and `ALPACA_API_SECRET`. Workers never open that file.

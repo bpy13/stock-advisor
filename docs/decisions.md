@@ -232,3 +232,7 @@ Brian's answers in the replanning session, word for word where quoted. Research 
   goes under `docs/private/` or `data/`; git ignores both. Tracked docs keep the tool's design
   only. The repo on GitHub is public.
 - 2026-11-10 (Brian): the Alpaca keys are in `.env` (inbox, Task 2.7) (Brian, 2026-11-10: "done").
+- 2026-11-11 (Brian): milestone 3's test bench adds a long-short version of gate 3 for pairs
+  signals, reported apart from the buy-only results. Short sales go through moomoo (Futu), and
+  the cost includes moomoo's interest on borrowed shares (inbox, pairs question) (Brian,
+  2026-11-11: "then allow shorting via moomoo, taking the charges interest into account").

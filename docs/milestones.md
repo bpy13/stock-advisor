@@ -74,7 +74,9 @@ Done when:
   3. *Money after costs.* Buying only: the top group against the whole watchlist, bought at
      the first price Brian could have traded at, minus the fee table's cost. Training and test
      periods never overlap. The Sharpe ratio, deflated by the ledger's count of tries, must
-     reach 0.95.
+     reach 0.95. Pairs signals also run a long-short version: buy the laggard, sell its partner
+     short through moomoo, minus fees and moomoo's interest on the borrowed shares; it is
+     reported apart from the buy-only result (Brian, 2026-11-11).
   4. *Robustness.* The probability of backtest overfitting across the signal's variants is at
      most 0.05. The result is positive in both halves of the history, in each market, and at
      double the cost.
