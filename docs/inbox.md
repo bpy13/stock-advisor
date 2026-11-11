@@ -18,13 +18,15 @@ Brian's answers are copied here word for word, then into `docs/decisions.md`.
 - Why it matters: only you know your true holdings and returns. The automatic checks (weights sum to 1, no empty values) cannot catch a wrong trade record or a wrong price. Nothing waits on your answer.
 - Options: **Default:** "ok" (nothing looks wrong). Or name the number that looks wrong.
 
+## Answered
 **Can you restart the dashboard and look at its Portfolio and News tabs?** (plan 2026-11-10, Task 4.2)
 - What it is: the dashboard is the web page at http://localhost:8502. The copy now running started on 2026-10-31, so it lacks the new Portfolio tab. A restart loads the new code. The system refused the worker's attempt to stop that process.
 - Example: in PowerShell, run `Stop-Process -Id (Get-NetTCPConnection -LocalPort 8502 -State Listen).OwningProcess`. The restart script starts the dashboard again within about 30 seconds. Then open http://localhost:8502 and click the Portfolio and News tabs.
 - Why it matters: automatic tests passed, but nobody has seen the tabs in a real browser. The docs task (Task 4.4) waits for this.
 - Options: **Default:** you restart it, look at both tabs and answer "ok" or name what looks wrong. Or answer "skip" and the task closes without a browser check.
+- Brian (2026-11-11): "they look ok, but the news tab loads forever"
+- Orchestrator measured 2026-11-11 (a script running the News tab's `_news_analyses` steps, 24 holdings): `analyzer.refresh()` 182 s, `analyze_recent(24 h, 50)` 340 s, about 9 minutes in all. It also logged "No fitted models at data/cache/news/model/fitted.pkl; run news_backtest_cli (or --fit-only) first". Task 4.2b fixes it.
 
-## Answered
 
 **Should milestone 3's test bench also test pairs trades, which buy one stock and sell its partner short?** (Brian's chat, 2026-11-11; `docs/milestones.md`, milestone 3)
 - What it is: pairs trading watches two stocks that usually move together. When they drift apart, it buys the one that fell behind and sells the other short. Statistical arbitrage does the same across many stocks at once. Milestone 3's money test (gate 3) checks buying only: the top-ranked stocks against the whole watchlist. A short sale never enters it.

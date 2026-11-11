@@ -459,7 +459,8 @@ understate how much the two move together.
     recorder log has that night's line per source. Quote the states on the `Result:` line.
     If the 22:00 run has not happened yet, leave the task open and take another.
 
-- [ ] **Task 4.2: the dashboard in a real browser** (waiting: inbox) — needs: Task 3.5
+- [x] **Task 4.2: the dashboard in a real browser** — needs: Task 3.5
+  - Result (orchestrator, 2026-11-11): Brian restarted it (new process 17:55). Brian (2026-11-11): "they look ok, but the news tab loads forever". The slow News tab moved to Task 4.2b.
   - Result (slot 1, 2026-11-11): http://localhost:8502 answers 200 on the old server (process started 2026-10-31, before the Portfolio tab; `app.py` changed 2026-11-11). The permission classifier refused stopping that process, so no restart was made; the orchestrator said to ask Brian (inbox).
   - Files: none.
   - Restart the dashboard so it loads the new code: find the process listening on port 8502
@@ -471,13 +472,20 @@ understate how much the two move together.
     200 check, then posts an inbox question asking Brian to open the page and look at both
     tabs, and marks this task as waiting on the inbox until he answers.
 
+- [ ] **Task 4.2b: News tab opens in under 10 seconds** (sonnet) — needs: Task 4.2
+  - Why: Brian (2026-11-11): "they look ok, but the news tab loads forever". Orchestrator measured 2026-11-11 (a script running the News tab's `_news_analyses` steps, 24 holdings): `analyzer.refresh()` 182 s, `analyze_recent(24 h, 50)` 340 s, about 9 minutes in all. It also logged "No fitted models at data/cache/news/model/fitted.pkl; run news_backtest_cli (or --fit-only) first".
+  - Files: `app.py` (`_news_analyses`), `stock_advisor/news/analysis.py` and whatever the profile names; tests beside them.
+  - First profile the two slow calls on the real store (cProfile, print only function names and seconds, never holdings). Likely causes to check: price loading per event without the disk cache, refitting the model on every call because `fitted.pkl` is missing, and the similar-event search. Fix the cause; don't only add a spinner.
+  - If the missing `fitted.pkl` is a setup step (run `news_backtest_cli --fit-only`), run it and say in the plan which scheduled task should keep it fresh.
+  - Done when: the same timing (refresh plus analyze_recent for 24 hours, limit 50) takes under 10 seconds on the real store, a test guards the slow path that was removed, the full tests and ruff pass, and the dashboard restart is left to Brian (post an inbox question asking him to restart it and open the News tab).
+
 - [ ] **Task 4.3: review and fixes** (opus) — needs: Task 2.9, Task 3.5, Task 4.1
   - Run the `routine-reviewer` agent over this plan's commits (from the commit that added
     this file to `HEAD`) and the main paths they touch. Fix plain bugs inside this plan's
     scope, verifying each; record judgment calls in `docs/open-items.md`.
   - Done when: the review's findings are each fixed or recorded; tests and lint pass.
 
-- [ ] **Task 4.4: docs and wrap-up** — needs: Task 4.2, Task 4.3
+- [ ] **Task 4.4: docs and wrap-up** — needs: Task 4.2, Task 4.2b, Task 4.3
   - Files: modify `README.md`, `docs/architecture.md`, `docs/known-issues.md`,
     `docs/open-items.md`, `docs/board.md`, `CLAUDE.md` (run commands).
   - Move every `Result:` finding worth keeping into the right doc: the store layout and
