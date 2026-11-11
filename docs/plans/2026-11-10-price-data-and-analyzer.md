@@ -438,7 +438,7 @@ understate how much the two move together.
   - Done when: the Streamlit `AppTest` test passes with a faked report (tab renders, the
     cash note appears, an exception shows an error and the News tab still renders).
 
-- [ ] **Task 3.5: the analyzer on the real portfolio** (checkpoint) — needs: Task 2.5, Task 3.4
+- [ ] **Task 3.5: the analyzer on the real portfolio** (checkpoint) (taken: slot 1, 2026-11-11 12:00) — needs: Task 2.5, Task 3.4
   - Files: none (a live run).
   - Run `analyze_cli --save` on the real data. Check and print pass or fail only: weights
     sum to 1 (±0.001); risk shares sum to 1; no NaN in the headline numbers; every holding
