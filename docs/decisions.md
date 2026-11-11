@@ -240,3 +240,6 @@ Brian's answers in the replanning session, word for word where quoted. Research 
 ### Portfolio report check (2026-11-11)
 - The analyzer's report on the real portfolio (plan 2026-11-10, Task 3.5) is accepted as right. (Brian, 2026-11-11: "looks about right")
 - Futu: the account application must be redone (HKID rejected); Task 2.8 keeps waiting. (Brian, 2026-11-11: "they rejected my HKID, not sure why, had to redo and wait again")
+
+### News tab speed (2026-11-11, Task 4.2b)
+- The News tab as fixed is accepted: 15 to 25 s on the first open after a restart, 4 to 8 s later; no warm-up at start-up and no prediction-model fit for now. (Brian, 2026-11-11: "ok")
