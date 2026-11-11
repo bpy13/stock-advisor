@@ -27,6 +27,7 @@ import json
 import logging
 import math
 import sqlite3
+import time
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -232,6 +233,11 @@ def read_reactions(path: Optional[Path] = None,
 # ---- the analyzer -------------------------------------------------------------------------------
 
 
+MODEL_CACHE_SECONDS = 3600
+_MODEL_CACHE: dict = {}  # process-wide: the last model built from a snapshot
+_SNAPSHOT_CACHE: dict = {}  # process-wide: the mapped library, so later tab opens skip loading
+
+
 class NewsAnalyzer:
     """Builds the prediction model once (`refresh`) and analyzes events against it.
 
@@ -256,6 +262,7 @@ class NewsAnalyzer:
         top_similar: int = TOP_SIMILAR,
         horizons: Sequence[str] = HEADLINE_HORIZONS,
         clock: Callable[[], datetime] = lambda: datetime.now(timezone.utc),
+        use_snapshot: bool = True,
     ) -> None:
         from stock_advisor.news_backtest_cli import load_results
 
@@ -271,6 +278,7 @@ class NewsAnalyzer:
         self.top_similar = top_similar
         self.horizons = tuple(horizons)
         self.clock = clock
+        self.use_snapshot = use_snapshot
         self.model = None
         self.refreshed_at: Optional[datetime] = None
 
@@ -292,10 +300,25 @@ class NewsAnalyzer:
         # Drop the old model first: holding it while the new library loads doubled the peak
         # (6.7 GB instead of 3.3 GB on the live store, 2026-10-29).
         self.model = None
-        records = load_event_records(self.store)
+        snapshot = self._load_snapshot()
+        if snapshot is not None:
+            library, records = snapshot, None
+        else:
+            records = load_event_records(self.store)
+            library = EventLibrary(records)
+        key = self._model_key(library) if snapshot is not None else None
+        cached = _MODEL_CACHE.get("model")
+        if (key is not None and cached is not None and cached[0] == key
+                and (time.monotonic() - cached[1]) < MODEL_CACHE_SECONDS):
+            # Same snapshot, reaction file, fitted file and targets: the model built an hour ago
+            # (reactions read, outcome columns, daily prices) is still right. Opening the News
+            # tab again must not repeat that work.
+            self.model = cached[2]
+            self.refreshed_at = self.clock()
+            return
         reactions = (self._fixed_reactions if self._fixed_reactions is not None
                      else read_reactions(self.reactions_path, self.targets))
-        model = NewsModel(EventLibrary(records), reactions, price_loader=self.price_loader)
+        model = NewsModel(library, reactions, price_loader=self.price_loader)
         fitted = (self._fixed_fitted if self._fixed_fitted is not None
                   else load_fitted(self.fitted_path if self.fitted_path is not None
                                    else FITTED_PATH))
@@ -306,8 +329,42 @@ class NewsAnalyzer:
                         fitted.library_size)
         self.model = model
         self.refreshed_at = self.clock()
+        if key is not None:
+            _MODEL_CACHE["model"] = (key, time.monotonic(), model)
         logger.info("Model ready: %d events, %d fitted target/horizon pairs",
-                    len(records), len(model.models))
+                    len(library), len(model.models))
+
+    def _model_key(self, library) -> tuple:
+        """What the cached model depends on; a change in any of these builds a new one."""
+        def stamp(path):
+            try:
+                return Path(path).stat().st_mtime_ns
+            except OSError:
+                return None
+
+        return (library.folder.name, stamp(self.reactions_path or REACTIONS_PATH),
+                stamp(self.fitted_path or FITTED_PATH), tuple(self.targets), self.horizons,
+                id(self.price_loader), self._fixed_fitted is None)
+
+    def _load_snapshot(self):
+        """The disk snapshot of the event library (see library_snapshot), or None to read the
+        store. Only used with the default reaction file: tests that pass their own data read the
+        store. The mapped snapshot is kept for the process, reloaded when a new one is written."""
+        if self._fixed_reactions is not None or not self.use_snapshot:
+            return None
+        from stock_advisor.news import library_snapshot as snap
+
+        latest = snap.snapshot_root() / "LATEST"
+        try:
+            stamp = latest.stat().st_mtime_ns
+        except OSError:
+            return None
+        cached = _SNAPSHOT_CACHE.get("library")
+        if cached is not None and cached[0] == stamp:
+            return cached[1]
+        library = snap.load_snapshot()
+        _SNAPSHOT_CACHE["library"] = None if library is None else (stamp, library)
+        return library
 
     @property
     def history_events(self) -> int:
@@ -341,6 +398,7 @@ class NewsAnalyzer:
         last = max(e.started_at for e in events)
         records = {r.id: r for r in load_event_records(
             self.store, first, last + timedelta(seconds=1))}
+        self.model.library.prefetch(records.values())  # one batched search, not one per event
         out = []
         for event in events:
             record = records.get(event.id)

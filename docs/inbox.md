@@ -5,6 +5,12 @@ Brian's answers are copied here word for word, then into `docs/decisions.md`.
 
 ## Open
 
+**Can you restart the dashboard and open the News tab again?** (plan 2026-11-10, Task 4.2b)
+- What it is: the News tab used to load for about 9 minutes and push the dashboard past its 10 GB memory limit, so it restarted in a loop. The fix keeps the news history in a 2.7 GB file on disk (`data/cache/news/model/library/`) and uses 3 to 3.5 GB of memory. The dashboard process on port 8502 still runs the old code.
+- Example: after the restart, the first News tab open should take about 15 to 25 seconds (measured on this busy PC). Every later open should take 4 to 8 seconds. Before the fix it never finished.
+- Why it matters: the first open is still over the 10-second goal. If 20 seconds on first open is too slow, say so and the next step is to warm the tab when the dashboard starts. Predictions on the tab stay empty until someone runs `news_backtest_cli --fit-only` (30 to 60 minutes, several GB of memory); that run was not started.
+- Options: **Default:** restart the dashboard (`Stop-Process -Id (Get-NetTCPConnection -LocalPort 8502 -State Listen).OwningProcess`; the restart script starts it again), open the News tab, answer "ok" or the time you saw. Or answer "warm it" to have the tab prepared at start-up. Or answer "fit" to also run the 30 to 60 minute model fit.
+
 **Is Futu OpenD running on this PC under your login?** (plan 2026-11-10, Task 2.8)
 - What it is: Futu is the broker whose free interface gives 8 years of hourly Hong Kong prices. Its small program, Futu OpenD, must run on this PC and be logged in to your Futu account. The tool then asks it for prices; the tool never sees your password.
 - Example: with OpenD running, the tool fetches hourly prices for Tencent back to 2018. Without it, Hong Kong prices come from Yahoo only (2 years of hourly bars, known errors).

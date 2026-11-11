@@ -439,6 +439,8 @@ def main(argv: Optional[List[str]] = None) -> int:
                         help="time each source gets per pass before scoring runs (default 30)")
     parser.add_argument("--process-only", action="store_true",
                         help="score, categorize and cluster pending items; fetch from no source")
+    parser.add_argument("--snapshot-only", action="store_true",
+                        help="rebuild the library snapshot the dashboard's News tab loads; fetch nothing")
     parser.add_argument("--db", help="path of the SQLite store (default: data/cache/news/news.db)")
     args = parser.parse_args(argv)
 
@@ -460,6 +462,9 @@ def main(argv: Optional[List[str]] = None) -> int:
         previous = read_status(STATUS_FILE)
         with NewsStore(args.db) as store:
             progress = Progress(store, previous)
+            if args.snapshot_only:
+                rebuild_library_snapshot(store)
+                return 0
             if args.process_only:
                 run_process_only(store, progress, args.max_minutes)
             else:
@@ -468,6 +473,8 @@ def main(argv: Optional[List[str]] = None) -> int:
                 gdelt.strict = True  # stop instead of skipping a window the server refused
                 gdelt.rate_limit_wait, gdelt.rate_limit_tries = 75.0, 4  # lockouts last 1+ minutes
                 run(store, sources, progress, args.max_minutes, args.slice_minutes)
+            if not args.process_only:
+                rebuild_library_snapshot(store)  # the daily 02:00 run keeps the News tab fresh
     except Exception as exc:
         # The headless task has no console, so the traceback must go to the log file.
         logger.exception("backfill crashed")
@@ -485,6 +492,18 @@ def main(argv: Optional[List[str]] = None) -> int:
         release_lock(LOCK_FILE)
     print(format_status(read_status(STATUS_FILE)))
     return exit_code
+
+
+def rebuild_library_snapshot(store) -> None:
+    """Write a fresh library snapshot (news/library_snapshot.py). A failure is logged and does
+    not fail the run: the dashboard keeps the previous snapshot."""
+    try:
+        from stock_advisor.news.library_snapshot import build_snapshot
+
+        folder = build_snapshot(store)
+        logger.info("library snapshot written: %s", folder.name)
+    except Exception:
+        logger.exception("library snapshot failed; the previous one stays in use")
 
 
 def run_process_only(store, progress: Progress, max_minutes: Optional[float]) -> None:

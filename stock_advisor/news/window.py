@@ -181,16 +181,16 @@ def analog_paths(model, event, target: str, horizons: Sequence[str] = HORIZONS,
     idx, sim, t = model.library.candidates_for(event)
     outcomes = {h: model.outcomes(target, h) for h in horizons}
     last = outcomes[horizons[-1]]
-    out: List[AnalogPath] = []
-    for j, s in zip(idx, sim):
-        if len(out) >= k:
-            break
-        j = int(j)
-        if j < 0 or np.isnan(last.values[j]) or last.realized_ns[j] > t:
-            continue
-        returns = {h: float(outcomes[h].values[j]) for h in horizons}
-        out.append(AnalogPath(returns, float(s), model.library.events[j].id))
-    return out
+    idx = np.asarray(idx)
+    safe = np.where(idx >= 0, idx, 0)
+    usable = (idx >= 0) & ~np.isnan(last.values[safe]) & (last.realized_ns[safe] <= t)
+    chosen = np.flatnonzero(usable)[:k]  # one lookup for all candidates, not one per candidate
+    paths = {h: outcomes[h].values[idx[chosen]] for h in horizons}
+    return [
+        AnalogPath({h: float(paths[h][n]) for h in horizons}, float(sim[c]),
+                   model.library.events[int(idx[c])].id)
+        for n, c in enumerate(chosen)
+    ]
 
 
 def window_for(model, event, target: str, direction: float,

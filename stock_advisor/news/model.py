@@ -72,6 +72,7 @@ _INTRADAY_SECONDS = {"1m": 60, "5m": 300, "15m": 900, "1h": 3600, "4h": 14400}
 _DAILY_CLOSES = {"1d": 1, "2d": 2, "3d": 3, "5d": 5, "10d": 10}
 _NS = 1_000_000_000
 _DAY_NS = 86_400 * _NS
+_SINGLE_CACHE_SIZE = 512  # one-event searches kept per library
 _SEARCH_BUDGET = 32_000_000  # similarity cells per chunk (~128 MB of float32)
 
 FEATURE_NAMES: Tuple[str, ...] = tuple(f"cat_{c}" for c in CATEGORIES) + (
@@ -197,6 +198,7 @@ class EventLibrary:
         self.version = 0
         self.events: List[EventRecord] = []
         self.position: Dict[str, int] = {}
+        self._single: Dict[Tuple[str, int], tuple] = {}
         self._matrix = np.zeros((0, 0), dtype=np.float32)
         self._times = np.zeros(0, dtype=np.int64)
         self._cand_idx = np.zeros((0, self.n_candidates), dtype=np.int32)
@@ -329,8 +331,40 @@ class EventLibrary:
             self._cand_sim = np.vstack([self._cand_sim, sim])
         return self._cand_idx, self._cand_sim
 
+    def prefetch(self, events: Iterable[EventRecord]) -> None:
+        """Search for many events at once and keep each result for `candidates_for`.
+
+        The matrix is read once per chunk of queries instead of once per event: 50 events cost
+        3 s instead of 7 s on the live store (1.8M events), and more as the library grows.
+        """
+        todo = {}
+        for e in events:
+            if (e.id, self.version) not in self._single:
+                todo[e.id] = e
+        todo = list(todo.values())[:_SINGLE_CACHE_SIZE]
+        if len(todo) < 2:
+            return
+        vecs = np.vstack([np.asarray(e.embedding, dtype=np.float32) for e in todo])
+        vecs = vecs / np.maximum(np.linalg.norm(vecs, axis=1, keepdims=True), 1e-12)
+        times = np.array([_to_ns(e.started_at) for e in todo], dtype=np.int64)
+        order = np.argsort(times, kind="stable")  # earlier cutoffs first: cheaper chunks
+        idx, sim = self.search(vecs[order], self.earlier_count(times[order]))
+        if len(self._single) + len(todo) > _SINGLE_CACHE_SIZE:
+            self._single.clear()
+        for row, k in enumerate(order):
+            self._single[(todo[k].id, self.version)] = (idx[row], sim[row], int(times[k]))
+
     def candidates_for(self, event: EventRecord) -> Tuple[np.ndarray, np.ndarray, int]:
-        """(indices, similarities, time ns) for one event, in the library or not."""
+        """(indices, similarities, time ns) for one event, in the library or not.
+
+        A one-row search is kept per event (until the library changes), because analysing one
+        event asks for it once per target and horizon: 24 targets x 10 horizons on the dashboard
+        meant 97 identical searches of 1.8M events per event (10 minutes in all, 2026-11-11).
+        """
+        key = (event.id, self.version)
+        hit = self._single.get(key)
+        if hit is not None:
+            return hit
         pos = self.position.get(event.id)
         if pos is not None:
             t = int(self.times[pos])
@@ -339,12 +373,15 @@ class EventLibrary:
             # Search this one row only: the full table compares every pair of events, which
             # takes hours on the live store (450k events) when only a few events are analyzed.
             idx, sim = self.search(self.matrix[pos:pos + 1], self.earlier_count([t]))
-            return idx[0], sim[0], t
-        vec = np.asarray(event.embedding, dtype=np.float32)
-        vec = vec / max(float(np.linalg.norm(vec)), 1e-12)
-        t = _to_ns(event.started_at)
-        idx, sim = self.search(vec[None, :], self.earlier_count([t]))
-        return idx[0], sim[0], t
+        else:
+            vec = np.asarray(event.embedding, dtype=np.float32)
+            vec = vec / max(float(np.linalg.norm(vec)), 1e-12)
+            t = _to_ns(event.started_at)
+            idx, sim = self.search(vec[None, :], self.earlier_count([t]))
+        if len(self._single) >= _SINGLE_CACHE_SIZE:
+            self._single.clear()
+        self._single[key] = (idx[0], sim[0], t)
+        return self._single[key]
 
 
 # ---- reactions, analogs, volatility ---------------------------------------------------------
@@ -353,15 +390,57 @@ class EventLibrary:
 _NS_PER_DAY = 86_400 * 1_000_000_000
 
 
+class _SparseColumn:
+    """A length-n column that stores values only where a reaction is known.
+
+    Indexing with a position or an array of positions gives the stored value, else `fill`
+    (a scalar, or an array of length n such as the event times). `np.asarray` or `.copy()` gives
+    the dense column. Dense columns cost 14 MB each at 1.8M events, and the dashboard holds one
+    per target, horizon and kind: 24 x 10 x 3 = 10 GB, past the memory guard (2026-11-11).
+    """
+
+    def __init__(self, n: int, positions: np.ndarray, data: np.ndarray, fill) -> None:
+        self.n, self.positions, self.data, self.fill = n, positions, data, fill
+        self.dtype = data.dtype
+
+    def __len__(self) -> int:
+        return self.n
+
+    @property
+    def shape(self) -> Tuple[int]:
+        return (self.n,)
+
+    def __getitem__(self, index):
+        idx = np.asarray(index)
+        if len(self.positions) == 0:
+            hit = np.zeros(idx.shape, dtype=bool)
+            found = np.zeros(idx.shape, dtype=self.dtype)
+        else:
+            loc = np.minimum(np.searchsorted(self.positions, idx), len(self.positions) - 1)
+            hit = self.positions[loc] == idx
+            found = self.data[loc]
+        fill = self.fill[idx] if isinstance(self.fill, np.ndarray) else self.fill
+        out = np.where(hit, found, fill)
+        return out[()] if idx.ndim == 0 else out
+
+    def __array__(self, dtype=None, copy=None):
+        dense = (self.fill.astype(self.dtype) if isinstance(self.fill, np.ndarray)
+                 else np.full(self.n, self.fill, dtype=self.dtype))
+        dense[self.positions] = self.data
+        return dense if dtype is None else dense.astype(dtype)
+
+    def copy(self) -> np.ndarray:
+        return np.array(self)
+
+
 @dataclass
 class _Outcomes:
     """One target and horizon's reactions aligned to library order."""
 
-    values: np.ndarray  # NaN where unknown
-    realized_ns: np.ndarray  # when the reaction was surely finished; int64 max where unknown
+    values: _SparseColumn  # NaN where unknown
+    realized_ns: _SparseColumn  # when the reaction was surely finished; int64 max where unknown
     # Where the reaction starts (the reaction table's start_ts, else the event time), in ns.
-    # None means "use the event time".
-    start_ns: Optional[np.ndarray] = None
+    start_ns: Optional[_SparseColumn] = None
 
 
 def count_distinct_days(times_ns: np.ndarray) -> int:
@@ -370,31 +449,61 @@ def count_distinct_days(times_ns: np.ndarray) -> int:
     return int(len(np.unique(times_ns // _NS_PER_DAY))) if len(times_ns) else 0
 
 
+def _library_positions(library: EventLibrary, event_ids: pd.Series) -> np.ndarray:
+    """Library row of each reaction row's event (-1 when the event is not in the library).
+
+    Looks up each distinct id once: the ids are a category column, and a lookup of all 1.8M
+    library ids per target and horizon cost 0.3 s each (70 s for the 240 on the dashboard).
+    """
+    index = library.id_index()
+    if isinstance(event_ids.dtype, pd.CategoricalDtype):
+        per_category = index.get_indexer(event_ids.cat.categories)
+        codes = event_ids.cat.codes.to_numpy()
+        return np.where(codes >= 0, per_category[np.maximum(codes, 0)], -1)
+    return index.get_indexer(event_ids)
+
+
 def _outcomes(library: EventLibrary, reactions: pd.DataFrame, target: str,
-              horizon: str) -> _Outcomes:
+              horizon: str, positions: Optional[np.ndarray] = None,
+              row_index: Optional[np.ndarray] = None) -> _Outcomes:
     n = len(library)
-    values = np.full(n, np.nan)
-    realized = np.full(n, np.iinfo(np.int64).max, dtype=np.int64)
-    rows = reactions[(reactions["target"] == target) & (reactions["horizon"] == horizon)]
+    no_time = np.iinfo(np.int64).max
+    empty = np.zeros(0, dtype=np.int64)
+    nothing = _Outcomes(_SparseColumn(n, empty, np.zeros(0), np.nan),
+                        _SparseColumn(n, empty, empty, no_time),
+                        _SparseColumn(n, empty, empty, library.times))
+    if row_index is None:  # rows of this target and horizon, as positions in `reactions`
+        row_index = np.flatnonzero(
+            ((reactions["target"] == target) & (reactions["horizon"] == horizon)).to_numpy())
+    rows = reactions.iloc[row_index]
+    row_pos = None if positions is None else positions[row_index]
     if horizon in INTRADAY_HORIZONS and "start_source" in rows:
-        rows = rows[rows["start_source"].astype(object) != "1d"]
+        keep_rows = (rows["start_source"].astype(object) != "1d").to_numpy()
+        rows = rows[keep_rows]
+        row_pos = None if row_pos is None else row_pos[keep_rows]
     if rows.empty or n == 0:
-        return _Outcomes(values, realized)
-    pos = library.id_index().get_indexer(rows["event_id"])
+        return nothing
+    pos = _library_positions(library, rows["event_id"]) if row_pos is None else row_pos
     keep = pos >= 0
     pos = pos[keep]
     vals = rows[return_kind(target)].to_numpy(float)[keep]
-    starts = library.times[pos].copy()
+    times = library.times
+    starts = times[pos].copy()
     if "start_ts" in rows:
         start_ts = pd.DatetimeIndex(pd.to_datetime(rows["start_ts"], utc=True)).as_unit("ns")
         has = ~np.asarray(start_ts.isna())[keep]
         starts[has] = start_ts.asi8[keep][has]
-    values[pos] = vals
-    known = ~np.isnan(vals)
-    realized[pos[known]] = starts[known] + _realized_lag(horizon)
-    start_ns = library.times.copy()
-    start_ns[pos] = starts
-    return _Outcomes(values, realized, start_ns)
+    realized = np.where(~np.isnan(vals), starts + _realized_lag(horizon), no_time)
+    # One entry per library row, the last reaction row winning, as a dense assignment would.
+    order = np.argsort(pos, kind="stable")
+    pos, vals, starts, realized = pos[order], vals[order], starts[order], realized[order]
+    last = np.append(pos[1:] != pos[:-1], True)
+    pos, vals, starts, realized = pos[last], vals[last], starts[last], realized[last]
+    return _Outcomes(
+        _SparseColumn(n, pos, vals, np.nan),
+        _SparseColumn(n, pos, realized, no_time),
+        _SparseColumn(n, pos, starts, times),
+    )
 
 
 def _select_analogs(cand_idx: np.ndarray, cand_sim: np.ndarray, query_ns: np.ndarray,
@@ -713,6 +822,8 @@ class NewsModel:
         self.models: Dict[Tuple[str, str], _Fitted] = {}
         self._features: Dict[Tuple[str, str], Tuple[int, FeatureSet]] = {}
         self._outcomes_cache: Dict[Tuple[str, str], Tuple[int, _Outcomes]] = {}
+        self._positions: Optional[Tuple[int, np.ndarray]] = None
+        self._row_groups: Optional[dict] = None
         self._daily: Dict[str, Optional[pd.DataFrame]] = {}
 
     # -- features --------------------------------------------------------------------------
@@ -728,7 +839,15 @@ class NewsModel:
         key = (target, horizon)
         cached = self._outcomes_cache.get(key)
         if cached is None or cached[0] != self.library.version:
-            cached = (self.library.version, _outcomes(self.library, self.reactions, target, horizon))
+            if self._positions is None or self._positions[0] != self.library.version:
+                self._positions = (self.library.version,
+                                   _library_positions(self.library, self.reactions["event_id"]))
+            if self._row_groups is None:  # one pass instead of two column compares per call
+                self._row_groups = self.reactions.groupby(
+                    ["target", "horizon"], observed=True).indices
+            cached = (self.library.version, _outcomes(
+                self.library, self.reactions, target, horizon, self._positions[1],
+                self._row_groups.get((target, horizon), np.zeros(0, dtype=np.int64))))
             self._outcomes_cache[key] = cached
         return cached[1]
 
@@ -759,7 +878,8 @@ class NewsModel:
         x[:, FEATURE_NAMES.index("analog_mean")] = analog_mean
         x[:, FEATURE_NAMES.index("vol_20d")] = pre_event_volatility(
             self._daily_prices(target), times)
-        fs = FeatureSet(target, horizon, x, outcomes.values.copy(), times, outcomes.realized_ns)
+        fs = FeatureSet(target, horizon, x, outcomes.values.copy(), times,
+                        outcomes.realized_ns.copy())
         self._features[key] = (lib.version, fs)
         return fs
 
@@ -863,9 +983,7 @@ class NewsModel:
         known by 1 January and predict that year's events. Features are as-of each event, so
         nothing from the future leaks in. `proven` also needs `min_days` distinct trading days."""
         fs = self.features(target, horizon)
-        start_ns = self.outcomes(target, horizon).start_ns
-        if start_ns is None:
-            start_ns = fs.times
+        start_ns = np.asarray(self.outcomes(target, horizon).start_ns)
         rows_all = np.arange(len(fs.y))
         years = pd.DatetimeIndex(fs.times.astype("datetime64[ns]")).year.to_numpy()
         preds, actual, ids, used_years = [], [], [], []
