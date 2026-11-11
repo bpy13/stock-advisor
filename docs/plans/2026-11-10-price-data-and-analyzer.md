@@ -472,7 +472,7 @@ understate how much the two move together.
     200 check, then posts an inbox question asking Brian to open the page and look at both
     tabs, and marks this task as waiting on the inbox until he answers.
 
-- [ ] **Task 4.2b: News tab opens in under 10 seconds** (sonnet) — needs: Task 4.2
+- [ ] **Task 4.2b: News tab opens in under 10 seconds** (sonnet) (taken: slot 1, 2026-11-11 19:00) — needs: Task 4.2
   - Why: Brian (2026-11-11): "they look ok, but the news tab loads forever". Orchestrator measured 2026-11-11 (a script running the News tab's `_news_analyses` steps, 24 holdings): `analyzer.refresh()` 182 s, `analyze_recent(24 h, 50)` 340 s, about 9 minutes in all. It also logged "No fitted models at data/cache/news/model/fitted.pkl; run news_backtest_cli (or --fit-only) first".
   - Files: `app.py` (`_news_analyses`), `stock_advisor/news/analysis.py` and whatever the profile names; tests beside them.
   - First profile the two slow calls on the real store (cProfile, print only function names and seconds, never holdings). Likely causes to check: price loading per event without the disk cache, refitting the model on every call because `fitted.pkl` is missing, and the similar-event search. Fix the cause; don't only add a spinner.
