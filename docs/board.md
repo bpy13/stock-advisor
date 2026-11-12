@@ -40,4 +40,5 @@ not yet in the orchestrator's registry). Questions for Brian go to `docs/inbox.m
 - Task 3.4 (dashboard Portfolio tab) done by slot 1, 2026-11-11: 3 AppTest tests pass; 476 tests pass, ruff clean; browser check is Task 4.2.
 - Task 3.5 (analyzer on the real portfolio) done by slot 1, 2026-11-11: 22 holdings (19 priced, 3 unpriced), all checks pass, run 56 s; Brian to read the saved report (inbox).
 - Task 4.2 (dashboard in a browser) waiting on Brian, slot 1, 2026-11-11: port 8502 answers 200 but runs the old code from 2026-10-31; the restart was refused, so Brian restarts it and views the tabs (inbox).
+- Task 2.8 (Futu live load) waiting on Brian, slot 1, 2026-11-12: Futu_OpenD runs but nothing listens on 127.0.0.1:11111 (inbox).
 - Task 4.2b (News tab speed) done by slot 1, 2026-11-11: library snapshot, one search per event, sparse outcomes; memory 3.5 GB (was 12 GB); repeat open 4-8 s, first open 15-25 s; dashboard restart is Brian's (inbox).

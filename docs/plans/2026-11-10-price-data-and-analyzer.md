@@ -335,7 +335,7 @@ def round_trip_pct(broker, market, kind, price, shares) -> float
     the US stocks and funds; the `Result:` line says which feed answered (sip or iex) and
     the first hourly bar's date.
 
-- [ ] **Task 2.8: Futu live load** (slot 1 only) — needs: Task 2.4, Task 2.5 (taken: slot 1, 2026-11-12 12:00)
+- [ ] **Task 2.8: Futu live load** (slot 1 only) — needs: Task 2.4, Task 2.5 (waiting: inbox)
   - 2026-11-12, orchestrator: Brian logged in to Futu OpenD (GUI 10.12.7208); it listens on 127.0.0.1:11111. If OpenD is closed when you run, post an inbox question asking Brian to open it; do not start it yourself.
   - First verify the bar labelling on one liquid stock and one recent full day: print the
     day's hourly `time_key` values and volumes (a Hang Seng Index member, not a holding) and
