@@ -42,3 +42,4 @@ not yet in the orchestrator's registry). Questions for Brian go to `docs/inbox.m
 - Task 4.2 (dashboard in a browser) waiting on Brian, slot 1, 2026-11-11: port 8502 answers 200 but runs the old code from 2026-10-31; the restart was refused, so Brian restarts it and views the tabs (inbox).
 - Task 2.8 (Futu live load) done by slot 1, 2026-11-12: 89 of 89 HK symbols daily (from 2006) and hourly (from 2018-11-06); bar labelling is end-time as assumed; quota 211 of 300 left; 484 tests pass.
 - Task 4.2b (News tab speed) done by slot 1, 2026-11-11: library snapshot, one search per event, sparse outcomes; memory 3.5 GB (was 12 GB); repeat open 4-8 s, first open 15-25 s; dashboard restart is Brian's (inbox).
+- Task 2.9 (comparison report) code done by slot 2, 2026-11-12: price_compare.py and `prices_cli compare`, 7 tests pass; the live run and PREFERRED_SOURCES change wait for slot 1 in the main folder.

@@ -347,7 +347,8 @@ def round_trip_pct(broker, market, kind, price, shares) -> float
     hourly bars reaching back at least 7 years for a stock listed that long; the `Result:`
     line gives the quota left and the number of symbols still waiting.
 
-- [ ] **Task 2.9: comparison report and the preferred source** (checkpoint) (taken: slot 2, 2026-11-12 15:00) — needs: Task 2.7, Task 2.8
+- [ ] **Task 2.9: comparison report and the preferred source** (checkpoint) (slot 1 only) — needs: Task 2.7, Task 2.8
+  - Result (slot 2, 2026-11-12): code merged. price_compare.py (compare_symbol, compare_all, totals, preferred_order, report_markdown), `prices_cli compare`; 7 tests pass, ruff clean. Still to do in the main folder (slot 1, needs data/): run `prices_cli compare`, set `PREFERRED_SOURCES` in price_store.py from the printed suggested order (`preferred_order`), write the per-market totals here, post the inbox checkpoint, tick the task.
   - Files: create `stock_advisor/price_compare.py`, `tests/test_price_compare.py`; modify
     `stock_advisor/prices_cli.py` (add `compare`), `stock_advisor/price_store.py`
     (`PREFERRED_SOURCES`).

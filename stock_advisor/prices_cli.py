@@ -4,8 +4,10 @@ from __future__ import annotations
 import argparse
 import logging
 import time
+from datetime import date
+from pathlib import Path
 
-from stock_advisor import price_store
+from stock_advisor import price_compare, price_store
 from stock_advisor.price_sources import SOURCES
 from stock_advisor.watchlist import load_watchlist
 
@@ -41,6 +43,24 @@ def refresh(source: str, intervals: list[str], limit: int | None = None) -> tupl
     return done, failed, added
 
 
+def compare(report_dir: Path | None = None) -> Path:
+    """Write the per-symbol report, print the per-market totals and the suggested order."""
+    symbols = [i.symbol for i in load_watchlist()]
+    detail = price_compare.compare_all(symbols)
+    if detail.empty:
+        raise SystemExit("no symbol is held by two sources yet")
+    summary = price_compare.totals(detail)
+    today = date.today().isoformat()
+    folder = report_dir or Path(__file__).resolve().parent.parent / "data" / "reports"
+    folder.mkdir(parents=True, exist_ok=True)
+    path = folder / f"price-comparison-{today}.md"
+    path.write_text(price_compare.report_markdown(detail, summary, today), encoding="utf-8")
+    print(summary.to_string(index=False))
+    print("suggested order:", price_compare.preferred_order(summary))
+    print("report:", path)
+    return path
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="prices_cli")
     sub = parser.add_subparsers(dest="cmd", required=True)
@@ -49,8 +69,11 @@ def main(argv: list[str] | None = None) -> int:
     r.add_argument("--interval", choices=list(price_store.INTERVALS), help="default: both")
     r.add_argument("--limit", type=int, help="only the first N watchlist rows")
     sub.add_parser("status", help="what the store holds, by market (no symbols)")
+    sub.add_parser("compare", help="compare Yahoo with Futu (HK) and Alpaca (US)")
     args = parser.parse_args(argv)
-    if args.cmd == "refresh":
+    if args.cmd == "compare":
+        compare()
+    elif args.cmd == "refresh":
         intervals = [args.interval] if args.interval else list(price_store.INTERVALS)
         done, failed, added = refresh(args.source, intervals, args.limit)
         print(f"refresh {args.source}: {done} symbols done, {failed} failed, {added} bars added")
