@@ -52,13 +52,15 @@ def test_adjusted_read_carries_raw_flags_and_missing_adjusted_returns_raw():
 def test_symbol_held_by_second_source_only():
     raw = _bars(["2025-03-03"], [10.0])
     price_store.write_bars("alpaca", "1d", "AAPL", raw, None)
-    assert price_store.read_bars("AAPL").empty  # preferred source is yahoo only
-    assert len(price_store.read_bars("AAPL", source="alpaca")) == 1
-    price_store.PREFERRED_SOURCES["US"] = ("alpaca", "yahoo")
+    saved = price_store.PREFERRED_SOURCES["US"]
+    price_store.PREFERRED_SOURCES["US"] = ("yahoo",)
     try:
+        assert price_store.read_bars("AAPL").empty  # preferred source is yahoo only
+        assert len(price_store.read_bars("AAPL", source="alpaca")) == 1
+        price_store.PREFERRED_SOURCES["US"] = ("alpaca", "yahoo")
         assert len(price_store.read_bars("AAPL")) == 1
     finally:
-        price_store.PREFERRED_SOURCES["US"] = ("yahoo",)
+        price_store.PREFERRED_SOURCES["US"] = saved
 
 
 def test_missing_symbol_gives_empty_frame_and_start_end_clip():

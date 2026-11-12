@@ -19,8 +19,10 @@ INTERVALS = ("1d", "60m")
 OHLCV = ["open", "high", "low", "close", "volume"]
 FLAGS = list(quality.FLAG_COLUMNS)
 COLUMNS = OHLCV + FLAGS
-# First source in the tuple that holds the symbol wins. Task 2.9 sets these from the comparison.
-PREFERRED_SOURCES = {"HK": ("yahoo",), "US": ("yahoo",), "OTHER": ("yahoo",)}
+# First source in the tuple that holds the symbol wins. Set from the comparison of 2026-11-12
+# (Task 2.9): Futu's hourly HK bars match the canonical grid, Yahoo's do not; Alpaca is cleaner
+# than Yahoo for US bars.
+PREFERRED_SOURCES = {"HK": ("futu", "yahoo"), "US": ("alpaca", "yahoo"), "OTHER": ("yahoo",)}
 
 
 def _path(source: str, interval: str, kind: str, symbol: str) -> Path:

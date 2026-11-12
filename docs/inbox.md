@@ -5,6 +5,12 @@ Brian's answers are copied here word for word, then into `docs/decisions.md`.
 
 ## Open
 
+**Which price source should the tool prefer for each market?** (plan 2026-11-10, Task 2.9)
+- What it is: the tool holds each price history from two sources. A report compared them over the years both cover. The tool reads the first source in a fixed order for each market. Nothing waits on your answer.
+- Example: for Hong Kong hourly bars, Yahoo lacks 129,311 bars the tool expects (its hours start at :30 where the tool's grid starts at :00); Futu lacks 4. For US hourly bars, Yahoo lacks 2,283; Alpaca lacks 1. For Hong Kong daily bars, Yahoo lacks 80 and Futu 961, so Yahoo is cleaner there.
+- Why it matters: the order is per market, so Hong Kong daily bars now come from Futu (history from 2006) although Yahoo scored better (history from 2000). A per-interval order would give Hong Kong daily to Yahoo and cost a small code change.
+- Options: **Default:** keep HK = Futu then Yahoo, US = Alpaca then Yahoo, as set now. Or (b) order per interval, so Hong Kong daily reads Yahoo first and Hong Kong hourly reads Futu first.
+
 ## Answered
 
 **Is Futu OpenD still logged in and listening on port 11111?** (plan 2026-11-10, Task 2.8)
