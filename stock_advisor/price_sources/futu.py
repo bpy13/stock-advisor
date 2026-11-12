@@ -4,7 +4,7 @@ OpenD runs on Brian's PC under his own login, so this code holds no credential. 
 the lowest account tier covers a limited number of different stocks per rolling period; the
 quota is checked before each new symbol and the fetch stops when none is left.
 
-ASSUMPTION (Task 2.8 verifies it on real data): Futu labels an hourly bar by its END time, in
+VERIFIED on real data (Task 2.8, 2026-11-12): Futu labels an hourly bar by its END time, in
 Hong Kong time. The canonical bars of ``calendars`` are labelled by start, so bars are mapped
 back by end time; the 11:30 bar ends at 12:00 because of the lunch break.
 """
