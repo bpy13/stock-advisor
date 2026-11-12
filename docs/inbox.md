@@ -10,6 +10,8 @@ Brian's answers are copied here word for word, then into `docs/decisions.md`.
 - Example: for Hong Kong hourly bars, Yahoo lacks 129,311 bars the tool expects (its hours start at :30 where the tool's grid starts at :00); Futu lacks 4. For US hourly bars, Yahoo lacks 2,283; Alpaca lacks 1. For Hong Kong daily bars, Yahoo lacks 80 and Futu 961, so Yahoo is cleaner there.
 - Why it matters: the order is per market, so Hong Kong daily bars now come from Futu (history from 2006) although Yahoo scored better (history from 2000). A per-interval order would give Hong Kong daily to Yahoo and cost a small code change.
 - Options: **Default:** keep HK = Futu then Yahoo, US = Alpaca then Yahoo, as set now. Or (b) order per interval, so Hong Kong daily reads Yahoo first and Hong Kong hourly reads Futu first.
+- Orchestrator check (2026-11-12, `data/reports/price-comparison-2026-11-12.md`, checked): the totals match. The score counts missing bars and missed big moves only, not price disagreement: closes differ by more than 0.5% on 57,696 of 339,041 HK daily bars, and adjusted closes by more than 1% on 273,670.
+- Card sent 2026-11-12, card 8 (orchestrator).
 
 ## Answered
 
