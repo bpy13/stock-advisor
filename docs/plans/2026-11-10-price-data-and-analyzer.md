@@ -347,7 +347,7 @@ def round_trip_pct(broker, market, kind, price, shares) -> float
     hourly bars reaching back at least 7 years for a stock listed that long; the `Result:`
     line gives the quota left and the number of symbols still waiting.
 
-- [ ] **Task 2.9: comparison report and the preferred source** (checkpoint) — needs: Task 2.7, Task 2.8
+- [ ] **Task 2.9: comparison report and the preferred source** (checkpoint) (taken: slot 2, 2026-11-12 15:00) — needs: Task 2.7, Task 2.8
   - Files: create `stock_advisor/price_compare.py`, `tests/test_price_compare.py`; modify
     `stock_advisor/prices_cli.py` (add `compare`), `stock_advisor/price_store.py`
     (`PREFERRED_SOURCES`).
