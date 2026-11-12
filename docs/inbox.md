@@ -5,6 +5,8 @@ Brian's answers are copied here word for word, then into `docs/decisions.md`.
 
 ## Open
 
+## Answered
+
 **Is Futu OpenD running on this PC under your login?** (plan 2026-11-10, Task 2.8)
 - What it is: Futu is the broker whose free interface gives 8 years of hourly Hong Kong prices. Its small program, Futu OpenD, must run on this PC and be logged in to your Futu account. The tool then asks it for prices; the tool never sees your password.
 - Example: with OpenD running, the tool fetches hourly prices for Tencent back to 2018. Without it, Hong Kong prices come from Yahoo only (2 years of hourly bars, known errors).
@@ -12,8 +14,7 @@ Brian's answers are copied here word for word, then into `docs/decisions.md`.
 - Options: **Default:** you open the account and start OpenD when convenient, then answer "running". Or answer "skip Futu" and Hong Kong stays on Yahoo.
 - Status (2026-11-10, orchestrator): Brian opened a Futu account; Futu shows "Account Application Under Review", opening expected in 1-2 business days. Not yet answered; Task 2.8 still waits.
 - Brian (2026-11-11): "they rejected my HKID, not sure why, had to redo and wait again". Stays open; Task 2.8 keeps waiting for the account.
-
-## Answered
+- Brian (2026-11-12): "logged in" (accepts the Default: OpenD runs under his Futu 牛牛 login; orchestrator guided the install of Futu_OpenD-GUI 10.12.7208 and checked that process Futu_OpenD listens on 127.0.0.1:11111 and holds an established connection to Futu).
 **Can you restart the dashboard and open the News tab again?** (plan 2026-11-10, Task 4.2b)
 - What it is: the News tab used to load for about 9 minutes and push the dashboard past its 10 GB memory limit, so it restarted in a loop. The fix keeps the news history in a 2.7 GB file on disk (`data/cache/news/model/library/`) and uses 3 to 3.5 GB of memory. The dashboard process on port 8502 still runs the old code.
 - Example: after the restart, the first News tab open should take about 15 to 25 seconds (measured on this busy PC). Every later open should take 4 to 8 seconds. Before the fix it never finished.

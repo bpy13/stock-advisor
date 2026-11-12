@@ -243,3 +243,4 @@ Brian's answers in the replanning session, word for word where quoted. Research 
 
 ### News tab speed (2026-11-11, Task 4.2b)
 - The News tab as fixed is accepted: 15 to 25 s on the first open after a restart, 4 to 8 s later; no warm-up at start-up and no prediction-model fit for now. (Brian, 2026-11-11: "ok")
+- 2026-11-12, Brian (default): Futu OpenD (GUI 10.12.7208) runs on this PC under his Futu 牛牛 login, at 127.0.0.1:11111; Task 2.8 may load Futu prices while it runs. (Brian, 2026-11-12: "logged in")
