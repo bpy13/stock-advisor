@@ -5,8 +5,14 @@ Brian's answers are copied here word for word, then into `docs/decisions.md`.
 
 ## Open
 
-
 ## Answered
+
+**Is Futu OpenD still logged in and listening on port 11111?** (plan 2026-11-10, Task 2.8)
+- What it is: Futu OpenD is the small program that gives the tool Futu's price history. The tool connects to it on this PC at 127.0.0.1:11111. The program Futu_OpenD (process 31460) is running, but nothing listens on port 11111, so the tool cannot connect.
+- Example: on 2026-11-12 the check showed the process with only outbound connections to Futu's servers (one established, one closed) and no listener. The login may have dropped, or the API port may differ.
+- Why it matters: the Futu load (8 years of hourly Hong Kong bars) and the price-source comparison (Task 2.9) wait for it.
+- Options: **Default:** you open the OpenD window, log in again, confirm the API port reads 11111, and answer "running". Or answer "skip Futu" and Hong Kong stays on Yahoo.
+- Answered by the orchestrator (2026-11-12 14:12), not sent to Brian: the worker's netstat check was wrong. Get-NetTCPConnection shows 127.0.0.1:11111 owned by pid 31460 with a blank state, not "Listen". A TCP connect succeeded, and futu.OpenQuoteContext(127.0.0.1, 11111).get_global_state() returned ret 0, qot_logined True, server_ver 1012. Test with the real client, not netstat.
 
 **Is Futu OpenD running on this PC under your login?** (plan 2026-11-10, Task 2.8)
 - What it is: Futu is the broker whose free interface gives 8 years of hourly Hong Kong prices. Its small program, Futu OpenD, must run on this PC and be logged in to your Futu account. The tool then asks it for prices; the tool never sees your password.
