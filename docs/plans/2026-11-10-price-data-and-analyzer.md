@@ -470,7 +470,8 @@ understate how much the two move together.
 
 ## Phase 4 – Carry-overs and finish (sonnet; the review on opus)
 
-- [ ] **Task 4.1: check the four scheduled tasks** (slot 1 only) — needs: Task 2.6 (taken: slot 1, 2026-11-16 15:51)
+- [ ] **Task 4.1: check the four scheduled tasks** (slot 1 only) — needs: Task 2.6
+  - Result (slot 1, 2026-11-16 15:55, not done): watcher Ready (result 0), backfill Ready (11-16 02:00, result 0), dashboard Running. Recorder Ready, but its 11-15 22:00 run has LastTaskResult 267014 (task terminated) and recorder_log.txt has no line after 2026-11-13 07:00. Check again after the 11-16 22:00 run; if it fails again, post an inbox question.
   - Files: none.
   - Done when: `Get-ScheduledTask -TaskName stock_advisor_*` shows the watcher, dashboard
     and backfill Running or Ready and the recorder Ready; after a 22:00 run,
