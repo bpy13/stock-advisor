@@ -566,7 +566,7 @@ understate how much the two move together.
   - If the missing `fitted.pkl` is a setup step (run `news_backtest_cli --fit-only`), run it and say in the plan which scheduled task should keep it fresh.
   - Done when: the same timing (refresh plus analyze_recent for 24 hours, limit 50) takes under 10 seconds on the real store, a test guards the slow path that was removed, the full tests and ruff pass, and the dashboard restart is left to Brian (post an inbox question asking him to restart it and open the News tab).
 
-- [ ] **Task 4.3: review and fixes** (opus) — needs: Task 2.9, Task 2.10, Task 3.5, Task 4.1
+- [ ] **Task 4.3: review and fixes** (opus) — needs: Task 2.9, Task 2.10, Task 3.5, Task 4.1 (taken: slot 1, 2026-11-16 23:40)
   - Run the `routine-reviewer` agent over this plan's commits (from the commit that added
     this file to `HEAD`) and the main paths they touch. Fix plain bugs inside this plan's
     scope, verifying each; record judgment calls in `docs/open-items.md`.
