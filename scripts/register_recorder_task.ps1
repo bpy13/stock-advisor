@@ -14,7 +14,10 @@ if (-not (Test-Path $python)) { throw "Could not find the stock_advisor env pyth
 $action = New-ScheduledTaskAction -Execute 'conhost.exe' -Argument "--headless `"$python`" `"$script`"" -WorkingDirectory $repoRoot
 $trigger = New-ScheduledTaskTrigger -Daily -At '22:00'
 # StartWhenAvailable: a missed run happens at the next login.
-$settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries
+# 4-hour limit (not the 72-hour default): with IgnoreNew, a run that hangs would skip every
+# later start. record_minutes.py stops itself after 3 hours; this is the backstop.
+$settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries `
+    -ExecutionTimeLimit (New-TimeSpan -Hours 4) -MultipleInstances IgnoreNew
 
 Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Settings $settings `
     -Description 'Appends the latest 1m and 60m bars for news targets and holdings.' -Force | Out-Null

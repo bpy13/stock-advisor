@@ -87,8 +87,19 @@ def _context():
             raise FutuNotRunning(f"Futu OpenD is not running (nothing listens on {HOST}:{PORT})")
         import futu
 
+        # The SDK's callback thread is not a daemon by default, so an open context kept the
+        # 2026-11-12 recorder alive for 4 days after its work ended. Daemon threads let the
+        # process exit even if close() is missed.
+        futu.SysConfig.set_all_thread_daemon(True)
         _state["ctx"] = futu.OpenQuoteContext(host=HOST, port=PORT)
     return _state["ctx"]
+
+
+def close() -> None:
+    """Close the quote context if one is open; the next fetch opens a new one."""
+    ctx, _state["ctx"] = _state["ctx"], None
+    if ctx is not None:
+        ctx.close()
 
 
 def _check_quota(ctx, code: str) -> None:

@@ -96,3 +96,16 @@ def test_non_hk_symbol_is_skipped(monkeypatch):
     ctx = _use(monkeypatch, FakeCtx([]))
     raw, adj = futu.fetch("AAPL", "1d")
     assert raw.empty and adj is None and ctx.calls == []
+
+
+def test_close_closes_the_context_once_and_forgets_it():
+    class Ctx:
+        closed = 0
+
+        def close(self):
+            Ctx.closed += 1
+
+    futu._state["ctx"] = Ctx()
+    futu.close()
+    futu.close()  # nothing open: no error
+    assert Ctx.closed == 1 and futu._state["ctx"] is None

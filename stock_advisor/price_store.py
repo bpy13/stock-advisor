@@ -7,6 +7,7 @@ Index: "1d" = session date (tz-naive); "60m" = bar start, UTC.
 """
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 import pandas as pd
@@ -49,11 +50,22 @@ def write_bars(source: str, interval: str, symbol: str, raw: pd.DataFrame,
         merged = pd.concat([pd.read_parquet(raw_path)[OHLCV], merged])
         merged = merged[~merged.index.duplicated(keep="last")]
     market = quality.market_of(symbol)
-    quality.flag_bars(merged, market, interval, tradable=market != "OTHER").to_parquet(raw_path)
+    _write_atomic(quality.flag_bars(merged, market, interval, tradable=market != "OTHER"), raw_path)
     if adjusted is not None:
         adj_path = _path(source, interval, "adjusted", symbol)
         adj_path.parent.mkdir(parents=True, exist_ok=True)
-        adjusted[OHLCV].sort_index().to_parquet(adj_path)
+        _write_atomic(adjusted[OHLCV].sort_index(), adj_path)
+
+
+def _write_atomic(df: pd.DataFrame, path: Path) -> None:
+    """Write to a temporary file, then rename it over ``path``.
+
+    The raw file is the only copy of its history; a process stopped mid-write (the recorder's
+    time limit) must leave the old file whole, not a truncated one.
+    """
+    tmp = path.with_suffix(".tmp")
+    df.to_parquet(tmp)
+    os.replace(tmp, path)
 
 
 def _clip(df: pd.DataFrame, start, end) -> pd.DataFrame:

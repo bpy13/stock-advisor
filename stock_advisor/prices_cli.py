@@ -7,11 +7,14 @@ import time
 from datetime import date
 from pathlib import Path
 
+import pandas as pd
+
 from stock_advisor import price_compare, price_store
 from stock_advisor.price_sources import SOURCES
 from stock_advisor.watchlist import load_watchlist
 
 PAUSE_SECONDS = 0.5
+HOURLY_OVERLAP_DAYS = 7  # refetch this much before the last stored hourly bar
 log = logging.getLogger(__name__)
 
 
@@ -26,9 +29,16 @@ def refresh(source: str, intervals: list[str], limit: int | None = None) -> tupl
         for item in items:
             if interval == "60m" and item.market == "OTHER":
                 continue
-            before = len(price_store.read_bars(item.symbol, interval, adjusted=False, source=source))
+            stored = price_store.read_bars(item.symbol, interval, adjusted=False, source=source)
+            before = len(stored)
+            # Hourly bars have no adjusted form, so only recent bars need fetching; a full
+            # re-download since 2016 took Alpaca 8 hours a night. Daily stays whole, because
+            # the adjusted history changes after every dividend.
+            start = None
+            if interval == "60m" and before:
+                start = stored.index.max() - pd.Timedelta(days=HOURLY_OVERLAP_DAYS)
             try:
-                raw, adjusted = module.fetch(item.symbol, interval, None, None)
+                raw, adjusted = module.fetch(item.symbol, interval, start, None)
                 if raw.empty:
                     raise ValueError("no bars returned")
                 price_store.write_bars(source, interval, item.symbol, raw, adjusted)

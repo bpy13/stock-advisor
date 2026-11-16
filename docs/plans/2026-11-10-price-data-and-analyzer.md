@@ -486,7 +486,7 @@ understate how much the two move together.
     recorder log has that night's line per source. Quote the states on the `Result:` line.
     If the 22:00 run has not happened yet, leave the task open and take another.
 
-- [ ] **Task 4.1a: the minute recorder hangs and has stored nothing since 13 Nov** (opus) (slot 1 only) (taken: slot 1, 2026-11-16 15:53)
+- [x] **Task 4.1a: the minute recorder hangs and has stored nothing since 13 Nov** (opus) (slot 1 only)
   - Symptom (checked by the orchestrator, 2026-11-16 16:00): `python.exe scriptsecord_minutes.py`,
     pid 28160, has run since 2026-11-12 22:00:01. `dataecorder_log.txt` has no line later than
     2026-11-13 07:00. The scheduled task `stock_advisor_minute_recorder` has MultipleInstances
@@ -502,8 +502,42 @@ understate how much the two move together.
     night can never block the next. Set the task's own time limit to match (a few hours, not 72).
     (4) Find how far back each source still serves minute bars and fill 13 to 16 Nov where it can;
     write here which days and symbols could not be recovered.
-  - Files: `scripts/record_minutes.py`, the store code it calls, their tests,
-    `scripts/` task-install script if the time limit lives there.
+  - Result (slot 1, 2026-11-16):
+    1. Where pid 28160 was stuck, checked: not in `refresh_store`. Its last store file
+       (futu 60m) and its log lines were written 2026-11-13 07:00:41-43, so `main()` had
+       returned. Python then waited at exit for a thread that never ends: `futu.py` never closed
+       its `OpenQuoteContext`, and the Futu SDK makes its callback thread non-daemon by default
+       (`SysConfig.ALL_THREAD_DAEMON = False`). At the time: 64 threads all waiting, CPU flat at
+       1464 s, a local socket pair (the SDK's wake-up pipe), no connection to OpenD. Earlier runs
+       exited because Futu failed before opening a context (futu done=0); 12 Nov was the first
+       night Futu worked.
+    2. Second fault, checked: the run took 9 hours, 8 of them for Alpaca hourly (22:29 to
+       06:44), because every night refetched each symbol's 30-minute bars since 2016.
+    3. Stopped: `Stop-ScheduledTask` found the task already Ready (pid 28160 was an orphan of
+       the 15 Nov run that ended 267014), so pid 28160 was stopped by id after checking its start
+       time 2026-11-12 22:00:01.
+    4. Fixes: `futu.close()`, and the SDK's threads made daemon; `prices_cli.refresh` fetches
+       hourly bars only from 7 days before the last stored bar (daily stays whole, for the
+       adjusted history); `record_minutes.py` runs each source in a daemon thread with a 60-minute
+       limit, closes each source after it, writes each log line as its step ends (minute summary
+       first), stops itself after 3 hours with an error line, and exits with `os._exit` so no
+       left thread can hold it; `price_store.write_bars` writes through a temp file and a
+       rename, so a stop mid-write keeps the old file whole; the task limit is 4 hours, not 72
+       (`register_recorder_task.ps1`, re-registered). Tests: 5 new (a source that never
+       answers ends with `ERROR timeout` inside the limit; log line per source as it ends; each
+       source closed; hourly start one week before the last bar, no temp file left; futu close).
+    5. Recovery: 13 Nov (the only full trading day missed; 14 to 15 Nov are a weekend) came back
+       whole from Yahoo's 30-day 1m window: 37 symbols, 12,715 1m bars (12 Nov: 12,726), and
+       37 symbols of 60m bars. Nothing was lost. The store sources refill the gap themselves
+       (hourly refetches a week; daily refetches all).
+    6. Live run through the scheduled task (started 15:57:41, ended 16:36:53, 39 minutes, was
+       9 hours): LastTaskResult 0, no `record_minutes.py` process left, no temp file left. Log:
+       `symbols_ok=37 symbols_failed=0 rows_added=25529` (15:58:23); `store yahoo: done=423
+       failed=3 bars_added=2632` (16:12:44); `store alpaca: done=234 failed=192
+       bars_added=1380` (16:26:22, was 8 hours); `store futu: done=178 failed=248
+       bars_added=1246` (16:36:53). The "failed" counts for Alpaca and Futu are the symbols of
+       the other market (an empty answer counts as failed), unchanged from earlier nights.
+       494 tests pass, ruff clean. The 22:00 run tonight is the orchestrator's check.
   - Done when (on the live thing, not tests alone): no `record_minutes.py` process older than the
     fix is running; a real run started through the scheduled task ends with result 0 and a new
     line in `dataecorder_log.txt`; a test shows a source that never answers ends the run with

@@ -41,3 +41,25 @@ def test_main_prints_summary_and_status_without_symbols(monkeypatch, tmp_path, c
     prices_cli.main(["status"])
     out = capsys.readouterr().out
     assert "US" in out and "HK" in out and "AAPL" not in out
+
+
+def test_hourly_refresh_fetches_only_from_a_week_before_the_last_stored_bar(monkeypatch, tmp_path):
+    starts = []
+
+    class HourlySource:
+        def fetch(self, symbol, interval, start, end):
+            starts.append(start)
+            idx = pd.DatetimeIndex(["2026-11-10 14:30", "2026-11-10 15:30"], tz="UTC")
+            raw = pd.DataFrame({"open": 1.0, "high": 1.0, "low": 1.0, "close": 1.0,
+                                "volume": 10}, index=idx)
+            return raw, None
+
+    monkeypatch.setattr(price_store, "STORE_ROOT", tmp_path)
+    monkeypatch.setattr(prices_cli, "SOURCES", {"yahoo": HourlySource()})
+    monkeypatch.setattr(prices_cli, "PAUSE_SECONDS", 0)
+    monkeypatch.setattr(prices_cli, "load_watchlist",
+                        lambda: [WatchItem("AAPL", "US", "stock", "Apple")])
+    prices_cli.refresh("yahoo", ["60m"])
+    prices_cli.refresh("yahoo", ["60m"])
+    assert starts == [None, pd.Timestamp("2026-11-03 15:30", tz="UTC")]
+    assert not list(tmp_path.rglob("*.tmp"))  # writes go through a temp file, then rename

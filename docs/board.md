@@ -5,7 +5,6 @@ analyzer). Plan: `docs/plans/2026-11-10-price-data-and-analyzer.md` (waits for B
 not yet in the orchestrator's registry). Questions for Brian go to `docs/inbox.md`, never here.
 
 ## Workers
-- slot 1: Task 4.1a (minute recorder hang), building, started 2026-11-16 15:53
 - none (slot 1 finished Task 2.5; slot 3 finished Tasks 1.1, 1.5 and 2.2; slot 2 finished Tasks 1.3 and 2.1; slot 4 finished Task 1.4, accounts, cash and limits; copy of sample to data/accounts.json still to do in the main folder)
 
 ## Ready to build (once the plan is approved and registered)
@@ -45,3 +44,4 @@ not yet in the orchestrator's registry). Questions for Brian go to `docs/inbox.m
 - Task 4.2b (News tab speed) done by slot 1, 2026-11-11: library snapshot, one search per event, sparse outcomes; memory 3.5 GB (was 12 GB); repeat open 4-8 s, first open 15-25 s; dashboard restart is Brian's (inbox).
 - Task 2.9 (comparison report) done by slot 1, 2026-11-12: code by slot 2; real run: HK hourly Futu 4 vs Yahoo 129,311 missing, US hourly Alpaca 1 vs Yahoo 2,283, HK daily Yahoo 80 vs Futu 961; PREFERRED_SOURCES now HK futu, US alpaca; 488 tests pass; per-interval question in inbox.
 - Task 2.10 (preferred source per market and interval) done by slot 1, 2026-11-16: HK daily reads Yahoo (0005.HK from 2000-01-03), HK hourly reads Futu (from 2018-11-06), US unchanged; 489 tests pass, ruff clean.
+- Task 4.1a (minute recorder hang) done by slot 1, 2026-11-16: an unclosed Futu connection kept the 12 Nov run alive after its work; fixed, with time limits and hourly fetches from the last bar. Real run via the task: result 0 in 39 minutes (was 9 hours); 13 Nov minute bars recovered; 494 tests pass.
