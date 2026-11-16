@@ -573,7 +573,7 @@ understate how much the two move together.
     scope, verifying each; record judgment calls in `docs/open-items.md`.
   - Done when: the review's findings are each fixed or recorded; tests and lint pass.
 
-- [ ] **Task 4.4: docs and wrap-up** — needs: Task 4.2, Task 4.2b, Task 4.3
+- [ ] **Task 4.4: docs and wrap-up** — needs: Task 4.2, Task 4.2b, Task 4.3 (taken: slot 1, 2026-11-16 23:45)
   - Files: modify `README.md`, `docs/architecture.md`, `docs/known-issues.md`,
     `docs/open-items.md`, `docs/board.md`, `CLAUDE.md` (run commands).
   - Move every `Result:` finding worth keeping into the right doc: the store layout and
