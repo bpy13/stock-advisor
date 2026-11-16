@@ -27,6 +27,34 @@ Limits and traps we live with. A bug that will be fixed goes in `open-items.md` 
 - **Per-page download errors.** Some adapters log and skip a failed page, so history can have
   small gaps. The status file shows the last error per source.
 
+## Price store and analyzer limits
+
+- **Futu quota.** The lowest tier allows history for 100 different stocks in a rolling period
+  (the account showed 300; 89 used for the Hong Kong list). `get_history_kl_quota` is checked
+  first and an empty quota stops the walk. Requests are limited to 60 per 30 seconds. Futu serves
+  Hong Kong only; daily bars start 2006-10-31 and hourly bars 2018-11-06. It labels hourly bars by
+  end time, which the code maps to the start. OpenD must be open and logged in; without it Futu
+  reports "Futu OpenD is not running" and the run goes on. `netstat` does not show OpenD's port:
+  test with `futu.OpenQuoteContext`.
+- **Alpaca feed.** The free key gets the `sip` feed (no fallback to `iex` was needed). Hourly
+  bars are built from 30-minute bars; a first full load takes about 3 hours, later refreshes
+  fetch only a week back. US stocks and funds only, first bar 2016-01-04. Share classes use
+  Alpaca's `BRK.B`, mapped from Yahoo's `BRK-B`.
+- **Yahoo hourly.** Depth about 725 days (it refuses 730). Hong Kong hourly bars start at :30 all
+  day, so about half miss the canonical :00 grid and are dropped; Futu is preferred for Hong Kong
+  hourly because of this. Yahoo's closes also differ from Futu's by more than 0.5% on 57,696 of
+  339,041 Hong Kong daily bars (the sources adjust differently), so a history never mixes sources.
+- **Typhoon days** are not in the trading calendar; they appear as a `gap_before` flag.
+- **Flags come from raw bars.** A split marks `big_move` on adjusted reads too, and hourly bars
+  are never split-adjusted.
+- **Returns cover invested holdings only.** The trade file records no cash and no dividends, so
+  dividends count as reinvested and deposits have no timing in the without-timing return. A
+  holding with no price is valued at cost and listed as unpriced.
+- **Index membership.** The watchlist holds today's Hang Seng Index and S&P 100 members, which
+  flatters past results. The Hang Seng table lists 85 members although its text says 88.
+- **Portfolio report time.** About 56 seconds on the real portfolio (measured 2026-11-11); the
+  dashboard caches it for an hour.
+
 ## Sources we skipped
 
 - **Google News RSS.** Its robots.txt has `Disallow: /` for every crawler.

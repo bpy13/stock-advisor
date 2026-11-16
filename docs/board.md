@@ -47,3 +47,4 @@ not yet in the orchestrator's registry). Questions for Brian go to `docs/inbox.m
 - Task 4.1a (minute recorder hang) done by slot 1, 2026-11-16: an unclosed Futu connection kept the 12 Nov run alive after its work; fixed, with time limits and hourly fetches from the last bar. Real run via the task: result 0 in 39 minutes (was 9 hours); 13 Nov minute bars recovered; 494 tests pass.
 - Task 4.3 (review and fixes) done by slot 1, 2026-11-17: 14 findings; 7 fixed with tests, 7 judgment calls in open-items; 498 tests pass, ruff clean.
 - Task 4.1 (four scheduled tasks) done by slot 1, 2026-11-16: dashboard Running, others Ready; recorder 22:00 run result 0 with a log line per source.
+- Task 4.4 (docs and wrap-up) done by slot 1, 2026-11-16: README, architecture, known-issues, CLAUDE.md updated; every milestone 1 criterion checked; milestone-reached card in the inbox.

@@ -1,9 +1,11 @@
 # Open items
 
-**Replanning, 2026-11-10.** The news plan is closed. Items below about the reaction rebuild, the
-backtest rerun, `fitted.pkl` and re-categorizing are void; Task 4.4 of
-`docs/plans/2026-11-10-price-data-and-analyzer.md` removes them. Still live: the watcher,
-backfill and dashboard notes, and the GDELT blocker.
+**Replanning, 2026-11-10.** The news plan is closed. Task 4.4 of
+`docs/plans/2026-11-10-price-data-and-analyzer.md` removed the items settled by the plan: the
+browser check, the Guardian and NYT keys, the one-step rule and the 2828.HK note (now in
+known-issues). Still live: the watcher, backfill and dashboard notes, the GDELT blocker, and the
+review's judgment calls. Items about the reaction rebuild, the backtest rerun, `fitted.pkl` and
+re-categorizing below are void.
 
 As of 2026-10-27. Tick off, or move to `decisions.md` when settled. A bug that will be fixed goes
 here; a limit or trap we live with goes in `known-issues.md`. Each item in one place only.
@@ -20,24 +22,11 @@ here; a limit or trap we live with goes in `known-issues.md`. Each item in one p
 
 ## Waiting on the user
 
-- Real-browser check of the dashboard News tab (no browser tools in this session): the
-  dashboard task serves it at http://localhost:8502; open it and check the News tab.
-
-
-- Guardian and NYT API keys in `.env` (`GUARDIAN_API_KEY`, `NYT_API_KEY`). Until then those
-  two sources are built and tested from fixtures, but not backfilled.
-  - NYT: done 2026-10-27 (live archive and Top Stories, real fixtures; old months use
-    "Business Day", already covered). Archive months run up to ~14 MB each.
-  - Guardian: done 2026-10-27 (live, real fixture, archive from 1990-02-08, limits 60/min and
-    500/day).
-
 - Google News RSS dropped: its robots.txt disallows /rss for every crawler. Brian may
   overrule the skip; the adapter would take about an hour to build.
 - HKEXnews dropped: the HKEX Terms of Use (section 5) forbid scripted access and data mining.
   The helper read the terms through a summarising fetch, not the raw page. Brian could ask
   info@hkex.com.hk for written permission; until then HK filings are not collected.
-
-- Confirm the one-step rule for proven news actions (decisions.md, 2026-10-27).
 
 ## Pending work
 
@@ -78,7 +67,8 @@ here; a limit or trap we live with goes in `known-issues.md`. Each item in one p
   terms allow MarketWatch feeds; find working Yahoo, Nasdaq and US Treasury feed URLs. Poll
   CISA (5.7 MB per fetch) at most every 15 minutes.
 
-- Current plan: `docs/plans/2026-11-10-price-data-and-analyzer.md` (the news plan is closed).
+- Plan: `docs/plans/2026-11-10-price-data-and-analyzer.md` (milestone 1 built; the news plan
+  is closed).
 
 - GDELT returns 429 under a full 10-query pass (one query gave up in the live run). The
   watcher polls it every 15 min; the Phase 4 backfill needs longer waits.
@@ -86,9 +76,6 @@ here; a limit or trap we live with goes in `known-issues.md`. Each item in one p
   days of polling. HK holdings are not passed to EDGAR (HK companies don't file 8-Ks).
 - EDGAR `fetch_range` reads quarterly indexes in form-type order, so an interrupted
   mid-quarter backfill could skip filings; Task 4.1 must keep EDGAR's cursor per quarter.
-
-- Yahoo has 2828.HK daily prices only from 2024-04-24 (the ETF listed in 2003), so its
-  backtest sample is short. Goes into known-issues in Phase 6.
 
 - Category thresholds (0.50 strong / 0.30 minimum) and seeds are untuned on real data. Known
   borderline: "Society for Hong Kong Studies to disband" → geopolitical_tension. Revisit after

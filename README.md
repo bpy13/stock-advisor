@@ -150,6 +150,26 @@ class, spread, t-stat, and a `good_indicator` flag) so you can see which
 metrics have real predictive power on your symbols vs. which just look
 plausible but don't actually beat noise.
 
+## Price store and portfolio analyzer
+
+Clean daily and hourly prices for a watchlist (`config/watchlist.csv`, editable), from Yahoo, Futu
+(Hong Kong) and Alpaca (US), and an analysis of your portfolio. Setup beyond the news keys: add
+`ALPACA_API_KEY` and `ALPACA_API_SECRET` to `.env`; for Futu, run Futu OpenD on this PC and log
+in. Copy `sample_data/accounts.json` to `data/accounts.json` and fill in your accounts, cash and
+limits (gitignored).
+
+```powershell
+python -m stock_advisor.prices_cli refresh --source yahoo --interval 1d   # also futu, alpaca; --interval 60m; --limit N
+python -m stock_advisor.prices_cli status                                 # what the store holds, by market
+python -m stock_advisor.prices_cli compare                                # Yahoo vs Futu and Alpaca; writes data/reports/
+python -m stock_advisor.analyze_cli [--save]                              # portfolio report; --save writes data/reports/
+python -m stock_advisor.analyze_cli cost --symbol 0005.HK --amount 20000  # fee at each broker, buy and round trip
+```
+
+The dashboard has a **Portfolio** tab (Report, Portfolio, News) with the same report and a cost
+form. The nightly recorder also refreshes the store. The portfolio returns cover invested holdings
+only (no cash, dividends reinvested). Limits: [docs/known-issues.md](docs/known-issues.md).
+
 ## News event module
 
 A separate module that watches the news for market-moving events (new government policies,
@@ -324,7 +344,7 @@ saves no results file, so no numbers from it are listed here.
 ## Project layout
 
 ```
-app.py                  Streamlit interactive app (report + News tab + per-symbol trend charts)
+app.py                  Streamlit interactive app (report + Portfolio tab + News tab + per-symbol trend charts)
 scripts/
   backfill_news.py       resumable news history backfill (+ --status)
   record_minutes.py      daily 1m and 60m price recorder
@@ -343,6 +363,9 @@ stock_advisor/
   portfolio.py          load/aggregate user holdings; portfolio JSON schema
   transactions.py        parse transaction-history CSV into net positions
   recommendation.py     combine valuation + correlation + portfolio -> action
+  watchlist.py, calendars.py, price_store.py, quality.py, price_sources/, prices_cli.py,
+  price_compare.py       the price store (see docs/architecture.md)
+  accounts.py, fees.py, analyzer.py, risk.py, analyze_cli.py   the portfolio analyzer
   report.py             orchestrates the pipeline into a report DataFrame
   cli.py                command-line entrypoint
   validate_cli.py        metric-backtesting command-line entrypoint

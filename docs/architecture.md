@@ -1,10 +1,31 @@
 # Architecture
 
-Two independent parts share the price cache and the CLI report:
+Three parts share the CLI report:
 
 1. The price-vs-own-history advisor (`market_data`, `price_analysis`, `indicators`,
    `validation`, `correlation`, `portfolio`, `transactions`, `recommendation`, `report`, `cli`).
-2. The news event module (`stock_advisor/news/` plus two CLIs), described here.
+2. The news event module (`stock_advisor/news/` plus two CLIs).
+3. The price store and portfolio analyzer (below).
+
+## Price store and portfolio analyzer (milestone 1)
+
+```
+watchlist.csv -> price_sources (yahoo, futu, alpaca) -> price_store -> analyzer / risk
+accounts.json + transaction.csv + fees -> analyzer -> analyze_cli / dashboard Portfolio tab
+```
+
+| Module | What it does |
+|---|---|
+| `watchlist.py`, `config/watchlist.csv` | The tracked, editable list (215 rows: Hang Seng Index members, S&P 100, index funds, indexes, six drivers, `HKD=X`). `load_watchlist()` adds the holdings at run time; they are never written to the file. |
+| `calendars.py` | Wraps `exchange_calendars` (`XHKG`, `XNYS`): session dates and the canonical hourly bar starts (UTC). Starts at 1999-01-01. Typhoon closures are not modelled; they show as a `gap_before` flag. |
+| `price_store.py`, `quality.py` | Files `data/cache/store/<source>/<interval>/<raw or adjusted>/<symbol>.parquet`. Raw bars merge by index (new rows win); the adjusted file is replaced whole each refresh. Flags `no_trade`, `big_move` (over 40% daily, 20% hourly) and `gap_before` are computed from raw bars and stored in the raw file. Writes go through a temp file and a rename. `read_bars(source=None)` reads the first source in `PREFERRED_SOURCES[(market, interval)]` that holds the symbol; it never mixes two sources in one history. Today: HK daily yahoo then futu, HK hourly futu then yahoo, US both alpaca then yahoo, other yahoo. |
+| `price_sources/` | `yahoo.py` (all 215 symbols, daily from 2000, hourly 725 days), `futu.py` (HK only, through the local Futu OpenD gateway on 127.0.0.1:11111, no credential in code), `alpaca.py` (US stocks and funds, keys from `.env`, hourly built from 30-minute bars). A source with one market skips the other market's symbols. Each exposes `fetch(symbol, interval, start, end)` and registers in a dict in `__init__.py`. |
+| `prices_cli.py`, `price_compare.py` | `refresh`, `status`, `compare` (see README). `compare` writes `data/reports/price-comparison-<date>.md` and suggests the order per market and interval. |
+| `accounts.py`, `fees.py` | `data/accounts.json` (else the sample): each account's broker, cash and the position limits. Fee tables for Hang Seng Bank and Futu: `trade_cost`, `round_trip_pct`. |
+| `analyzer.py`, `risk.py`, `analyze_cli.py` | `build_portfolio_report()` (shared by the CLI and the dashboard): value, both returns, deepest fall, yearly swing, weights, concentration. `risk.py` uses weekly returns: groups, risk shares (Ledoit-Wolf), market and driver exposures. |
+
+The old paths (`market_data.py`, the report, the news module) still read their own caches; the
+analyzer and the new CLIs read the store.
 
 ## News data flow
 
@@ -46,7 +67,8 @@ and link only, never the stored summary.
 
 | Path | Content |
 |---|---|
-| `prices/<symbol>.parquet` | daily bars, fresh for 12 hours |
+| `prices/<symbol>.parquet` | daily bars, fresh for 12 hours (old path) |
+| `store/<source>/<interval>/<raw or adjusted>/<symbol>.parquet` | the price store above; `store/refresh_log.txt` |
 | `prices_intraday/<interval>/<symbol>.parquet` | 1m and 60m bars, merged over time; `recorder_log.txt` |
 | `news/news.db` | the store above |
 | `news/model/reactions.parquet` | reaction table cache; new events are added on each backtest run |
@@ -59,7 +81,7 @@ and link only, never the stored summary.
 
 | Task | Trigger | Runs |
 |---|---|---|
-| `stock_advisor_minute_recorder` | daily 22:00, runs a missed run at next login | `scripts/record_minutes.py` |
+| `stock_advisor_minute_recorder` | daily 22:00, runs a missed run at next login, 4 hour limit | `scripts/record_minutes.py`: 1m and 60m recording, then the store refresh of each source (one log line each, 60 minute limit per source, 3 hour limit overall) |
 | `stock_advisor_news_backfill` | daily 02:00, no time limit | `scripts/backfill_news.py` |
 | `stock_advisor_news_watcher` | at login, no time limit | `scripts/run_watcher.ps1`, which runs `news_cli --watch` in a loop |
 

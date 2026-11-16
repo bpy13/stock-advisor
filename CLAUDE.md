@@ -20,7 +20,9 @@ Read these before substantial changes:
   `streamlit run app.py` (dashboard), `python -m stock_advisor.validate_cli` (metric backtest),
   `python -m stock_advisor.news_cli` (news events; `--watch` to poll),
   `python -m stock_advisor.news_backtest_cli` (news backtest),
-  `python scripts/backfill_news.py --status` (backfill progress)
+  `python scripts/backfill_news.py --status` (backfill progress),
+  `python -m stock_advisor.prices_cli refresh|status|compare` (price store),
+  `python -m stock_advisor.analyze_cli [--save]` and `analyze_cli cost --symbol S --amount N` (portfolio)
 - Tests: `conda run -n stock_advisor python -m pytest -q`
 - Lint: `conda run -n stock_advisor ruff check .` (config in `ruff.toml`)
 - Secrets: copy `.env.example` to `.env` (gitignored)

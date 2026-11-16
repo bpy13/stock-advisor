@@ -73,16 +73,16 @@ build those on top of this data.
   are. The analyzer and the new CLIs read the store. Milestone 3 retires the old paths.
 
 ## Acceptance criteria (the milestone's "done when", with the tasks that deliver each)
-| Criterion | Tasks |
-|---|---|
-| Watchlist file | 1.2 |
-| Price store: daily and hourly, raw and adjusted apart, calendar, flags | 1.3, 2.1, 2.2, 2.5 |
-| Second sources and the comparison report; the store prefers the cleaner one | 2.3, 2.4, 2.7, 2.8, 2.9 |
-| Portfolio inputs: accounts, cash, limits, two fee tables | 1.4, 1.5 |
-| Analyzer on the dashboard and the CLI | 3.1 to 3.5 |
-| Old plan closed; dashboard checked in a real browser; four scheduled tasks checked | done 2026-11-10 (plan closed); 4.1, 4.2 |
-| Minute recorder keeps running; stored size measured | 2.6 |
-| Tests and `ruff check` pass; docs match | every task; 4.3, 4.4 |
+| Criterion | Tasks | Checked 2026-11-16 |
+|---|---|---|
+| Watchlist file | 1.2 | yes: config/watchlist.csv, 215 rows |
+| Price store: daily and hourly, raw and adjusted apart, calendar, flags | 1.3, 2.1, 2.2, 2.5 | yes: store holds daily and hourly, raw and adjusted, flags, calendar |
+| Second sources and the comparison report; the store prefers the cleaner one | 2.3, 2.4, 2.7, 2.8, 2.9 | yes: report written; PREFERRED_SOURCES per market and interval (2.10) |
+| Portfolio inputs: accounts, cash, limits, two fee tables | 1.4, 1.5 | yes: accounts, limits, two fee tables |
+| Analyzer on the dashboard and the CLI | 3.1 to 3.5 | yes: CLI and Portfolio tab; Brian saw both tabs |
+| Old plan closed; dashboard checked in a real browser; four scheduled tasks checked | done 2026-11-10 (plan closed); 4.1, 4.2 | yes: plan closed 2026-11-10; browser check (4.2) and four scheduled tasks (4.1) done |
+| Minute recorder keeps running; stored size measured | 2.6 | yes: about 2.1 MB per stock per year |
+| Tests and `ruff check` pass; docs match | every task; 4.3, 4.4 | yes: 498 tests pass, ruff clean, docs updated (4.4) |
 
 ## Interfaces fixed by this plan
 ```python
@@ -573,7 +573,8 @@ understate how much the two move together.
     scope, verifying each; record judgment calls in `docs/open-items.md`.
   - Done when: the review's findings are each fixed or recorded; tests and lint pass.
 
-- [ ] **Task 4.4: docs and wrap-up** — needs: Task 4.2, Task 4.2b, Task 4.3 (taken: slot 1, 2026-11-16 23:45)
+- [x] **Task 4.4: docs and wrap-up** — needs: Task 4.2, Task 4.2b, Task 4.3
+  - Result (slot 1, 2026-11-16): README, architecture (new price store section), known-issues (Futu quota, Alpaca feed, Yahoo hourly, typhoon days, returns without cash or dividends, flags, membership) and CLAUDE.md (run commands) updated; open-items lost the settled browser check, Guardian and NYT key, one-step rule and 2828.HK items. Acceptance table checked above. 498 tests pass, ruff clean. Milestone-reached card posted in docs/inbox.md.
   - Files: modify `README.md`, `docs/architecture.md`, `docs/known-issues.md`,
     `docs/open-items.md`, `docs/board.md`, `CLAUDE.md` (run commands).
   - Move every `Result:` finding worth keeping into the right doc: the store layout and

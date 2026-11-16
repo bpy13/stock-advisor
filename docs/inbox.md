@@ -5,6 +5,13 @@ Brian's answers are copied here word for word, then into `docs/decisions.md`.
 
 ## Open
 
+**Milestone 1 is reached. Approve milestone 2, the news watch that filters?** (plan 2026-11-10, Task 4.4)
+- What it is: milestone 1 gave the tool clean daily and hourly prices for 215 watchlist symbols from three sources, and a portfolio analyzer on the command line and the dashboard. Milestone 2 is the news watch: link each story to a watchlist stock, have Claude Haiku label it (relevant, event type, new or repeat, severity), and add free sources such as US filings and insider trades. See `docs/milestones.md`.
+- Example: a story about a chip export rule would link to the US tech stocks on the watchlist and get a label such as "event: regulation, new, high severity". A story that names no watchlist stock would be dropped.
+- Why it matters: the labelling uses paid Haiku calls. A 200-story sample with its measured cost comes first and you approve it before any larger run. Nothing starts until you answer.
+- Options: **Default:** approve milestone 2 as written, and the orchestrator plans it. Or edit `docs/milestones.md` first. Or pause the project.
+- Checked: all eight criteria of milestone 1 hold (498 tests pass, ruff clean, docs updated). Open judgment calls from the review are in `docs/open-items.md`.
+
 ## Answered
 
 **Which price source should the tool prefer for each market?** (plan 2026-11-10, Task 2.9)
