@@ -470,8 +470,15 @@ understate how much the two move together.
 
 ## Phase 4 – Carry-overs and finish (sonnet; the review on opus)
 
-- [ ] **Task 4.1: check the four scheduled tasks** (slot 1 only) — needs: Task 2.6
-  - Result (slot 1, 2026-11-16 15:55, not done): watcher Ready (result 0), backfill Ready (11-16 02:00, result 0), dashboard Running. Recorder Ready, but its 11-15 22:00 run has LastTaskResult 267014 (task terminated) and recorder_log.txt has no line after 2026-11-13 07:00. Check again after the 11-16 22:00 run; if it fails again, post an inbox question.
+- [ ] **Task 4.1: check the four scheduled tasks** (slot 1 only) — needs: Task 2.6 (waiting: recorder fault, see findings; orchestrator)
+  - Result (slot 1, 2026-11-16 15:55, not done): watcher Ready (result 0), backfill Ready (11-16 02:00, result 0), dashboard Running. Recorder Ready, but LastTaskResult is 267014 and recorder_log.txt has no line after 2026-11-13 07:00.
+  - Findings (slot 1, 2026-11-16, read-only):
+    1. Most likely cause, checked: the recorder process from the 11-12 22:00 run (python pid 28160, created 2026-11-12 22:00:01) is still running after 4 days (1464 s CPU, 64 threads, still holds one open connection to a remote port 443 in CloseWait). The task's MultipleInstances setting is IgnoreNew, so Task Scheduler skips every later 22:00 start while that instance lives. That explains no run on 13, 14, 15 Nov and no log line (main writes the log only at the very end, after `refresh_store`).
+    2. Where it likely blocks, inferred: `refresh_store` in scripts/record_minutes.py runs yahoo, alpaca, futu in order with no overall timeout; `prices_cli.refresh` and the Futu/yfinance/requests calls have no hard deadline that I found (futu.py checks the port with a 2 s timeout, but `OpenQuoteContext` and the kline calls have none). The 11-12 22:00:56 line in the log is the minute-bar summary of that run; its store lines never came.
+    3. Scheduler history: the Task Scheduler Operational log returned no events for this task since 11-12 20:00 (history probably disabled or rolled), so start and end times and who ended it are not available. LastTaskResult 267014 (0x41306, terminated) is the leftover from an earlier stop, not from pid 28160.
+    4. Power: System log shows no sleep, restart or shutdown events (Kernel-Power 42/107, ids 1074, 6005, 6006) from 11-12 to 11-16; only small clock adjustments. So sleep did not cause it.
+    5. Futu OpenD: process 31460 running since 11-12 14:07; a TCP connect to 127.0.0.1:11111 succeeds now (login not re-checked with the client).
+    6. Not done, as ordered: the recorder was not run by hand; the scheduled task and pid 28160 were left alone. Needed from the orchestrator or Brian: stop pid 28160, then add a hard overall timeout (and per-source timeout) to the recorder and a log line written before the store step, and check again after the next 22:00 run.
   - Files: none.
   - Done when: `Get-ScheduledTask -TaskName stock_advisor_*` shows the watcher, dashboard
     and backfill Running or Ready and the recorder Ready; after a 22:00 run,
