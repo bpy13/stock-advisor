@@ -24,7 +24,8 @@ _BAR_TIMES = {
 def _calendar(market: str):
     if market not in _CALENDARS:
         raise ValueError(f"unknown market {market!r}; expected one of {sorted(_CALENDARS)}")
-    return xc.get_calendar(_CALENDARS[market])
+    # The library's default starts 20 years back; Yahoo daily bars go to 2000.
+    return xc.get_calendar(_CALENDARS[market], start="1999-01-01")
 
 
 def sessions(market: str, start, end) -> pd.DatetimeIndex:

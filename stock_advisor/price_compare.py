@@ -92,15 +92,15 @@ def totals(detail: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
-def preferred_order(summary: pd.DataFrame) -> dict[str, tuple[str, ...]]:
-    """Source order per market from the daily and hourly totals taken together; Yahoo is last
-    as the fallback. A market with no comparison keeps Yahoo alone."""
-    order = {"HK": (BASE_SOURCE,), "US": (BASE_SOURCE,), "OTHER": (BASE_SOURCE,)}
-    for market, g in summary.groupby("market"):
-        second = SECOND_SOURCE[market]
-        base_score = g[f"{BASE_SOURCE}_score"].sum()
-        second_score = g[f"{second}_score"].sum()
-        order[market] = (second, BASE_SOURCE) if second_score < base_score else (BASE_SOURCE, second)
+def preferred_order(summary: pd.DataFrame) -> dict[tuple[str, str], tuple[str, ...]]:
+    """Source order per (market, interval), the cleaner source first, as the store's
+    ``PREFERRED_SOURCES`` is keyed. Pairs with no comparison are left out."""
+    order = {}
+    for row in summary.itertuples(index=False):
+        second = SECOND_SOURCE[row.market]
+        base_score, second_score = getattr(row, f"{BASE_SOURCE}_score"), getattr(row, f"{second}_score")
+        pair = (second, BASE_SOURCE) if second_score < base_score else (BASE_SOURCE, second)
+        order[(row.market, row.interval)] = pair
     return order
 
 

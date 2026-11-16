@@ -21,6 +21,7 @@ from stock_advisor import calendars, quality
 
 log = logging.getLogger(__name__)
 HOST, PORT = "127.0.0.1", 11111
+MARKET = "HK"  # the only market this source serves
 ELIGIBLE_KINDS = ("stock", "index_fund", "holding")
 MAX_REQUESTS, WINDOW_SECONDS = 60, 30.0
 _COLS = ["open", "high", "low", "close", "volume"]

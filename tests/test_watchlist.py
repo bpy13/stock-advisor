@@ -47,3 +47,11 @@ def test_shipped_file_is_valid():
     hk = [i for i in items if i.market == "HK" and i.kind == "stock"]
     us = [i for i in items if i.market == "US" and i.kind == "stock"]
     assert 75 <= len(hk) <= 95 and 99 <= len(us) <= 102
+
+
+def test_no_trade_file_adds_no_holdings(monkeypatch):
+    from stock_advisor import report
+
+    # Without a trade file the resolver falls back to a default stock list; none are holdings.
+    monkeypatch.setattr(report, "resolve_symbols_and_portfolio", lambda: (["0011.HK"], None))
+    assert watchlist._holding_symbols() == []

@@ -50,8 +50,9 @@ def test_totals_score_each_source():
 
 def test_preferred_order_follows_scores():
     summary = pd.DataFrame([
-        {"market": "HK", "interval": "1d", "yahoo_score": 9, "futu_score": 2},
+        {"market": "HK", "interval": "1d", "yahoo_score": 2, "futu_score": 9},
+        {"market": "HK", "interval": "60m", "yahoo_score": 9, "futu_score": 2},
         {"market": "US", "interval": "1d", "yahoo_score": 1, "alpaca_score": 5}])
     order = price_compare.preferred_order(summary)
-    assert order["HK"] == ("futu", "yahoo") and order["US"] == ("yahoo", "alpaca")
-    assert order["OTHER"] == ("yahoo",)
+    assert order == {("HK", "1d"): ("yahoo", "futu"), ("HK", "60m"): ("futu", "yahoo"),
+                     ("US", "1d"): ("yahoo", "alpaca")}

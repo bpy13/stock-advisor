@@ -28,8 +28,9 @@ def _holding_symbols() -> list[str]:
     # Imported here: report pulls in the whole analysis stack.
     from .report import resolve_symbols_and_portfolio
 
-    symbols, _ = resolve_symbols_and_portfolio()
-    return symbols
+    # Without a trade file the resolver returns a default stock list, which are not holdings.
+    _, portfolio = resolve_symbols_and_portfolio()
+    return list(portfolio.positions) if portfolio is not None else []
 
 
 def _read_file(path: Path) -> list[WatchItem]:

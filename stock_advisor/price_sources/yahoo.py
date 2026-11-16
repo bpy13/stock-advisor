@@ -1,4 +1,4 @@
-"""Yahoo source for the price store: daily (20+ years) and hourly (last 729 days)."""
+"""Yahoo source for the price store: daily (20+ years) and hourly (last 725 days)."""
 from __future__ import annotations
 
 import logging

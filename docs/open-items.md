@@ -41,6 +41,29 @@ here; a limit or trap we live with goes in `known-issues.md`. Each item in one p
 
 ## Pending work
 
+- Review of the price-data plan (Task 4.3, 2026-11-16, routine-reviewer). Fixed in that task:
+  one-market sources skip other symbols instead of failing them, holdings go first and are
+  never logged by symbol, an empty Futu quota stops the walk, no trade file adds no holdings,
+  calendars reach back to 1999, and the suggested source order is per market and interval.
+  Judgment calls left open (none blocks milestone 1):
+  - Dashboard (`app.py` Portfolio tab): Streamlit runs every tab on each load. Once an hour the
+    portfolio report rebuilds (56 s measured), so News waits behind it. Inferred from code, not
+    timed in a browser. Options: render News first, build the report on a button, or accept.
+  - `price_store.write_bars` replaces the adjusted daily file whole. A short history from a
+    source (2 years instead of 26) would silently cut the adjusted history. Possible guard:
+    refuse an adjusted frame that starts much later than the stored one.
+  - Quality flags come from raw bars, so a split marks `big_move` on adjusted reads too.
+    Hourly bars are never split-adjusted. Decide before milestone 3 uses the flags.
+  - `read_bars` takes the first source that has a file, even if it stopped updating weeks ago.
+    Options: fall back when the last bar is N sessions old, or warn in `prices_cli status`.
+  - `fees.py` FINRA fee has no cap (reviewer recalls US$8.30 a trade; not checked against the
+    fee page). Matters for milestone 4 recommendations.
+  - `risk.py` risk shares use only the weeks all holdings share; one young holding shortens
+    everyone's history, and under 2 shared weeks the report fails. Options: a minimum overlap,
+    or pairwise covariance.
+  - `scripts/run_rebuild_backtest.py` was committed in ed245df (CPU pinning, no throttling),
+    although the plan said not to stage it. The change looks right; Brian to confirm.
+
 - CLI report news column (Task 5.2): the live run showed "—" for every holding, because no
   predictions exist before the backfill and backtest. Re-check once results.json exists. The
   report fits the news model on every run; cache it if that gets slow. Under `conda run`,

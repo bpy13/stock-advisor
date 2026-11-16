@@ -47,3 +47,9 @@ def test_sessions_are_tz_naive_and_unknown_market_fails():
     assert days.tz is None and len(days) == 4  # Thanksgiving missing
     with pytest.raises(ValueError):
         sessions("JP", "2025-01-01", "2025-01-10")
+
+
+def test_calendars_reach_back_to_yahoo_daily_history():
+    # The library's default starts 20 years before today; Yahoo daily bars go back to 2000.
+    assert pd.Timestamp("2000-01-04") in sessions("HK", "2000-01-01", "2000-01-10")
+    assert len(sessions("US", "2000-01-01", "2000-01-10")) > 0

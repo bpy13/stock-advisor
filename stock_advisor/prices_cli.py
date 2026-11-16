@@ -11,45 +11,65 @@ import pandas as pd
 
 from stock_advisor import price_compare, price_store
 from stock_advisor.price_sources import SOURCES
+from stock_advisor.price_sources.futu import QuotaExhausted
 from stock_advisor.watchlist import load_watchlist
 
 PAUSE_SECONDS = 0.5
 HOURLY_OVERLAP_DAYS = 7  # refetch this much before the last stored hourly bar
 log = logging.getLogger(__name__)
+# Holdings first, then index funds: Futu's history quota covers a limited number of symbols.
+_KIND_ORDER = {"holding": 0, "index_fund": 1}
+
+
+def _serves(module, item) -> bool:
+    """False for symbols a one-market source cannot serve (they are skipped, not failures)."""
+    market = getattr(module, "MARKET", None)
+    kinds = getattr(module, "ELIGIBLE_KINDS", None)
+    return (market is None or item.market == market) and (kinds is None or item.kind in kinds)
 
 
 def refresh(source: str, intervals: list[str], limit: int | None = None) -> tuple[int, int, int]:
-    """Fetch every watchlist symbol into the store. Returns (done, failed, bars added)."""
+    """Fetch every watchlist symbol into the store. Returns (done, failed, bars added).
+
+    Symbols the source does not serve are skipped and not counted. When Futu's history quota
+    runs out the walk stops, and every symbol not yet fetched counts as failed."""
     items = load_watchlist()
     if limit is not None:
         items = items[:limit]
     module = SOURCES[source]
+    items = sorted((i for i in items if _serves(module, i)), key=lambda i: _KIND_ORDER.get(i.kind, 2))
     done = failed = added = 0
-    for interval in intervals:
-        for item in items:
-            if interval == "60m" and item.market == "OTHER":
-                continue
-            stored = price_store.read_bars(item.symbol, interval, adjusted=False, source=source)
-            before = len(stored)
-            # Hourly bars have no adjusted form, so only recent bars need fetching; a full
-            # re-download since 2016 took Alpaca 8 hours a night. Daily stays whole, because
-            # the adjusted history changes after every dividend.
-            start = None
-            if interval == "60m" and before:
-                start = stored.index.max() - pd.Timedelta(days=HOURLY_OVERLAP_DAYS)
-            try:
-                raw, adjusted = module.fetch(item.symbol, interval, start, None)
-                if raw.empty:
-                    raise ValueError("no bars returned")
-                price_store.write_bars(source, interval, item.symbol, raw, adjusted)
-            except Exception as exc:  # one bad symbol must not stop the walk
-                failed += 1
-                log.warning("%s %s failed: %s", item.symbol, interval, exc)
-            else:
-                done += 1
-                after = len(price_store.read_bars(item.symbol, interval, adjusted=False, source=source))
-                added += after - before
-            time.sleep(PAUSE_SECONDS)
+    jobs = [(interval, item) for interval in intervals for item in items
+            if not (interval == "60m" and item.market == "OTHER")]
+    for n, (interval, item) in enumerate(jobs):
+        stored = price_store.read_bars(item.symbol, interval, adjusted=False, source=source)
+        before = len(stored)
+        # Hourly bars have no adjusted form, so only recent bars need fetching; a full
+        # re-download since 2016 took Alpaca 8 hours a night. Daily stays whole, because
+        # the adjusted history changes after every dividend.
+        start = None
+        if interval == "60m" and before:
+            start = stored.index.max() - pd.Timedelta(days=HOURLY_OVERLAP_DAYS)
+        try:
+            raw, adjusted = module.fetch(item.symbol, interval, start, None)
+            if raw.empty:
+                raise ValueError("no bars returned")
+            price_store.write_bars(source, interval, item.symbol, raw, adjusted)
+        except QuotaExhausted:
+            waiting = len(jobs) - n
+            failed += waiting
+            log.warning("%s: history quota used up; %d symbol fetches wait", source, waiting)
+            break
+        except Exception as exc:  # one bad symbol must not stop the walk
+            failed += 1
+            # Never log a holding's symbol: the console and logs are not private.
+            name = "a holding" if item.kind == "holding" else item.symbol
+            log.warning("%s %s failed: %s", name, interval, exc)
+        else:
+            done += 1
+            after = len(price_store.read_bars(item.symbol, interval, adjusted=False, source=source))
+            added += after - before
+        time.sleep(PAUSE_SECONDS)
     return done, failed, added
 
 

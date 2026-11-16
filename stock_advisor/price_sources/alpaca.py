@@ -16,6 +16,7 @@ from stock_advisor.news.settings import get_setting
 
 log = logging.getLogger(__name__)
 URL = "https://data.alpaca.markets/v2/stocks/bars"
+MARKET = "US"  # the only market this source serves
 ELIGIBLE_KINDS = ("stock", "index_fund", "holding")
 _COLS = ["open", "high", "low", "close", "volume"]
 _MAP = {"t": "t", "o": "open", "h": "high", "l": "low", "c": "close", "v": "volume"}

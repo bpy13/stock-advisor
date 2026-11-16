@@ -1,6 +1,7 @@
 """Price sources. Each module has ``fetch(symbol, interval, start, end) -> (raw, adjusted)``.
 
-Tasks 2.3 and 2.4 each add one line to ``SOURCES``.
+A source that serves one market only also has ``MARKET`` and ``ELIGIBLE_KINDS``; the refresh
+skips other symbols without asking it.
 """
 from __future__ import annotations
 
