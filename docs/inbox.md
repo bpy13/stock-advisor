@@ -11,6 +11,7 @@ Brian's answers are copied here word for word, then into `docs/decisions.md`.
 - Why it matters: the labelling uses paid Haiku calls. A 200-story sample with its measured cost comes first and you approve it before any larger run. Nothing starts until you answer.
 - Options: **Default:** approve milestone 2 as written, and the orchestrator plans it. Or edit `docs/milestones.md` first. Or pause the project.
 - Checked: all eight criteria of milestone 1 hold (498 tests pass, ruff clean, docs updated). Open judgment calls from the review are in `docs/open-items.md`.
+- Card sent 2026-11-17, card 3. Orchestrator checked: plan has no open task; watchlist 215 lines; store holds 1d and 60m folders for yahoo, futu, alpaca; comparison report data/reports/price-comparison-2026-11-12.md; old plan marked closed; recorder run of 16 Nov 22:00 ended 0. Tests not rerun by the orchestrator.
 
 ## Answered
 
