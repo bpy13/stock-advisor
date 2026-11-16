@@ -470,7 +470,7 @@ understate how much the two move together.
 
 ## Phase 4 – Carry-overs and finish (sonnet; the review on opus)
 
-- [ ] **Task 4.1: check the four scheduled tasks** (slot 1 only) — needs: Task 2.6, Task 4.1a (waiting: recorder fault, see findings; orchestrator)
+- [ ] **Task 4.1: check the four scheduled tasks** (slot 1 only) — needs: Task 2.6, Task 4.1a (recorder fixed by Task 4.1a; the 16 Nov 22:00 run ended with result 0 at 23:07, log lines 22:01 to 23:07, checked by the orchestrator)
   - Result (slot 1, 2026-11-16 15:55, not done): watcher Ready (result 0), backfill Ready (11-16 02:00, result 0), dashboard Running. Recorder Ready, but LastTaskResult is 267014 and recorder_log.txt has no line after 2026-11-13 07:00.
   - Findings (slot 1, 2026-11-16, read-only):
     1. Most likely cause, checked: the recorder process from the 11-12 22:00 run (python pid 28160, created 2026-11-12 22:00:01) is still running after 4 days (1464 s CPU, 64 threads, still holds one open connection to a remote port 443 in CloseWait). The task's MultipleInstances setting is IgnoreNew, so Task Scheduler skips every later 22:00 start while that instance lives. That explains no run on 13, 14, 15 Nov and no log line (main writes the log only at the very end, after `refresh_store`).
