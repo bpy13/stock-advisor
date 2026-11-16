@@ -487,8 +487,8 @@ understate how much the two move together.
     If the 22:00 run has not happened yet, leave the task open and take another.
 
 - [x] **Task 4.1a: the minute recorder hangs and has stored nothing since 13 Nov** (opus) (slot 1 only)
-  - Symptom (checked by the orchestrator, 2026-11-16 16:00): `python.exe scriptsecord_minutes.py`,
-    pid 28160, has run since 2026-11-12 22:00:01. `dataecorder_log.txt` has no line later than
+  - Symptom (checked by the orchestrator, 2026-11-16 16:00): `python.exe scriptsecord_minutes.py`,
+    pid 28160, has run since 2026-11-12 22:00:01. `dataecorder_log.txt` has no line later than
     2026-11-13 07:00. The scheduled task `stock_advisor_minute_recorder` has MultipleInstances
     IgnoreNew and a 72 h limit, so the 22:00 starts of 13 and 14 Nov were skipped and the run of
     15 Nov ended "terminated" (267014). The cause of the hang is not proven: slot 1 suspects
@@ -540,7 +540,7 @@ understate how much the two move together.
        494 tests pass, ruff clean. The 22:00 run tonight is the orchestrator's check.
   - Done when (on the live thing, not tests alone): no `record_minutes.py` process older than the
     fix is running; a real run started through the scheduled task ends with result 0 and a new
-    line in `dataecorder_log.txt`; a test shows a source that never answers ends the run with
+    line in `dataecorder_log.txt`; a test shows a source that never answers ends the run with
     an error line inside the limit. Tests and ruff pass. The 22:00 run of the same day is checked
     by the orchestrator afterwards.
 
