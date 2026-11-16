@@ -15,7 +15,7 @@ both price and news produces the signal's strength and confidence. The recommend
 current portfolio: cash, risk, and the cost of the trade. Decisions: `docs/decisions.md`,
 section "Replanning (2026-11-10)". Research: `docs/research/2026-11-10-quant-landscape.md`.
 
-## Current: 1. Clean price data and the portfolio analyzer
+## 1. Clean price data and the portfolio analyzer (reached 2026-11-16)
 Done when:
 - **Watchlist.** One editable file lists the stocks the tool follows: the holdings, the Hang
   Seng Index members, the 100 largest US stocks and the main index funds.
@@ -40,7 +40,7 @@ Done when:
 - The minute recorder keeps running; its stored size per stock per year is measured.
 - Tests and `ruff check` pass; README, architecture and known-issues match.
 
-## 2. News watch that filters
+## Current: 2. News watch that filters
 Done when:
 - Each story is linked to the watchlist stocks or drivers it concerns, or dropped.
 - Claude Haiku labels each linked story: relevant or not, event type, new or repeat, severity.
