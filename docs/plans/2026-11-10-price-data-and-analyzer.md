@@ -470,7 +470,7 @@ understate how much the two move together.
 
 ## Phase 4 – Carry-overs and finish (sonnet; the review on opus)
 
-- [ ] **Task 4.1: check the four scheduled tasks** (slot 1 only) — needs: Task 2.6 (waiting: recorder fault, see findings; orchestrator)
+- [ ] **Task 4.1: check the four scheduled tasks** (slot 1 only) — needs: Task 2.6, Task 4.1a (waiting: recorder fault, see findings; orchestrator)
   - Result (slot 1, 2026-11-16 15:55, not done): watcher Ready (result 0), backfill Ready (11-16 02:00, result 0), dashboard Running. Recorder Ready, but LastTaskResult is 267014 and recorder_log.txt has no line after 2026-11-13 07:00.
   - Findings (slot 1, 2026-11-16, read-only):
     1. Most likely cause, checked: the recorder process from the 11-12 22:00 run (python pid 28160, created 2026-11-12 22:00:01) is still running after 4 days (1464 s CPU, 64 threads, still holds one open connection to a remote port 443 in CloseWait). The task's MultipleInstances setting is IgnoreNew, so Task Scheduler skips every later 22:00 start while that instance lives. That explains no run on 13, 14, 15 Nov and no log line (main writes the log only at the very end, after `refresh_store`).
@@ -485,6 +485,30 @@ understate how much the two move together.
     `Get-ScheduledTaskInfo stock_advisor_minute_recorder` shows `LastTaskResult` 0 and the
     recorder log has that night's line per source. Quote the states on the `Result:` line.
     If the 22:00 run has not happened yet, leave the task open and take another.
+
+- [ ] **Task 4.1a: the minute recorder hangs and has stored nothing since 13 Nov** (opus) (slot 1 only)
+  - Symptom (checked by the orchestrator, 2026-11-16 16:00): `python.exe scriptsecord_minutes.py`,
+    pid 28160, has run since 2026-11-12 22:00:01. `dataecorder_log.txt` has no line later than
+    2026-11-13 07:00. The scheduled task `stock_advisor_minute_recorder` has MultipleInstances
+    IgnoreNew and a 72 h limit, so the 22:00 starts of 13 and 14 Nov were skipped and the run of
+    15 Nov ended "terminated" (267014). The cause of the hang is not proven: slot 1 suspects
+    `refresh_store` (no timeout; the log line is written only at the end).
+  - Do, in this order: (1) before stopping it, find where pid 28160 is stuck if you can (its open
+    network connections, its threads, the last file it wrote) and write that here. (2) End it
+    through the scheduled task (`Stop-ScheduledTask`); if the python process outlives that, stop
+    that one process by its id after checking its start time is 2026-11-12 22:00:01. (3) Fix the
+    cause in `scripts/record_minutes.py` and the code it calls: a timeout on every network call,
+    one log line per source as it finishes, and a total run limit well under 24 hours, so one bad
+    night can never block the next. Set the task's own time limit to match (a few hours, not 72).
+    (4) Find how far back each source still serves minute bars and fill 13 to 16 Nov where it can;
+    write here which days and symbols could not be recovered.
+  - Files: `scripts/record_minutes.py`, the store code it calls, their tests,
+    `scripts/` task-install script if the time limit lives there.
+  - Done when (on the live thing, not tests alone): no `record_minutes.py` process older than the
+    fix is running; a real run started through the scheduled task ends with result 0 and a new
+    line in `dataecorder_log.txt`; a test shows a source that never answers ends the run with
+    an error line inside the limit. Tests and ruff pass. The 22:00 run of the same day is checked
+    by the orchestrator afterwards.
 
 - [x] **Task 4.2: the dashboard in a real browser** — needs: Task 3.5
   - Result (orchestrator, 2026-11-11): Brian restarted it (new process 17:55). Brian (2026-11-11): "they look ok, but the news tab loads forever". The slow News tab moved to Task 4.2b.
