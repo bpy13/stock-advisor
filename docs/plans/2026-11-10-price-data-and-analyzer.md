@@ -470,7 +470,7 @@ understate how much the two move together.
 
 ## Phase 4 – Carry-overs and finish (sonnet; the review on opus)
 
-- [ ] **Task 4.1: check the four scheduled tasks** (slot 1 only) — needs: Task 2.6
+- [ ] **Task 4.1: check the four scheduled tasks** (slot 1 only) — needs: Task 2.6 (taken: slot 1, 2026-11-16 15:51)
   - Files: none.
   - Done when: `Get-ScheduledTask -TaskName stock_advisor_*` shows the watcher, dashboard
     and backfill Running or Ready and the recorder Ready; after a 22:00 run,
