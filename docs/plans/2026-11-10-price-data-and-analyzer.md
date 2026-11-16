@@ -486,7 +486,7 @@ understate how much the two move together.
     recorder log has that night's line per source. Quote the states on the `Result:` line.
     If the 22:00 run has not happened yet, leave the task open and take another.
 
-- [ ] **Task 4.1a: the minute recorder hangs and has stored nothing since 13 Nov** (opus) (slot 1 only)
+- [ ] **Task 4.1a: the minute recorder hangs and has stored nothing since 13 Nov** (opus) (slot 1 only) (taken: slot 1, 2026-11-16 15:53)
   - Symptom (checked by the orchestrator, 2026-11-16 16:00): `python.exe scriptsecord_minutes.py`,
     pid 28160, has run since 2026-11-12 22:00:01. `dataecorder_log.txt` has no line later than
     2026-11-13 07:00. The scheduled task `stock_advisor_minute_recorder` has MultipleInstances

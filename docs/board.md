@@ -5,6 +5,7 @@ analyzer). Plan: `docs/plans/2026-11-10-price-data-and-analyzer.md` (waits for B
 not yet in the orchestrator's registry). Questions for Brian go to `docs/inbox.md`, never here.
 
 ## Workers
+- slot 1: Task 4.1a (minute recorder hang), building, started 2026-11-16 15:53
 - none (slot 1 finished Task 2.5; slot 3 finished Tasks 1.1, 1.5 and 2.2; slot 2 finished Tasks 1.3 and 2.1; slot 4 finished Task 1.4, accounts, cash and limits; copy of sample to data/accounts.json still to do in the main folder)
 
 ## Ready to build (once the plan is approved and registered)
