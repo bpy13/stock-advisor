@@ -365,7 +365,8 @@ def round_trip_pct(broker, market, kind, price, shares) -> float
   - Done when: the test file passes (two hand-made sources with known differences); the
     real run's per-market totals are on the `Result:` line.
 
-- [ ] **Task 2.10: preferred source per market and interval** (slot 1 only) — needs: Task 2.9 (taken: slot 1, 2026-11-16 12:00)
+- [x] **Task 2.10: preferred source per market and interval** (slot 1 only) — needs: Task 2.9
+  - Result (slot 1, 2026-11-16): `PREFERRED_SOURCES` is now keyed by (market, interval): HK 1d yahoo then futu, HK 60m futu then yahoo, US both alpaca then yahoo, OTHER yahoo. Real store, 0005.HK: daily starts 2000-01-03 (was 2006-10-31, Futu); hourly starts 2018-11-06 (unchanged). Nothing stored derives from HK daily bars (analyzer and risk read the store live; the dashboard report cache is in memory, 1 hour). `price_compare.preferred_order` left as is (per market). 489 tests pass, ruff clean.
   - Decision: Brian, 2026-11-16: "b" (docs/decisions.md). Hong Kong daily reads Yahoo first, Hong Kong
     hourly reads Futu first; US stays Alpaca then Yahoo for both; OTHER stays Yahoo.
   - Files: modify `stock_advisor/price_store.py` (`PREFERRED_SOURCES` and the lookup that uses it),

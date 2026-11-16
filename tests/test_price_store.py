@@ -52,15 +52,29 @@ def test_adjusted_read_carries_raw_flags_and_missing_adjusted_returns_raw():
 def test_symbol_held_by_second_source_only():
     raw = _bars(["2025-03-03"], [10.0])
     price_store.write_bars("alpaca", "1d", "AAPL", raw, None)
-    saved = price_store.PREFERRED_SOURCES["US"]
-    price_store.PREFERRED_SOURCES["US"] = ("yahoo",)
+    saved = price_store.PREFERRED_SOURCES[("US", "1d")]
+    price_store.PREFERRED_SOURCES[("US", "1d")] = ("yahoo",)
     try:
         assert price_store.read_bars("AAPL").empty  # preferred source is yahoo only
         assert len(price_store.read_bars("AAPL", source="alpaca")) == 1
-        price_store.PREFERRED_SOURCES["US"] = ("alpaca", "yahoo")
+        price_store.PREFERRED_SOURCES[("US", "1d")] = ("alpaca", "yahoo")
         assert len(price_store.read_bars("AAPL")) == 1
     finally:
-        price_store.PREFERRED_SOURCES["US"] = saved
+        price_store.PREFERRED_SOURCES[("US", "1d")] = saved
+
+
+def test_hk_daily_reads_yahoo_and_hourly_reads_futu_when_both_hold_it():
+    day = _bars(["2025-03-03"], [10.0])
+    idx = pd.DatetimeIndex(["2025-03-03 01:30"], tz="UTC")
+    hour = pd.DataFrame({"open": 1.0, "high": 1.0, "low": 1.0, "close": 1.0, "volume": 5}, index=idx)
+    for source, close in (("yahoo", 1.0), ("futu", 2.0)):
+        price_store.write_bars(source, "1d", "0005.HK", day * close, None)
+        price_store.write_bars(source, "60m", "0005.HK", hour * close, None)
+    assert list(price_store.read_bars("0005.HK", adjusted=False)["close"]) == [10.0]
+    assert list(price_store.read_bars("0005.HK", "60m", adjusted=False)["close"]) == [2.0]
+    # a symbol held by one source only still reads that source
+    price_store.write_bars("futu", "1d", "0700.HK", day, None)
+    assert len(price_store.read_bars("0700.HK")) == 1
 
 
 def test_missing_symbol_gives_empty_frame_and_start_end_clip():

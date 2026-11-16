@@ -19,10 +19,15 @@ INTERVALS = ("1d", "60m")
 OHLCV = ["open", "high", "low", "close", "volume"]
 FLAGS = list(quality.FLAG_COLUMNS)
 COLUMNS = OHLCV + FLAGS
-# First source in the tuple that holds the symbol wins. Set from the comparison of 2026-11-12
-# (Task 2.9): Futu's hourly HK bars match the canonical grid, Yahoo's do not; Alpaca is cleaner
-# than Yahoo for US bars.
-PREFERRED_SOURCES = {"HK": ("futu", "yahoo"), "US": ("alpaca", "yahoo"), "OTHER": ("yahoo",)}
+# First source in the tuple that holds the symbol wins, per (market, interval). Set from the
+# comparison of 2026-11-12 (Task 2.9) and Brian's answer of 2026-11-16 (Task 2.10): Yahoo is
+# cleaner for HK daily (and reaches back to 2000), Futu for HK hourly (Yahoo's HK hourly bars miss
+# the canonical grid), Alpaca for US. A history is never mixed across sources.
+PREFERRED_SOURCES = {
+    ("HK", "1d"): ("yahoo", "futu"), ("HK", "60m"): ("futu", "yahoo"),
+    ("US", "1d"): ("alpaca", "yahoo"), ("US", "60m"): ("alpaca", "yahoo"),
+    ("OTHER", "1d"): ("yahoo",), ("OTHER", "60m"): ("yahoo",),
+}
 
 
 def _path(source: str, interval: str, kind: str, symbol: str) -> Path:
@@ -74,7 +79,7 @@ def read_bars(symbol: str, interval: str = "1d", adjusted: bool = True,
     A symbol the store lacks gives an empty frame with the standard columns.
     """
     if source is None:
-        order = PREFERRED_SOURCES[quality.market_of(symbol)]
+        order = PREFERRED_SOURCES[(quality.market_of(symbol), interval)]
         source = next((s for s in order if _path(s, interval, "raw", symbol).exists()), None)
     if source is None or not _path(source, interval, "raw", symbol).exists():
         return pd.DataFrame(columns=COLUMNS)
