@@ -5,6 +5,8 @@ Brian's answers are copied here word for word, then into `docs/decisions.md`.
 
 ## Open
 
+## Answered
+
 **Which price source should the tool prefer for each market?** (plan 2026-11-10, Task 2.9)
 - What it is: the tool holds each price history from two sources. A report compared them over the years both cover. The tool reads the first source in a fixed order for each market. Nothing waits on your answer.
 - Example: for Hong Kong hourly bars, Yahoo lacks 129,311 bars the tool expects (its hours start at :30 where the tool's grid starts at :00); Futu lacks 4. For US hourly bars, Yahoo lacks 2,283; Alpaca lacks 1. For Hong Kong daily bars, Yahoo lacks 80 and Futu 961, so Yahoo is cleaner there.
@@ -12,8 +14,7 @@ Brian's answers are copied here word for word, then into `docs/decisions.md`.
 - Options: **Default:** keep HK = Futu then Yahoo, US = Alpaca then Yahoo, as set now. Or (b) order per interval, so Hong Kong daily reads Yahoo first and Hong Kong hourly reads Futu first.
 - Orchestrator check (2026-11-12, `data/reports/price-comparison-2026-11-12.md`, checked): the totals match. The score counts missing bars and missed big moves only, not price disagreement: closes differ by more than 0.5% on 57,696 of 339,041 HK daily bars, and adjusted closes by more than 1% on 273,670.
 - Card sent 2026-11-12, card 8 (orchestrator).
-
-## Answered
+- Brian (2026-11-16): "b" (asked first: "shouldn't we use both?"; the orchestrator answered that option b is that: each source where it is cleaner, Hong Kong daily from Yahoo and Hong Kong hourly from Futu). Plan Task 2.10.
 
 **Is Futu OpenD still logged in and listening on port 11111?** (plan 2026-11-10, Task 2.8)
 - What it is: Futu OpenD is the small program that gives the tool Futu's price history. The tool connects to it on this PC at 127.0.0.1:11111. The program Futu_OpenD (process 31460) is running, but nothing listens on port 11111, so the tool cannot connect.

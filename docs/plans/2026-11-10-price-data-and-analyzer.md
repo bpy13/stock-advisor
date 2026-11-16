@@ -365,6 +365,20 @@ def round_trip_pct(broker, market, kind, price, shares) -> float
   - Done when: the test file passes (two hand-made sources with known differences); the
     real run's per-market totals are on the `Result:` line.
 
+- [ ] **Task 2.10: preferred source per market and interval** (slot 1 only) — needs: Task 2.9
+  - Decision: Brian, 2026-11-16: "b" (docs/decisions.md). Hong Kong daily reads Yahoo first, Hong Kong
+    hourly reads Futu first; US stays Alpaca then Yahoo for both; OTHER stays Yahoo.
+  - Files: modify `stock_advisor/price_store.py` (`PREFERRED_SOURCES` and the lookup that uses it),
+    `tests/test_price_store.py`; `stock_advisor/price_compare.py` only if `preferred_order` must
+    print the per-interval order.
+  - Done when: tests pass showing that, for a Hong Kong symbol stored from both sources, a daily
+    read returns the Yahoo file and an hourly read returns the Futu file; a symbol held by one
+    source only still reads that source; US reads are unchanged; ruff is clean. On the real store
+    in the project folder, the daily history of 0005.HK starts in 2000 (Yahoo), where it started
+    in 2006 (Futu) before, and its hourly history is unchanged; write both start dates here.
+  - Notes: never mix the two sources inside one history. If anything stored was computed from
+    Hong Kong daily bars (a cache, a derived file), name it here and rebuild it.
+
 ## Phase 3 – The portfolio analyzer (sonnet)
 
 Method choices below are fixed by this plan. Returns for risk work are weekly (Friday close
@@ -484,7 +498,7 @@ understate how much the two move together.
   - If the missing `fitted.pkl` is a setup step (run `news_backtest_cli --fit-only`), run it and say in the plan which scheduled task should keep it fresh.
   - Done when: the same timing (refresh plus analyze_recent for 24 hours, limit 50) takes under 10 seconds on the real store, a test guards the slow path that was removed, the full tests and ruff pass, and the dashboard restart is left to Brian (post an inbox question asking him to restart it and open the News tab).
 
-- [ ] **Task 4.3: review and fixes** (opus) — needs: Task 2.9, Task 3.5, Task 4.1
+- [ ] **Task 4.3: review and fixes** (opus) — needs: Task 2.9, Task 2.10, Task 3.5, Task 4.1
   - Run the `routine-reviewer` agent over this plan's commits (from the commit that added
     this file to `HEAD`) and the main paths they touch. Fix plain bugs inside this plan's
     scope, verifying each; record judgment calls in `docs/open-items.md`.
