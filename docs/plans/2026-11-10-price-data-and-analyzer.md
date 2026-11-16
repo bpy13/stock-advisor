@@ -470,7 +470,7 @@ understate how much the two move together.
 
 ## Phase 4 – Carry-overs and finish (sonnet; the review on opus)
 
-- [ ] **Task 4.1: check the four scheduled tasks** (slot 1 only) — needs: Task 2.6, Task 4.1a (recorder fixed by Task 4.1a; the 16 Nov 22:00 run ended with result 0 at 23:07, log lines 22:01 to 23:07, checked by the orchestrator) (taken: slot 1, 2026-11-16 23:30)
+- [x] **Task 4.1: check the four scheduled tasks** (slot 1 only) — needs: Task 2.6, Task 4.1a (recorder fixed by Task 4.1a; the 16 Nov 22:00 run ended with result 0 at 23:07, log lines 22:01 to 23:07, checked by the orchestrator)
   - Result (slot 1, 2026-11-16 15:55, not done): watcher Ready (result 0), backfill Ready (11-16 02:00, result 0), dashboard Running. Recorder Ready, but LastTaskResult is 267014 and recorder_log.txt has no line after 2026-11-13 07:00.
   - Findings (slot 1, 2026-11-16, read-only):
     1. Most likely cause, checked: the recorder process from the 11-12 22:00 run (python pid 28160, created 2026-11-12 22:00:01) is still running after 4 days (1464 s CPU, 64 threads, still holds one open connection to a remote port 443 in CloseWait). The task's MultipleInstances setting is IgnoreNew, so Task Scheduler skips every later 22:00 start while that instance lives. That explains no run on 13, 14, 15 Nov and no log line (main writes the log only at the very end, after `refresh_store`).
@@ -479,6 +479,7 @@ understate how much the two move together.
     4. Power: System log shows no sleep, restart or shutdown events (Kernel-Power 42/107, ids 1074, 6005, 6006) from 11-12 to 11-16; only small clock adjustments. So sleep did not cause it.
     5. Futu OpenD: process 31460 running since 11-12 14:07; a TCP connect to 127.0.0.1:11111 succeeds now (login not re-checked with the client).
     6. Not done, as ordered: the recorder was not run by hand; the scheduled task and pid 28160 were left alone. Needed from the orchestrator or Brian: stop pid 28160, then add a hard overall timeout (and per-source timeout) to the recorder and a log line written before the store step, and check again after the next 22:00 run.
+  - Result (slot 1, 2026-11-16 23:30): dashboard Running; recorder, news_watcher, news_backfill Ready. Recorder LastRunTime 22:00 on 16 Nov, LastTaskResult 0; log has one line per source (yahoo 22:30, alpaca 22:53, futu 23:07).
   - Files: none.
   - Done when: `Get-ScheduledTask -TaskName stock_advisor_*` shows the watcher, dashboard
     and backfill Running or Ready and the recorder Ready; after a 22:00 run,
