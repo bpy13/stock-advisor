@@ -1,8 +1,7 @@
 # Plan: news watch that filters (2026-11-17)
 
 Milestone 2 of `docs/milestones.md`. Written for workers who have not seen the planning chat.
-Status: DRAFT, waiting for Brian's approval. Not registered with the orchestrator until he
-approves it.
+Status: approved (Brian, 2026-11-17: "approve").
 
 ## Goal
 Every stored news story is either linked to the watchlist stocks or drivers it concerns, or
@@ -135,6 +134,7 @@ through Task 5.2's migration and the task that names its own new table.
     `C:\Users\brian\OneDrive\Documents\workspace\repo\stock_advisor\.env` by Brian. The worker
     checks only that the name has a non-empty value (`python -c` printing True/False), never
     prints, copies or logs the value, and posts the question to `docs/inbox.md` if it is empty.
+  - Notes: Brian (2026-11-17): "done" (he put the key in). The orchestrator found one non-empty `ANTHROPIC_API_KEY` line in that file on 2026-11-17 by counting lines, without reading the value; the worker repeats the check and ticks.
 
 - [ ] **Task 5.5: the 200-story sample and its measured cost** (checkpoint) (slot 1 only) — needs: Task 5.2, Task 5.4
   - Files: create `scripts/label_sample.py`; report `data/reports/label-sample-<date>.md` and

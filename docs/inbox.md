@@ -7,6 +7,9 @@ Brian's answers are copied here word for word, then into `docs/decisions.md`.
 
 ## Answered
 
+**Approve the plan for milestone 2, the news watch (`docs/plans/2026-11-17-news-watch.md`), and put your Anthropic API key into `.env`?** (orchestrator, 2026-11-17)
+- Brian (2026-11-17): "approve" (the plan) and "done" (the key). Plan registered; Task 5.4 only checks the key is present.
+
 **Milestone 1 is reached. Approve milestone 2, the news watch that filters?** (plan 2026-11-10, Task 4.4)
 - What it is: milestone 1 gave the tool clean daily and hourly prices for 215 watchlist symbols from three sources, and a portfolio analyzer on the command line and the dashboard. Milestone 2 is the news watch: link each story to a watchlist stock, have Claude Haiku label it (relevant, event type, new or repeat, severity), and add free sources such as US filings and insider trades. See `docs/milestones.md`.
 - Example: a story about a chip export rule would link to the US tech stocks on the watchlist and get a label such as "event: regulation, new, high severity". A story that names no watchlist stock would be dropped.
