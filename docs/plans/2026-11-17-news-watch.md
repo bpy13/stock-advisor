@@ -166,7 +166,7 @@ network in tests).
     US watchlist stock or lists the ones without a CIK in the log. A live fetch of one day
     stores filings for more than the old 10-ticker list, inside the SEC's request limit.
 
-- [ ] **Task 6.2: US insider trades (Form 4)** `[parallel-ok]`
+- [ ] **Task 6.2: US insider trades (Form 4)** `[parallel-ok]` (taken: slot 4, 2026-11-17 12:00)
   - Files: create `stock_advisor/news/sources/insider.py`, `tests/test_insider.py`; new table
     `insider_trades` (symbol, filer, role, trade date, filed date, code, shares, price, value,
     10b5-1 flag, accession number unique).
