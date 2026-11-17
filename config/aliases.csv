@@ -1,0 +1,1114 @@
+# Names file for the news linker (stock_advisor/news/link.py explains each kind).
+# Columns: symbol (watchlist symbol, or a driver name from risk.DRIVERS), alias, kind.
+# Kinds: name/short/driver any case; weak exact case and needs a cue or another alias;
+# ticker exact case; zh Traditional Chinese (Hong Kong); hans Simplified (second row only).
+symbol,alias,kind
+0005.HK,HSBC Holdings plc,name
+0005.HK,HSBC,short
+0005.HK,0005.HK,ticker
+0005.HK,5.HK,ticker
+0005.HK,0005 HK,ticker
+0005.HK,00005,ticker
+0005.HK,0005,ticker
+0005.HK,匯豐控股,zh
+0005.HK,匯豐,zh
+0388.HK,HKEx Limited,name
+0388.HK,HKEx,short
+0388.HK,0388.HK,ticker
+0388.HK,388.HK,ticker
+0388.HK,0388 HK,ticker
+0388.HK,388 HK,ticker
+0388.HK,00388,ticker
+0388.HK,0388,ticker
+0388.HK,Hong Kong Exchanges and Clearing,name
+0388.HK,Hong Kong Exchanges,short
+0388.HK,香港交易所,zh
+0388.HK,港交所,zh
+0939.HK,China Construction Bank,name
+0939.HK,0939.HK,ticker
+0939.HK,939.HK,ticker
+0939.HK,0939 HK,ticker
+0939.HK,939 HK,ticker
+0939.HK,00939,ticker
+0939.HK,0939,ticker
+0939.HK,CCB,short
+0939.HK,建設銀行,zh
+0939.HK,建行,zh
+1299.HK,AIA Group Limited,name
+1299.HK,AIA,short
+1299.HK,1299.HK,ticker
+1299.HK,1299 HK,ticker
+1299.HK,01299,ticker
+1299.HK,1299,ticker
+1299.HK,友邦保險,zh
+1299.HK,友邦,zh
+1398.HK,Industrial and Commercial Bank of China,name
+1398.HK,1398.HK,ticker
+1398.HK,1398 HK,ticker
+1398.HK,01398,ticker
+1398.HK,1398,ticker
+1398.HK,ICBC,short
+1398.HK,工商銀行,zh
+2318.HK,Ping An Insurance,name
+2318.HK,2318.HK,ticker
+2318.HK,2318 HK,ticker
+2318.HK,02318,ticker
+2318.HK,2318,ticker
+2318.HK,Ping An,short
+2318.HK,中國平安,zh
+2318.HK,平安保險,zh
+2388.HK,BOC Hong Kong (Holdings) Ltd,name
+2388.HK,BOC Hong Kong,short
+2388.HK,2388.HK,ticker
+2388.HK,2388 HK,ticker
+2388.HK,02388,ticker
+2388.HK,2388,ticker
+2388.HK,Bank of China (Hong Kong),name
+2388.HK,BOCHK,short
+2388.HK,中銀香港,zh
+2628.HK,China Life,name
+2628.HK,2628.HK,ticker
+2628.HK,2628 HK,ticker
+2628.HK,02628,ticker
+2628.HK,2628,ticker
+2628.HK,China Life Insurance,name
+2628.HK,中國人壽,zh
+2628.HK,國壽,zh
+3968.HK,China Merchants Bank,name
+3968.HK,3968.HK,ticker
+3968.HK,3968 HK,ticker
+3968.HK,03968,ticker
+3968.HK,3968,ticker
+3968.HK,招商銀行,zh
+3968.HK,招行,zh
+3988.HK,Bank of China Ltd,name
+3988.HK,Bank of China,short
+3988.HK,3988.HK,ticker
+3988.HK,3988 HK,ticker
+3988.HK,03988,ticker
+3988.HK,3988,ticker
+3988.HK,中國銀行,zh
+0002.HK,CLP Holdings Limited,name
+0002.HK,CLP,weak
+0002.HK,0002.HK,ticker
+0002.HK,2.HK,ticker
+0002.HK,0002 HK,ticker
+0002.HK,00002,ticker
+0002.HK,0002,ticker
+0002.HK,CLP Group,name
+0002.HK,China Light and Power,name
+0002.HK,中電控股,zh
+0002.HK,中華電力,zh
+0003.HK,Hong Kong and China Gas Company Limited,name
+0003.HK,Hong Kong and China Gas,short
+0003.HK,0003.HK,ticker
+0003.HK,3.HK,ticker
+0003.HK,0003 HK,ticker
+0003.HK,00003,ticker
+0003.HK,0003,ticker
+0003.HK,Towngas,short
+0003.HK,中華煤氣,zh
+0003.HK,煤氣公司,zh
+0006.HK,Power Assets Holdings Limited,name
+0006.HK,Power Assets,short
+0006.HK,0006.HK,ticker
+0006.HK,6.HK,ticker
+0006.HK,0006 HK,ticker
+0006.HK,00006,ticker
+0006.HK,0006,ticker
+0006.HK,電能實業,zh
+0836.HK,China Resources Power,name
+0836.HK,0836.HK,ticker
+0836.HK,836.HK,ticker
+0836.HK,0836 HK,ticker
+0836.HK,836 HK,ticker
+0836.HK,00836,ticker
+0836.HK,0836,ticker
+0836.HK,華潤電力,zh
+1038.HK,Cheung Kong Infrastructure Holdings Limited,name
+1038.HK,Cheung Kong Infrastructure,short
+1038.HK,1038.HK,ticker
+1038.HK,1038 HK,ticker
+1038.HK,01038,ticker
+1038.HK,1038,ticker
+1038.HK,CK Infrastructure,short
+1038.HK,CKI,short
+1038.HK,長江基建,zh
+2688.HK,ENN Energy,name
+2688.HK,2688.HK,ticker
+2688.HK,2688 HK,ticker
+2688.HK,02688,ticker
+2688.HK,2688,ticker
+2688.HK,新奧能源,zh
+0012.HK,Henderson Land Development Company Limited,name
+0012.HK,Henderson Land Development,short
+0012.HK,0012.HK,ticker
+0012.HK,12.HK,ticker
+0012.HK,0012 HK,ticker
+0012.HK,00012,ticker
+0012.HK,0012,ticker
+0012.HK,Henderson Land,short
+0012.HK,恒基地產,zh
+0012.HK,恒基兆業,zh
+0016.HK,Sun Hung Kai Properties Limited,name
+0016.HK,Sun Hung Kai Properties,short
+0016.HK,0016.HK,ticker
+0016.HK,16.HK,ticker
+0016.HK,0016 HK,ticker
+0016.HK,00016,ticker
+0016.HK,0016,ticker
+0016.HK,SHKP,short
+0016.HK,新鴻基地產,zh
+0101.HK,Hang Lung Properties Limited,name
+0101.HK,Hang Lung Properties,short
+0101.HK,0101.HK,ticker
+0101.HK,101.HK,ticker
+0101.HK,0101 HK,ticker
+0101.HK,101 HK,ticker
+0101.HK,00101,ticker
+0101.HK,0101,ticker
+0101.HK,恒隆地產,zh
+0688.HK,China Overseas Land & Investment Limited,name
+0688.HK,China Overseas Land & Investment,short
+0688.HK,0688.HK,ticker
+0688.HK,688.HK,ticker
+0688.HK,0688 HK,ticker
+0688.HK,688 HK,ticker
+0688.HK,00688,ticker
+0688.HK,0688,ticker
+0688.HK,China Overseas Land,short
+0688.HK,COLI,short
+0688.HK,中國海外發展,zh
+0688.HK,中海外,zh
+0823.HK,Link REIT,name
+0823.HK,0823.HK,ticker
+0823.HK,823.HK,ticker
+0823.HK,0823 HK,ticker
+0823.HK,823 HK,ticker
+0823.HK,00823,ticker
+0823.HK,0823,ticker
+0823.HK,Link Real Estate Investment Trust,name
+0823.HK,領展,zh
+0960.HK,Longfor Properties,name
+0960.HK,0960.HK,ticker
+0960.HK,960.HK,ticker
+0960.HK,0960 HK,ticker
+0960.HK,960 HK,ticker
+0960.HK,00960,ticker
+0960.HK,0960,ticker
+0960.HK,Longfor,short
+0960.HK,龍湖集團,zh
+0960.HK,龍湖,zh
+1109.HK,China Resources Land Limited,name
+1109.HK,China Resources Land,short
+1109.HK,1109.HK,ticker
+1109.HK,1109 HK,ticker
+1109.HK,01109,ticker
+1109.HK,1109,ticker
+1109.HK,華潤置地,zh
+1113.HK,CK Asset Holdings,name
+1113.HK,CK Asset,short
+1113.HK,1113.HK,ticker
+1113.HK,1113 HK,ticker
+1113.HK,01113,ticker
+1113.HK,1113,ticker
+1113.HK,長實集團,zh
+1113.HK,長江實業,zh
+1209.HK,China Resources Mixc Lifestyle,name
+1209.HK,1209.HK,ticker
+1209.HK,1209 HK,ticker
+1209.HK,01209,ticker
+1209.HK,1209,ticker
+1209.HK,China Resources Mixc,short
+1209.HK,華潤萬象生活,zh
+1997.HK,Wharf Real Estate Investment Company Limited,name
+1997.HK,Wharf Real Estate Investment,short
+1997.HK,1997.HK,ticker
+1997.HK,1997 HK,ticker
+1997.HK,01997,ticker
+1997.HK,1997,ticker
+1997.HK,Wharf REIC,short
+1997.HK,九龍倉置業,zh
+0001.HK,CK Hutchison Holdings Limited,name
+0001.HK,CK Hutchison,short
+0001.HK,0001.HK,ticker
+0001.HK,1.HK,ticker
+0001.HK,0001 HK,ticker
+0001.HK,00001,ticker
+0001.HK,0001,ticker
+0001.HK,長江和記實業,zh
+0027.HK,Galaxy Entertainment Group Ltd.,name
+0027.HK,Galaxy Entertainment,short
+0027.HK,0027.HK,ticker
+0027.HK,27.HK,ticker
+0027.HK,0027 HK,ticker
+0027.HK,00027,ticker
+0027.HK,0027,ticker
+0027.HK,銀河娛樂,zh
+0066.HK,MTR Corporation Ltd,name
+0066.HK,MTR,short
+0066.HK,0066.HK,ticker
+0066.HK,66.HK,ticker
+0066.HK,0066 HK,ticker
+0066.HK,00066,ticker
+0066.HK,0066,ticker
+0066.HK,MTR Corp,short
+0066.HK,港鐵公司,zh
+0066.HK,港鐵,zh
+0175.HK,Geely Auto,name
+0175.HK,0175.HK,ticker
+0175.HK,175.HK,ticker
+0175.HK,0175 HK,ticker
+0175.HK,175 HK,ticker
+0175.HK,00175,ticker
+0175.HK,0175,ticker
+0175.HK,Geely,short
+0175.HK,吉利汽車,zh
+0175.HK,吉利,weak
+0241.HK,Alibaba Health,name
+0241.HK,0241.HK,ticker
+0241.HK,241.HK,ticker
+0241.HK,0241 HK,ticker
+0241.HK,241 HK,ticker
+0241.HK,00241,ticker
+0241.HK,0241,ticker
+0241.HK,阿里健康,zh
+0267.HK,CITIC Limited,name
+0267.HK,CITIC,short
+0267.HK,0267.HK,ticker
+0267.HK,267.HK,ticker
+0267.HK,0267 HK,ticker
+0267.HK,267 HK,ticker
+0267.HK,00267,ticker
+0267.HK,0267,ticker
+0267.HK,中信股份,zh
+0285.HK,BYD Electronics,name
+0285.HK,0285.HK,ticker
+0285.HK,285.HK,ticker
+0285.HK,0285 HK,ticker
+0285.HK,285 HK,ticker
+0285.HK,00285,ticker
+0285.HK,0285,ticker
+0285.HK,BYD Electronic,name
+0285.HK,比亞迪電子,zh
+0288.HK,WH Group,name
+0288.HK,0288.HK,ticker
+0288.HK,288.HK,ticker
+0288.HK,0288 HK,ticker
+0288.HK,288 HK,ticker
+0288.HK,00288,ticker
+0288.HK,0288,ticker
+0288.HK,萬洲國際,zh
+0291.HK,China Resources Beer,name
+0291.HK,0291.HK,ticker
+0291.HK,291.HK,ticker
+0291.HK,0291 HK,ticker
+0291.HK,291 HK,ticker
+0291.HK,00291,ticker
+0291.HK,0291,ticker
+0291.HK,華潤啤酒,zh
+0300.HK,Midea Group,name
+0300.HK,Midea,short
+0300.HK,0300.HK,ticker
+0300.HK,300.HK,ticker
+0300.HK,0300 HK,ticker
+0300.HK,300 HK,ticker
+0300.HK,00300,ticker
+0300.HK,0300,ticker
+0300.HK,美的集團,zh
+0316.HK,Orient Overseas (International) Limited,name
+0316.HK,Orient Overseas,short
+0316.HK,0316.HK,ticker
+0316.HK,316.HK,ticker
+0316.HK,0316 HK,ticker
+0316.HK,316 HK,ticker
+0316.HK,00316,ticker
+0316.HK,0316,ticker
+0316.HK,OOIL,short
+0316.HK,東方海外,zh
+0322.HK,Tingyi,name
+0322.HK,0322.HK,ticker
+0322.HK,322.HK,ticker
+0322.HK,0322 HK,ticker
+0322.HK,322 HK,ticker
+0322.HK,00322,ticker
+0322.HK,0322,ticker
+0322.HK,Master Kong,short
+0322.HK,康師傅,zh
+0386.HK,Sinopec Corp,name
+0386.HK,Sinopec,short
+0386.HK,0386.HK,ticker
+0386.HK,386.HK,ticker
+0386.HK,0386 HK,ticker
+0386.HK,386 HK,ticker
+0386.HK,00386,ticker
+0386.HK,0386,ticker
+0386.HK,中國石油化工,zh
+0386.HK,中石化,zh
+0669.HK,Techtronic Industries,name
+0669.HK,0669.HK,ticker
+0669.HK,669.HK,ticker
+0669.HK,0669 HK,ticker
+0669.HK,669 HK,ticker
+0669.HK,00669,ticker
+0669.HK,0669,ticker
+0669.HK,Techtronic,short
+0669.HK,創科實業,zh
+0700.HK,Tencent Holdings Limited,name
+0700.HK,Tencent,short
+0700.HK,0700.HK,ticker
+0700.HK,700.HK,ticker
+0700.HK,0700 HK,ticker
+0700.HK,700 HK,ticker
+0700.HK,00700,ticker
+0700.HK,0700,ticker
+0700.HK,騰訊控股,zh
+0700.HK,騰訊,zh
+0762.HK,China Unicom,name
+0762.HK,0762.HK,ticker
+0762.HK,762.HK,ticker
+0762.HK,0762 HK,ticker
+0762.HK,762 HK,ticker
+0762.HK,00762,ticker
+0762.HK,0762,ticker
+0762.HK,中國聯通,zh
+0857.HK,PetroChina Company Limited,name
+0857.HK,PetroChina,short
+0857.HK,0857.HK,ticker
+0857.HK,857.HK,ticker
+0857.HK,0857 HK,ticker
+0857.HK,857 HK,ticker
+0857.HK,00857,ticker
+0857.HK,0857,ticker
+0857.HK,中國石油股份,zh
+0857.HK,中國石油,zh
+0857.HK,中石油,zh
+0868.HK,Xinyi Glass,name
+0868.HK,0868.HK,ticker
+0868.HK,868.HK,ticker
+0868.HK,0868 HK,ticker
+0868.HK,868 HK,ticker
+0868.HK,00868,ticker
+0868.HK,0868,ticker
+0868.HK,信義玻璃,zh
+0881.HK,Zhongsheng Group,name
+0881.HK,Zhongsheng,short
+0881.HK,0881.HK,ticker
+0881.HK,881.HK,ticker
+0881.HK,0881 HK,ticker
+0881.HK,881 HK,ticker
+0881.HK,00881,ticker
+0881.HK,0881,ticker
+0881.HK,中升控股,zh
+0883.HK,CNOOC Limited,name
+0883.HK,CNOOC,short
+0883.HK,0883.HK,ticker
+0883.HK,883.HK,ticker
+0883.HK,0883 HK,ticker
+0883.HK,883 HK,ticker
+0883.HK,00883,ticker
+0883.HK,0883,ticker
+0883.HK,中國海洋石油,zh
+0883.HK,中海油,zh
+0941.HK,China Mobile Ltd,name
+0941.HK,China Mobile,short
+0941.HK,0941.HK,ticker
+0941.HK,941.HK,ticker
+0941.HK,0941 HK,ticker
+0941.HK,941 HK,ticker
+0941.HK,00941,ticker
+0941.HK,0941,ticker
+0941.HK,中國移動,zh
+0968.HK,Xinyi Solar,name
+0968.HK,0968.HK,ticker
+0968.HK,968.HK,ticker
+0968.HK,0968 HK,ticker
+0968.HK,968 HK,ticker
+0968.HK,00968,ticker
+0968.HK,0968,ticker
+0968.HK,信義光能,zh
+0981.HK,Semiconductor Manufacturing International Corporation,name
+0981.HK,Semiconductor Manufacturing International,short
+0981.HK,0981.HK,ticker
+0981.HK,981.HK,ticker
+0981.HK,0981 HK,ticker
+0981.HK,981 HK,ticker
+0981.HK,00981,ticker
+0981.HK,0981,ticker
+0981.HK,SMIC,short
+0981.HK,中芯國際,zh
+0981.HK,中芯,zh
+0992.HK,Lenovo,name
+0992.HK,0992.HK,ticker
+0992.HK,992.HK,ticker
+0992.HK,0992 HK,ticker
+0992.HK,992 HK,ticker
+0992.HK,00992,ticker
+0992.HK,0992,ticker
+0992.HK,Lenovo Group,name
+0992.HK,聯想集團,zh
+0992.HK,聯想,weak
+1024.HK,Kuaishou,name
+1024.HK,1024.HK,ticker
+1024.HK,1024 HK,ticker
+1024.HK,01024,ticker
+1024.HK,1024,ticker
+1024.HK,快手,weak
+1044.HK,Hengan International Group Co. Ltd,name
+1044.HK,Hengan International,short
+1044.HK,1044.HK,ticker
+1044.HK,1044 HK,ticker
+1044.HK,01044,ticker
+1044.HK,1044,ticker
+1044.HK,恒安國際,zh
+1088.HK,China Shenhua Energy,name
+1088.HK,1088.HK,ticker
+1088.HK,1088 HK,ticker
+1088.HK,01088,ticker
+1088.HK,1088,ticker
+1088.HK,China Shenhua,short
+1088.HK,Shenhua,short
+1088.HK,中國神華,zh
+1093.HK,CSPC Pharmaceutical Group,name
+1093.HK,CSPC Pharmaceutical,short
+1093.HK,1093.HK,ticker
+1093.HK,1093 HK,ticker
+1093.HK,01093,ticker
+1093.HK,1093,ticker
+1093.HK,CSPC,short
+1093.HK,石藥集團,zh
+1099.HK,Sinopharm Group,name
+1099.HK,Sinopharm,short
+1099.HK,1099.HK,ticker
+1099.HK,1099 HK,ticker
+1099.HK,01099,ticker
+1099.HK,1099,ticker
+1099.HK,國藥控股,zh
+1177.HK,Sino Biopharm,name
+1177.HK,1177.HK,ticker
+1177.HK,1177 HK,ticker
+1177.HK,01177,ticker
+1177.HK,1177,ticker
+1177.HK,Sino Biopharmaceutical,name
+1177.HK,中國生物製藥,zh
+1211.HK,BYD Company,name
+1211.HK,BYD,short
+1211.HK,1211.HK,ticker
+1211.HK,1211 HK,ticker
+1211.HK,01211,ticker
+1211.HK,1211,ticker
+1211.HK,比亞迪股份,zh
+1211.HK,比亞迪,zh
+1378.HK,China Hongqiao Group,name
+1378.HK,China Hongqiao,short
+1378.HK,1378.HK,ticker
+1378.HK,1378 HK,ticker
+1378.HK,01378,ticker
+1378.HK,1378,ticker
+1378.HK,中國宏橋,zh
+1810.HK,Xiaomi,name
+1810.HK,1810.HK,ticker
+1810.HK,1810 HK,ticker
+1810.HK,01810,ticker
+1810.HK,1810,ticker
+1810.HK,Xiaomi Corporation,name
+1810.HK,小米集團,zh
+1810.HK,小米,weak
+1876.HK,Budweiser Brewing Company APAC,name
+1876.HK,1876.HK,ticker
+1876.HK,1876 HK,ticker
+1876.HK,01876,ticker
+1876.HK,1876,ticker
+1876.HK,Budweiser APAC,short
+1876.HK,百威亞太,zh
+1928.HK,Sands China,name
+1928.HK,1928.HK,ticker
+1928.HK,1928 HK,ticker
+1928.HK,01928,ticker
+1928.HK,1928,ticker
+1928.HK,金沙中國,zh
+1929.HK,Chow Tai Fook,name
+1929.HK,1929.HK,ticker
+1929.HK,1929 HK,ticker
+1929.HK,01929,ticker
+1929.HK,1929,ticker
+1929.HK,周大福,zh
+2015.HK,Li Auto,name
+2015.HK,2015.HK,ticker
+2015.HK,2015 HK,ticker
+2015.HK,02015,ticker
+2015.HK,2015,ticker
+2015.HK,理想汽車,zh
+2020.HK,Anta Sports,name
+2020.HK,2020.HK,ticker
+2020.HK,2020 HK,ticker
+2020.HK,02020,ticker
+2020.HK,2020,ticker
+2020.HK,Anta,short
+2020.HK,安踏體育,zh
+2020.HK,安踏,zh
+2057.HK,ZTO Express,name
+2057.HK,2057.HK,ticker
+2057.HK,2057 HK,ticker
+2057.HK,02057,ticker
+2057.HK,2057,ticker
+2057.HK,ZTO,short
+2057.HK,中通快遞,zh
+2269.HK,WuXi Biologics,name
+2269.HK,2269.HK,ticker
+2269.HK,2269 HK,ticker
+2269.HK,02269,ticker
+2269.HK,2269,ticker
+2269.HK,藥明生物,zh
+2313.HK,Shenzhou International,name
+2313.HK,2313.HK,ticker
+2313.HK,2313 HK,ticker
+2313.HK,02313,ticker
+2313.HK,2313,ticker
+2313.HK,申洲國際,zh
+2319.HK,Mengniu Dairy,name
+2319.HK,2319.HK,ticker
+2319.HK,2319 HK,ticker
+2319.HK,02319,ticker
+2319.HK,2319,ticker
+2319.HK,Mengniu,short
+2319.HK,China Mengniu,short
+2319.HK,蒙牛乳業,zh
+2319.HK,蒙牛,zh
+2331.HK,Li-Ning,name
+2331.HK,2331.HK,ticker
+2331.HK,2331 HK,ticker
+2331.HK,02331,ticker
+2331.HK,2331,ticker
+2331.HK,Li Ning,name
+2331.HK,李寧,weak
+2359.HK,WuXi AppTec,name
+2359.HK,2359.HK,ticker
+2359.HK,2359 HK,ticker
+2359.HK,02359,ticker
+2359.HK,2359,ticker
+2359.HK,藥明康德,zh
+2382.HK,Sunny Optical,name
+2382.HK,2382.HK,ticker
+2382.HK,2382 HK,ticker
+2382.HK,02382,ticker
+2382.HK,2382,ticker
+2382.HK,舜宇光學科技,zh
+2382.HK,舜宇,zh
+2618.HK,JD Logistics,name
+2618.HK,2618.HK,ticker
+2618.HK,2618 HK,ticker
+2618.HK,02618,ticker
+2618.HK,2618,ticker
+2618.HK,京東物流,zh
+2899.HK,Zijin Mining,name
+2899.HK,2899.HK,ticker
+2899.HK,2899 HK,ticker
+2899.HK,02899,ticker
+2899.HK,2899,ticker
+2899.HK,Zijin,short
+2899.HK,紫金礦業,zh
+3690.HK,Meituan,name
+3690.HK,3690.HK,ticker
+3690.HK,3690 HK,ticker
+3690.HK,03690,ticker
+3690.HK,3690,ticker
+3690.HK,美團,zh
+3692.HK,Hansoh Pharmaceutical Group,name
+3692.HK,Hansoh Pharmaceutical,short
+3692.HK,3692.HK,ticker
+3692.HK,3692 HK,ticker
+3692.HK,03692,ticker
+3692.HK,3692,ticker
+3692.HK,Hansoh,short
+3692.HK,翰森製藥,zh
+6618.HK,JD Health,name
+6618.HK,6618.HK,ticker
+6618.HK,6618 HK,ticker
+6618.HK,06618,ticker
+6618.HK,6618,ticker
+6618.HK,京東健康,zh
+6690.HK,Haier,name
+6690.HK,6690.HK,ticker
+6690.HK,6690 HK,ticker
+6690.HK,06690,ticker
+6690.HK,6690,ticker
+6690.HK,Haier Smart Home,name
+6690.HK,海爾智家,zh
+6862.HK,Haidilao,name
+6862.HK,6862.HK,ticker
+6862.HK,6862 HK,ticker
+6862.HK,06862,ticker
+6862.HK,6862,ticker
+6862.HK,海底撈,zh
+9618.HK,JD.com,name
+9618.HK,9618.HK,ticker
+9618.HK,9618 HK,ticker
+9618.HK,09618,ticker
+9618.HK,9618,ticker
+9618.HK,Jingdong,short
+9618.HK,京東集團,zh
+9618.HK,京東,zh
+9633.HK,Nongfu Spring,name
+9633.HK,9633.HK,ticker
+9633.HK,9633 HK,ticker
+9633.HK,09633,ticker
+9633.HK,9633,ticker
+9633.HK,農夫山泉,zh
+9888.HK,Baidu,name
+9888.HK,9888.HK,ticker
+9888.HK,9888 HK,ticker
+9888.HK,09888,ticker
+9888.HK,9888,ticker
+9888.HK,百度集團,zh
+9888.HK,百度,zh
+9961.HK,Trip.com Group,name
+9961.HK,Trip.com,short
+9961.HK,9961.HK,ticker
+9961.HK,9961 HK,ticker
+9961.HK,09961,ticker
+9961.HK,9961,ticker
+9961.HK,Ctrip,short
+9961.HK,攜程集團,zh
+9961.HK,攜程,zh
+9988.HK,Alibaba Group,name
+9988.HK,Alibaba,short
+9988.HK,9988.HK,ticker
+9988.HK,9988 HK,ticker
+9988.HK,09988,ticker
+9988.HK,9988,ticker
+9988.HK,Alibaba Group Holding,name
+9988.HK,阿里巴巴,zh
+9992.HK,Pop Mart,name
+9992.HK,9992.HK,ticker
+9992.HK,9992 HK,ticker
+9992.HK,09992,ticker
+9992.HK,9992,ticker
+9992.HK,泡泡瑪特,zh
+9999.HK,NetEase,name
+9999.HK,9999.HK,ticker
+9999.HK,9999 HK,ticker
+9999.HK,09999,ticker
+9999.HK,9999,ticker
+9999.HK,網易,zh
+AAPL,Apple Inc.,name
+AAPL,Apple,weak
+AAPL,AAPL,ticker
+AAPL,iPhone,name
+AAPL,蘋果,weak
+ABBV,AbbVie,name
+ABBV,ABBV,ticker
+ABT,Abbott Laboratories,name
+ABT,ABT,ticker
+ABT,Abbott,weak
+ACN,Accenture,name
+ACN,ACN,ticker
+ADBE,Adobe Inc.,name
+ADBE,Adobe,weak
+ADBE,ADBE,ticker
+AMAT,Applied Materials,name
+AMAT,AMAT,ticker
+AMD,Advanced Micro Devices,name
+AMD,AMD,ticker
+AMD,超微,zh
+AMGN,Amgen,name
+AMGN,AMGN,ticker
+AMT,American Tower,name
+AMT,$AMT,ticker
+AMZN,AMZN,ticker
+AMZN,Amazon.com,name
+AMZN,Amazon Web Services,name
+AMZN,AWS,short
+AMZN,Amazon,weak
+AMZN,亞馬遜,zh
+ANET,Arista Networks,name
+ANET,ANET,ticker
+ANET,Arista,short
+AVGO,Broadcom,name
+AVGO,AVGO,ticker
+AVGO,博通,zh
+AXP,American Express,name
+AXP,AXP,ticker
+AXP,Amex,short
+BA,Boeing,name
+BA,BA,ticker
+BA,波音,zh
+BAC,Bank of America,name
+BAC,BAC,ticker
+BAC,BofA,short
+BKNG,Booking Holdings,name
+BKNG,BKNG,ticker
+BKNG,Booking.com,name
+BLK,BlackRock,name
+BLK,BLK,ticker
+BMY,Bristol Myers Squibb,name
+BMY,BMY,ticker
+BMY,Bristol-Myers Squibb,name
+BMY,Bristol Myers,short
+BNY,BNY Mellon,name
+BNY,BNY,ticker
+BRK-B,Berkshire Hathaway,name
+BRK-B,BRK-B,ticker
+BRK-B,BRK.B,ticker
+BRK-B,$BRK.B,ticker
+BRK-B,Berkshire,weak
+BRK-B,巴郡,zh
+C,Citigroup,name
+C,C,ticker
+C,Citi,short
+C,Citibank,short
+CAT,Caterpillar Inc.,name
+CAT,Caterpillar,weak
+CAT,$CAT,ticker
+CMCSA,Comcast,name
+CMCSA,CMCSA,ticker
+COF,Capital One,name
+COF,COF,ticker
+COP,ConocoPhillips,name
+COP,$COP,ticker
+COST,Costco,name
+COST,$COST,ticker
+CRM,Salesforce,name
+CRM,$CRM,ticker
+CSCO,Cisco,name
+CSCO,CSCO,ticker
+CVS,CVS Health,name
+CVS,CVS,ticker
+CVX,Chevron Corporation,name
+CVX,Chevron,weak
+CVX,CVX,ticker
+DE,Deere & Company,name
+DE,Deere,short
+DE,DE,ticker
+DELL,Dell Technologies,name
+DELL,$DELL,ticker
+DELL,Dell,weak
+DHR,Danaher Corporation,name
+DHR,Danaher,short
+DHR,DHR,ticker
+DIS,The Walt Disney Company,name
+DIS,Walt Disney,short
+DIS,$DIS,ticker
+DIS,Disney,short
+DIS,迪士尼,zh
+DUK,Duke Energy,name
+DUK,DUK,ticker
+EMR,Emerson Electric,name
+EMR,$EMR,ticker
+FDX,FedEx,name
+FDX,FDX,ticker
+GD,General Dynamics,name
+GD,GD,ticker
+GE,GE Aerospace,name
+GE,GE,ticker
+GE,General Electric,name
+GEV,GE Vernova,name
+GEV,GEV,ticker
+GILD,Gilead Sciences,name
+GILD,$GILD,ticker
+GILD,Gilead,short
+GM,General Motors,name
+GM,GM,ticker
+GOOG,Alphabet Inc.,name
+GOOG,Alphabet,weak
+GOOG,GOOG,ticker
+GOOG,Google,name
+GOOG,谷歌,zh
+GOOGL,Alphabet Inc.,name
+GOOGL,Alphabet,weak
+GOOGL,GOOGL,ticker
+GOOGL,Google,name
+GOOGL,谷歌,zh
+GS,Goldman Sachs,name
+GS,GS,ticker
+GS,Goldman,short
+GS,高盛,zh
+HD,Home Depot,name
+HD,HD,ticker
+IBM,IBM,ticker
+INTC,INTC,ticker
+INTC,Intel,weak
+INTC,英特爾,zh
+INTU,Intuit,name
+INTU,INTU,ticker
+ISRG,Intuitive Surgical,name
+ISRG,ISRG,ticker
+JNJ,Johnson & Johnson,name
+JNJ,JNJ,ticker
+JNJ,J&J,short
+JPM,JPMorgan Chase,name
+JPM,JPM,ticker
+JPM,JPMorgan,short
+JPM,JP Morgan,short
+JPM,J.P. Morgan,short
+JPM,摩根大通,zh
+KO,The Coca-Cola Company,name
+KO,Coca-Cola,short
+KO,KO,ticker
+KO,Coke,weak
+KO,可口可樂,zh
+LIN,Linde plc,name
+LIN,Linde,short
+LIN,$LIN,ticker
+LLY,Eli Lilly and Company,name
+LLY,Eli Lilly,short
+LLY,LLY,ticker
+LLY,Lilly,weak
+LMT,Lockheed Martin,name
+LMT,LMT,ticker
+LOW,Lowe's,name
+LOW,$LOW,ticker
+LRCX,Lam Research,name
+LRCX,LRCX,ticker
+MA,Mastercard,name
+MA,MA,ticker
+MCD,McDonald's,name
+MCD,MCD,ticker
+MCD,麥當勞,zh
+MDLZ,Mondelēz International,name
+MDLZ,MDLZ,ticker
+MDLZ,Mondelez,short
+MDT,Medtronic,name
+MDT,MDT,ticker
+META,Meta Platforms,name
+META,$META,ticker
+META,Meta,weak
+META,Facebook,weak
+MMM,3M,weak
+MMM,MMM,ticker
+MO,Altria,name
+MO,MO,ticker
+MRK,Merck & Co.,name
+MRK,Merck,short
+MRK,MRK,ticker
+MS,Morgan Stanley,name
+MS,MS,ticker
+MS,摩根士丹利,zh
+MS,大摩,zh
+MSFT,Microsoft,name
+MSFT,MSFT,ticker
+MSFT,微軟,zh
+MU,Micron Technology,name
+MU,MU,ticker
+MU,Micron,weak
+NEE,NextEra Energy,name
+NEE,NEE,ticker
+NEE,NextEra,short
+NFLX,Netflix Inc.,name
+NFLX,Netflix,short
+NFLX,NFLX,ticker
+NOW,ServiceNow,name
+NOW,$NOW,ticker
+NVDA,Nvidia,name
+NVDA,NVDA,ticker
+NVDA,英偉達,zh
+ORCL,Oracle Corporation,name
+ORCL,Oracle,weak
+ORCL,ORCL,ticker
+PANW,Palo Alto Networks,name
+PANW,PANW,ticker
+PEP,PepsiCo,name
+PEP,$PEP,ticker
+PFE,Pfizer,name
+PFE,PFE,ticker
+PG,Procter & Gamble,name
+PG,PG,ticker
+PG,P&G,short
+PLTR,Palantir Technologies,name
+PLTR,PLTR,ticker
+PLTR,Palantir,short
+PM,Philip Morris International,name
+PM,PM,ticker
+QCOM,Qualcomm,name
+QCOM,QCOM,ticker
+RTX,RTX Corporation,name
+RTX,RTX,ticker
+RTX,Raytheon,short
+SBUX,Starbucks,name
+SBUX,SBUX,ticker
+SBUX,星巴克,zh
+SCHW,Charles Schwab Corporation,name
+SCHW,Charles Schwab,short
+SCHW,SCHW,ticker
+SCHW,Schwab,weak
+SNDK,Sandisk,name
+SNDK,SNDK,ticker
+SO,Southern Company,name
+SO,SO,ticker
+T,AT&T,name
+T,T,ticker
+TMO,Thermo Fisher Scientific,name
+TMO,TMO,ticker
+TMO,Thermo Fisher,short
+TMUS,T-Mobile US,name
+TMUS,TMUS,ticker
+TMUS,T-Mobile,short
+TSLA,Tesla Inc.,name
+TSLA,Tesla,short
+TSLA,TSLA,ticker
+TSLA,特斯拉,zh
+TXN,Texas Instruments,name
+TXN,TXN,ticker
+UBER,Uber,name
+UBER,$UBER,ticker
+UNH,UnitedHealth Group,name
+UNH,UnitedHealth,short
+UNH,UNH,ticker
+UNP,Union Pacific Corporation,name
+UNP,Union Pacific,short
+UNP,UNP,ticker
+UPS,United Parcel Service,name
+UPS,UPS,ticker
+USB,U.S. Bancorp,name
+USB,$USB,ticker
+V,Visa Inc.,name
+V,Visa,weak
+V,V,ticker
+VZ,Verizon,name
+VZ,VZ,ticker
+WFC,Wells Fargo,name
+WFC,WFC,ticker
+WMT,Walmart,name
+WMT,WMT,ticker
+WMT,沃爾瑪,zh
+XOM,ExxonMobil,name
+XOM,XOM,ticker
+XOM,Exxon Mobil,name
+XOM,Exxon,short
+2800.HK,Tracker Fund of Hong Kong,name
+2800.HK,2800.HK,ticker
+2800.HK,2800 HK,ticker
+2800.HK,02800,ticker
+2800.HK,2800,ticker
+2800.HK,Tracker Fund,short
+2800.HK,盈富基金,zh
+2828.HK,Hang Seng China Enterprises ETF,name
+2828.HK,2828.HK,ticker
+2828.HK,2828 HK,ticker
+2828.HK,02828,ticker
+2828.HK,2828,ticker
+3033.HK,CSOP Hang Seng TECH ETF,name
+3033.HK,3033.HK,ticker
+3033.HK,3033 HK,ticker
+3033.HK,03033,ticker
+3033.HK,3033,ticker
+3033.HK,南方恒生科技,zh
+SPY,SPDR S&P 500 ETF,name
+SPY,$SPY,ticker
+QQQ,Invesco QQQ Trust,name
+QQQ,QQQ,ticker
+XLK,Select Sector SPDR US technology,name
+XLK,XLK,ticker
+XLK,Technology Select Sector SPDR,name
+XLF,Select Sector SPDR US financials,name
+XLF,XLF,ticker
+XLF,Financial Select Sector SPDR,name
+XLE,Select Sector SPDR US energy,name
+XLE,XLE,ticker
+XLE,Energy Select Sector SPDR,name
+XLV,Select Sector SPDR US health care,name
+XLV,XLV,ticker
+XLV,Health Care Select Sector SPDR,name
+XLI,Select Sector SPDR US industrials,name
+XLI,XLI,ticker
+XLI,Industrial Select Sector SPDR,name
+XLY,Select Sector SPDR US consumer discretionary,name
+XLY,XLY,ticker
+XLY,Consumer Discretionary Select Sector SPDR,name
+XLP,Select Sector SPDR US consumer staples,name
+XLP,XLP,ticker
+XLP,Consumer Staples Select Sector SPDR,name
+XLU,Select Sector SPDR US utilities,name
+XLU,XLU,ticker
+XLU,Utilities Select Sector SPDR,name
+XLB,Select Sector SPDR US materials,name
+XLB,XLB,ticker
+XLB,Materials Select Sector SPDR,name
+XLRE,Select Sector SPDR US real estate,name
+XLRE,XLRE,ticker
+XLRE,Real Estate Select Sector SPDR,name
+XLC,Select Sector SPDR US communication services,name
+XLC,XLC,ticker
+XLC,Communication Services Select Sector SPDR,name
+^HSI,Hang Seng Index,name
+^HSI,HSI,ticker
+^HSI,恒生指數,zh
+^HSI,恒指,zh
+^GSPC,S&P 500,name
+^GSPC,S&P500,name
+^GSPC,Standard & Poor's 500,name
+^GSPC,標普500,zh
+^GSPC,標普五百,zh
+^NDX,Nasdaq-100,name
+^NDX,Nasdaq 100,name
+oil,crude oil,driver
+oil,oil price,driver
+oil,oil prices,driver
+oil,oil futures,driver
+oil,Brent crude,driver
+oil,WTI,driver
+oil,OPEC,driver
+oil,OPEC+,driver
+oil,Brent,weak
+oil,原油,zh
+oil,油價,zh
+oil,油組,zh
+us_rates,Federal Reserve,driver
+us_rates,FOMC,driver
+us_rates,Treasury yield,driver
+us_rates,Treasury yields,driver
+us_rates,10-year yield,driver
+us_rates,10-year Treasury,driver
+us_rates,US Treasuries,driver
+us_rates,U.S. Treasuries,driver
+us_rates,US interest rates,driver
+us_rates,U.S. interest rates,driver
+us_rates,Fed,weak
+us_rates,美聯儲,zh
+us_rates,聯儲局,zh
+us_rates,美債孳息,zh
+us_rates,美國國債,zh
+china_hk_tech,Hang Seng Tech,driver
+china_hk_tech,China tech,driver
+china_hk_tech,Chinese tech,driver
+china_hk_tech,China internet,driver
+china_hk_tech,Chinese internet,driver
+china_hk_tech,$KWEB,ticker
+china_hk_tech,恒生科技,zh
+china_hk_tech,恒科,zh
+china_hk_tech,中概股,zh
+us_tech,Nasdaq,driver
+us_tech,Nasdaq Composite,driver
+us_tech,Big Tech,driver
+us_tech,Magnificent Seven,driver
+us_tech,US tech stocks,driver
+us_tech,U.S. tech stocks,driver
+us_tech,納指,zh
+us_tech,納斯達克,zh
+cyber_security,cybersecurity,driver
+cyber_security,cyber security,driver
+cyber_security,cyber-security,driver
+cyber_security,cyberattack,driver
+cyber_security,cyberattacks,driver
+cyber_security,cyber attack,driver
+cyber_security,cyber attacks,driver
+cyber_security,ransomware,driver
+cyber_security,data breach,driver
+cyber_security,hackers,driver
+cyber_security,$HACK,ticker
+cyber_security,網絡安全,zh
+cyber_security,網絡攻擊,zh
+cyber_security,黑客,zh
+cyber_security,勒索軟件,zh
+usd_cny,renminbi,driver
+usd_cny,USD/CNY,driver
+usd_cny,USD/CNH,driver
+usd_cny,offshore yuan,driver
+usd_cny,onshore yuan,driver
+usd_cny,yuan fixing,driver
+usd_cny,yuan,weak
+usd_cny,Yuan,weak
+usd_cny,RMB,weak
+usd_cny,CNY,weak
+usd_cny,CNH,weak
+usd_cny,人民幣,weak
