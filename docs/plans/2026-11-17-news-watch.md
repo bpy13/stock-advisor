@@ -84,7 +84,7 @@ through Task 5.2's migration and the task that names its own new table.
 
 ## Phase 5 – Linking and the sample (sonnet)
 
-- [ ] **Task 5.1: the names file and the linker** (opus) `[parallel-ok]`
+- [ ] **Task 5.1: the names file and the linker** (opus) `[parallel-ok]` (taken: slot 1, 2026-11-17 13:08)
   - Files: create `config/aliases.csv` (`symbol,alias,kind`: full name, short name, ticker
     forms such as "0700.HK", "700 HK", "Tencent", "騰訊"; driver keywords for the six drivers),
     `stock_advisor/news/link.py`, `tests/test_news_link.py`; a script
@@ -167,7 +167,7 @@ adapter uses `PoliteSession`, stores through `news/store.py` or its own table na
 linked by Task 5.1's linker where it carries a company, and has tests on saved fixtures (no
 network in tests).
 
-- [ ] **Task 6.1: US filings by event type for every US watchlist stock** `[parallel-ok]`
+- [ ] **Task 6.1: US filings by event type for every US watchlist stock** `[parallel-ok]` (taken: slot 3, 2026-11-17 13:30)
   - Files: modify `stock_advisor/news/sources/edgar.py`, `news/collect.py` (the allowlist
     becomes every US watchlist symbol with a CIK), tests.
   - Done when: tests pass: an 8-K is stored with its item numbers (for example 2.02 results,
@@ -175,7 +175,8 @@ network in tests).
     US watchlist stock or lists the ones without a CIK in the log. A live fetch of one day
     stores filings for more than the old 10-ticker list, inside the SEC's request limit.
 
-- [ ] **Task 6.2: US insider trades (Form 4)** `[parallel-ok]`
+- [ ] **Task 6.2: US insider trades (Form 4)** `[parallel-ok]` (slot 1 only)
+  - Status (slot 4, 2026-11-17): code and 12 tests done in 5719ddd (`insider.py`, `scripts/load_insider.py`, table `insider_trades` created by `InsiderTrades`; 508 tests pass, ruff clean). Left to do in the main folder (needs .env and the real news.db): `python scripts/load_insider.py --history` through jobq (cpu lane), then `--day <date>`; check the log ends with rows per year and a rerun adds no duplicate; then tick. The live day is not yet wired into the watcher or backfill task.
   - Files: create `stock_advisor/news/sources/insider.py`, `tests/test_insider.py`; new table
     `insider_trades` (symbol, filer, role, trade date, filed date, code, shares, price, value,
     10b5-1 flag, accession number unique).
@@ -184,7 +185,7 @@ network in tests).
     history for the US watchlist through `jobq.ps1` (cpu lane) and the log ends with rows per
     year; the live feed adds one day's filings without a duplicate.
 
-- [ ] **Task 6.3: short-selling files, US and Hong Kong** `[parallel-ok]` (taken: slot 5, 2026-11-17 12:00)
+- [x] **Task 6.3: short-selling files, US and Hong Kong** `[parallel-ok]`
   - Files: create `stock_advisor/news/sources/short_selling.py`, `tests/test_short_selling.py`;
     new table `short_selling` (symbol, date, source, short volume or position, total volume
     where given).
@@ -194,7 +195,7 @@ network in tests).
     use allowed). Tests pass on saved files, including a week the SFC published late. A
     scheduled fetch is added to the existing backfill task, not a new scheduled task.
 
-- [ ] **Task 6.4: Hong Kong and China feeds whose terms allow it** `[parallel-ok]`
+- [ ] **Task 6.4: Hong Kong and China feeds whose terms allow it** `[parallel-ok]` (taken: slot 4, 2026-11-17 12:00)
   - Files: modify `stock_advisor/news/sources/rss_feeds.py`, its tests, `docs/known-issues.md`.
   - Done when: the terms of news.gov.hk, the SFC's RSS, the Census and Statistics Department
     and CNA are read; the allowed ones are added and one live poll stores stories from each.

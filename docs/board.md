@@ -5,7 +5,8 @@ analyzer). Plan: `docs/plans/2026-11-10-price-data-and-analyzer.md` (waits for B
 not yet in the orchestrator's registry). Questions for Brian go to `docs/inbox.md`, never here.
 
 ## Workers
-- none (slot 1 finished Task 2.5; slot 3 finished Tasks 1.1, 1.5 and 2.2; slot 2 finished Tasks 1.3 and 2.1; slot 4 finished Task 1.4, accounts, cash and limits; copy of sample to data/accounts.json still to do in the main folder)
+- slot 1: Task 5.1 (names file and linker), building
+- none (slot 4 finished the code of Task 6.2, 2026-11-17; its history load waits for slot 1)
 
 ## Ready to build (once the plan is approved and registered)
 - Task 1.1 (two new dependencies), Task 1.2 (watchlist file), Task 1.4 (accounts, cash, limits).
@@ -24,7 +25,7 @@ not yet in the orchestrator's registry). Questions for Brian go to `docs/inbox.m
   moves to milestone 4.
 
 ## Results
-- Task 5.3 (Haiku labeller, cost per label, monthly ceiling) done by slot 2, 2026-11-17: 20 tests pass with a fake client; no real API call, cost US$0; 516 tests pass, ruff clean.
+- Task 5.3 (Haiku labeller, cost per label, monthly ceiling) done by slot 2, 2026-11-17: 18 tests pass with a fake client; no real API call, cost US$0; 534 tests pass after merging main, ruff clean.
 - Task 1.2 (watchlist file) done by slot 1, 2026-11-10: 215 rows, 85 HK and 101 US stocks.
 - Task 2.1 (price store and quality flags) done by slot 2, 2026-11-10.
 - Task 3.1 (value, return and concentration) done by slot 5, 2026-11-10: analyzer.py with 6 hand-checked tests.
@@ -49,3 +50,4 @@ not yet in the orchestrator's registry). Questions for Brian go to `docs/inbox.m
 - Task 4.3 (review and fixes) done by slot 1, 2026-11-17: 14 findings; 7 fixed with tests, 7 judgment calls in open-items; 498 tests pass, ruff clean.
 - Task 4.1 (four scheduled tasks) done by slot 1, 2026-11-16: dashboard Running, others Ready; recorder 22:00 run result 0 with a log line per source.
 - Task 4.4 (docs and wrap-up) done by slot 1, 2026-11-16: README, architecture, known-issues, CLAUDE.md updated; every milestone 1 criterion checked; milestone-reached card in the inbox.
+- Task 6.3 (short-selling files) done by slot 5, 2026-11-17: SFC weekly short positions load into `short_selling` (live check: 528 rows for 89 HK symbols from 1 Oct 2026; full history loads at the next 02:00 backfill); FINRA not built (its terms forbid scraping), recorded in known-issues; 6 new tests pass.

@@ -472,6 +472,7 @@ def main(argv: Optional[List[str]] = None) -> int:
                 gdelt = sources["gdelt"]
                 gdelt.strict = True  # stop instead of skipping a window the server refused
                 gdelt.rate_limit_wait, gdelt.rate_limit_tries = 75.0, 4  # lockouts last 1+ minutes
+                fetch_short_selling(store)
                 run(store, sources, progress, args.max_minutes, args.slice_minutes)
             if not args.process_only:
                 rebuild_library_snapshot(store)  # the daily 02:00 run keeps the News tab fresh
@@ -492,6 +493,19 @@ def main(argv: Optional[List[str]] = None) -> int:
         release_lock(LOCK_FILE)
     print(format_status(read_status(STATUS_FILE)))
     return exit_code
+
+
+def fetch_short_selling(store) -> None:
+    """Load the SFC weekly short positions not stored yet (Task 6.3). The first run takes the
+    whole history (about 740 files, one a second); later runs fetch the newest week. A failure
+    is logged and does not fail the backfill."""
+    try:
+        from stock_advisor.news.sources.short_selling import fetch_sfc
+        from stock_advisor.watchlist import load_watchlist
+
+        fetch_sfc(store, [w.symbol for w in load_watchlist() if w.market == "HK"])
+    except Exception:
+        logger.exception("short-selling fetch failed")
 
 
 def rebuild_library_snapshot(store) -> None:

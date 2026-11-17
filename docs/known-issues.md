@@ -110,3 +110,17 @@ Limits and traps we live with. A bug that will be fixed goes in `open-items.md` 
   EDGAR.
 - **Console encoding.** Under `conda run` in Windows PowerShell 5.1, characters such as the
   warning sign can print as garbage. Running python directly prints them correctly.
+
+## Short-selling files (Task 6.3, read 2026-11-17)
+- **FINRA short-volume and short-interest files are not loaded.** FINRA's terms of use
+  (finra.org/terms-of-use, restrictions d, e, g) forbid scraping tools and robots, bulk
+  copying, and building a database from the site without written consent. The files on
+  cdn.finra.org open in a browser, but the 2026-10-27 rule (skip sources whose terms forbid
+  scripted access) keeps them out. The US half of the short-selling signal is therefore empty
+  until Brian asks FINRA for consent or names another source.
+- **SFC weekly short positions load into `short_selling` (source `sfc_short`).** Files go back
+  to 2012-08-31 (740 listed on 2026-11-17). The SFC publishes on Fridays, but some weeks come
+  on another day (24 Dec 2025 was a Wednesday), so the adapter reads the listing page and each
+  row's own Date column. Only watchlist and holding stocks are stored. The fetch runs at the
+  start of the 02:00 backfill; the first run takes the whole history (about 12 minutes at one
+  request a second).
