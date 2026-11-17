@@ -61,6 +61,9 @@ Limits and traps we live with. A bug that will be fixed goes in `open-items.md` 
 - **HKEXnews.** The HKEX Terms of Use (section 5) forbid scripted access and data mining. So
   Hong Kong company filings are not collected, and HK company news comes only from Yahoo and
   RSS feeds. Written permission from HKEX would reopen this.
+- **SCMP and Investing.com RSS.** Removed 2026-11-17: SCMP's terms ban crawlers; Investing.com
+  blocks scripts and bans storing its data. Stored stories are kept.
+- **Census and Statistics Department.** No RSS feed exists; it offers a JSON statistics API only.
 - Paywalled articles are never fetched. Sites whose terms forbid scraping are skipped.
 
 ## Approximations in the model
