@@ -158,7 +158,7 @@ adapter uses `PoliteSession`, stores through `news/store.py` or its own table na
 linked by Task 5.1's linker where it carries a company, and has tests on saved fixtures (no
 network in tests).
 
-- [ ] **Task 6.1: US filings by event type for every US watchlist stock** `[parallel-ok]`
+- [ ] **Task 6.1: US filings by event type for every US watchlist stock** `[parallel-ok]` (taken: slot 3, 2026-11-17 13:30)
   - Files: modify `stock_advisor/news/sources/edgar.py`, `news/collect.py` (the allowlist
     becomes every US watchlist symbol with a CIK), tests.
   - Done when: tests pass: an 8-K is stored with its item numbers (for example 2.02 results,
