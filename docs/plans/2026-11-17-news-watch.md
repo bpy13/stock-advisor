@@ -84,7 +84,7 @@ through Task 5.2's migration and the task that names its own new table.
 
 ## Phase 5 – Linking and the sample (sonnet)
 
-- [ ] **Task 5.1: the names file and the linker** (opus) `[parallel-ok]`
+- [ ] **Task 5.1: the names file and the linker** (opus) `[parallel-ok]` (taken: slot 1, 2026-11-17 13:08)
   - Files: create `config/aliases.csv` (`symbol,alias,kind`: full name, short name, ticker
     forms such as "0700.HK", "700 HK", "Tencent", "騰訊"; driver keywords for the six drivers),
     `stock_advisor/news/link.py`, `tests/test_news_link.py`; a script
@@ -111,7 +111,7 @@ through Task 5.2's migration and the task that names its own new table.
     restarted through its scheduled task and `watcher_log.txt` shows a poll without an error.
   - Notes: a dropped story stays in `items`; nothing is deleted.
 
-- [ ] **Task 5.3: the labeller, with cost recording and a ceiling** (opus) `[parallel-ok]`
+- [ ] **Task 5.3: the labeller, with cost recording and a ceiling** (opus) `[parallel-ok]` (taken: slot 2, 2026-11-17 12:10)
   - Files: create `stock_advisor/news/label.py`, `tests/test_news_label.py`; modify
     `news/store.py` (new table `labels`: item id, relevant, event_type, novelty, severity,
     model, prompt version, tokens in and out, cost in US$, labelled_at; new table `llm_calls`
@@ -166,7 +166,7 @@ network in tests).
     US watchlist stock or lists the ones without a CIK in the log. A live fetch of one day
     stores filings for more than the old 10-ticker list, inside the SEC's request limit.
 
-- [ ] **Task 6.2: US insider trades (Form 4)** `[parallel-ok]`
+- [ ] **Task 6.2: US insider trades (Form 4)** `[parallel-ok]` (taken: slot 4, 2026-11-17 12:00)
   - Files: create `stock_advisor/news/sources/insider.py`, `tests/test_insider.py`; new table
     `insider_trades` (symbol, filer, role, trade date, filed date, code, shares, price, value,
     10b5-1 flag, accession number unique).
