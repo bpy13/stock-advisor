@@ -180,7 +180,7 @@ network in tests).
     US watchlist stock or lists the ones without a CIK in the log. A live fetch of one day
     stores filings for more than the old 10-ticker list, inside the SEC's request limit.
 
-- [ ] **Task 6.2: US insider trades (Form 4)** `[parallel-ok]` (slot 1 only)
+- [ ] **Task 6.2: US insider trades (Form 4)** `[parallel-ok]` (slot 1 only) (taken: slot 1, 2026-11-17 12:00)
   - Status (slot 4, 2026-11-17): code and 12 tests done in 5719ddd (`insider.py`, `scripts/load_insider.py`, table `insider_trades` created by `InsiderTrades`; 508 tests pass, ruff clean). Left to do in the main folder (needs .env and the real news.db): `python scripts/load_insider.py --history` through jobq (cpu lane), then `--day <date>`; check the log ends with rows per year and a rerun adds no duplicate; then tick. The live day is not yet wired into the watcher or backfill task.
   - Files: create `stock_advisor/news/sources/insider.py`, `tests/test_insider.py`; new table
     `insider_trades` (symbol, filer, role, trade date, filed date, code, shares, price, value,
