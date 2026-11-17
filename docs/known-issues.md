@@ -21,9 +21,14 @@ Limits and traps we live with. A bug that will be fixed goes in `open-items.md` 
 - **Guardian and NYT daily caps.** Both APIs allow 500 calls a day; we stop at 480. The full
   Guardian archive (from 1990) takes about a week of daily runs and the NYT archive about a day.
   The daily backfill task resumes where the last run stopped.
-- **`yfinance` `Ticker.news` is broken.** Yahoo's endpoint answers 404, so the Yahoo adapter uses
-  the `yf.Search` fallback. Search finds no headlines for 2800.HK and 3033.HK (they still have
-  prices). Re-check after a yfinance upgrade.
+- **`yfinance` `Ticker.news` is broken.** Yahoo's endpoint answers 404. Since 3 Nov 2026 the
+  404 page says "Will be right back", so yfinance 1.7.0 raises YFDataException instead of
+  returning nothing. The Yahoo adapter therefore calls `yf.Search` only. Yahoo news was empty
+  from 3 to 17 Nov 2026 (Task 5.2c). Re-check after a yfinance upgrade.
+- **Yahoo Search finds no Hong Kong headlines.** Search returns 0 stories for Hong Kong tickers
+  (checked 2026-11-17: 0700.HK, 0005.HK, 9988.HK, 2800.HK, 3033.HK), but 18 to 20 for US stocks,
+  US funds and the two indexes. Hong Kong holdings get Yahoo news only through stories filed
+  under ^HSI.
 - **Per-page download errors.** Some adapters log and skip a failed page, so history can have
   small gaps. The status file shows the last error per source.
 

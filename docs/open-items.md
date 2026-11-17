@@ -69,6 +69,8 @@ here; a limit or trap we live with goes in `known-issues.md`. Each item in one p
   10,419 (10 Nov), plus 400 to 960 IncompleteRead a day. Before 3 Nov: a few timeouts and
   HTTP errors a day only. Still failing after the 17 Nov restart. Each symbol waits about
   2.6 s, so a poll takes about 2.5 minutes instead of 60 s (about 1.5 minutes extra).
+  Code fixed by Task 5.2c (slot 2, 2026-11-17; the adapter calls Search only). The live
+  watcher check waits for slot 1 after the next watcher restart.
 - RSS feeds (Task 1.10; terms read in Task 6.4, 2026-11-17: SCMP and Investing.com removed, see rss_feeds.py). Still to do: check whether Dow Jones terms allow MarketWatch feeds;
   find working Yahoo, Nasdaq and US Treasury feed URLs. Poll
   CISA (5.7 MB per fetch) at most every 15 minutes.

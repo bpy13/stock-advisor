@@ -1,11 +1,14 @@
 """Yahoo Finance headlines through yfinance (recent items only, no history).
 
-Per symbol the adapter reads `yfinance.Ticker(symbol).news`. Two payload shapes exist:
+Per symbol the adapter reads `yfinance.Search(symbol).news`. Two payload shapes exist:
   * new: {"id", "content": {"title", "summary", "pubDate", "canonicalUrl": {"url"}, ...}}
   * old: {"uuid", "title", "link", "providerPublishTime" (epoch seconds), "publisher", ...}
-yfinance 1.7.0 calls a Yahoo endpoint (`/xhr/ncp`) that currently answers 404, so
-`Ticker.news` returns an empty list. When that happens the adapter falls back to
-`yfinance.Search(symbol).news`, which still returns the old flat shape. Both are parsed.
+Search returns the old flat shape; both are parsed.
+
+`yfinance.Ticker(symbol).news` is not used. Its endpoint (`/xhr/ncp`) answers 404, and since
+3 Nov 2026 Yahoo's 404 page contains "Will be right back", so yfinance 1.7.0 raises
+YFDataException ("Yahoo is down") instead of returning an empty list. That exception skipped
+the old Search fallback, and every symbol returned nothing (Task 5.2c).
 """
 
 from __future__ import annotations
@@ -102,15 +105,9 @@ class YahooNewsSource:
         self._sleep = sleep
         self._min_delay = min_delay
 
-    def _fetch_raw(self, symbol: str) -> list:
-        articles = yf.Ticker(symbol).news or []
-        if not articles:
-            articles = yf.Search(symbol, news_count=NEWS_COUNT, max_results=1).news or []
-        return articles
-
     def fetch_symbol(self, symbol: str) -> List[NewsItem]:
         try:
-            articles = self._fetch_raw(symbol)
+            articles = yf.Search(symbol, news_count=NEWS_COUNT, max_results=1).news or []
         except Exception as exc:  # yfinance raises many types; one bad ticker must not stop the rest
             logger.warning("Yahoo news for %s failed (%s)", symbol, type(exc).__name__)
             return []

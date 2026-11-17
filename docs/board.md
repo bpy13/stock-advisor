@@ -6,6 +6,7 @@ not yet in the orchestrator's registry). Questions for Brian go to `docs/inbox.m
 
 ## Workers
 - none (slot 2 finished the code of Task 5.2, 2026-11-17; its history run waits for slot 1). (slot 4 finished the code of Task 6.2, 2026-11-17; its history load waits for slot 1)
+- none (slot 2 finished the code of Task 5.2c, Yahoo news, 2026-11-17: the adapter calls Search only and returned 94 stories live; the watcher log check waits for slot 1).
 
 ## Ready to build (once the plan is approved and registered)
 - Task 1.1 (two new dependencies), Task 1.2 (watchlist file), Task 1.4 (accounts, cash, limits).
