@@ -62,6 +62,13 @@ here; a limit or trap we live with goes in `known-issues.md`. Each item in one p
   uses the `yf.Search` fallback. Re-check after a yfinance upgrade. Search finds no headlines
   for 2800.HK and 3033.HK; Task 2.2 decides whether they stay as price targets (they still
   have prices; only headlines are missing).
+- Yahoo news returns nothing in the watcher (found in Task 5.2b, 2026-11-17). Every symbol
+  logs "Yahoo news for X failed (YFDataException)", so each poll fetches "yahoo 0". First day
+  in `watcher_log.txt` (which starts 28 Oct): 3 Nov, with 7,592 YFDataException; then 10,895
+  (4 Nov), 11,740 (5 Nov), 12,629 (6 Nov), 18,648 (7 Nov), 19,297 (8 Nov), 15,025 (9 Nov),
+  10,419 (10 Nov), plus 400 to 960 IncompleteRead a day. Before 3 Nov: a few timeouts and
+  HTTP errors a day only. Still failing after the 17 Nov restart. Each symbol waits about
+  2.6 s, so a poll takes about 2.5 minutes instead of 60 s (about 1.5 minutes extra).
 - RSS feeds (Task 1.10; terms read in Task 6.4, 2026-11-17: SCMP and Investing.com removed, see rss_feeds.py). Still to do: check whether Dow Jones terms allow MarketWatch feeds;
   find working Yahoo, Nasdaq and US Treasury feed URLs. Poll
   CISA (5.7 MB per fetch) at most every 15 minutes.

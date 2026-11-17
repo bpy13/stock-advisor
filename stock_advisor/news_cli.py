@@ -163,6 +163,11 @@ def run_once(store, analyzer: NewsAnalyzer, hours: float, limit: int, targets: S
 # ---- watch mode ---------------------------------------------------------------------------------
 
 
+def fetched_per_source(results) -> str:
+    """'fetched rss 12, yahoo 0': stories each source returned this poll (new or already stored)."""
+    return "fetched " + (", ".join(f"{r.name} {r.fetched}" for r in results) or "nothing")
+
+
 class SlowPoller:
     """Runs the 15-minute sources (Guardian, NYT, GDELT, CISA) on a side thread.
 
@@ -196,7 +201,8 @@ class SlowPoller:
             for r in results:
                 if r.status != "ok":
                     logger.warning("%s %s: %s", r.name, r.status, r.error)
-            logger.info("slow poll: %d new", sum(r.new for r in results))
+            logger.info("slow poll: %d new; %s", sum(r.new for r in results),
+                        fetched_per_source(results))
         except Exception as exc:
             logger.warning("slow poll failed (%s: %s)", type(exc).__name__, exc)
 
@@ -255,8 +261,9 @@ def _cycle(store, analyzer, group, seen, on_new_events, hours, finbert, embedder
         if r.status != "ok":
             logger.warning("%s %s: %s", r.name, r.status, r.error)
     done = process(store, analyzer, finbert, embedder)
-    logger.info("cycle: %d new, scored %d, clustered %d", sum(r.new for r in results),
-                done.scored, done.clustered)
+    # One line per poll, always: scripts/run_watcher.ps1 restarts a watcher whose log goes quiet.
+    logger.info("cycle: %d new, scored %d, clustered %d; %s", sum(r.new for r in results),
+                done.scored, done.clustered, fetched_per_source(results))
     new = [e for e in analyzer.recent_events(hours, high_impact_only=True) if e.id not in seen]
     if not new:
         return

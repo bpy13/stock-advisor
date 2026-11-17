@@ -200,6 +200,26 @@ def test_watch_slow_group_runs_on_its_own_schedule(tmp_path):
     assert 2 <= slow.calls < 10  # first cycle, then roughly every fifth
 
 
+def test_watch_logs_one_line_per_poll_with_stories_fetched_per_source(tmp_path, war_centroids,
+                                                                     caplog):
+    # The wrapper reads silence in the log as "stuck", so every poll must write a line,
+    # and the line must say what each source returned (2026-11-17: six silent days).
+    db = tmp_path / "news.db"
+    sources = A.WatchSources(fast=[FakeSource("rss", [fresh_item(1), fresh_item(2)]),
+                                   FakeSource("yahoo")],
+                             slow=[FakeSource("guardian", [fresh_item(3)])])
+    with caplog.at_level(logging.INFO):
+        run_cli(db, ["--watch"], None, sources=sources, finbert=FakeFinBert(),
+                embedder=FakeEmbedder(), sleep=lambda s: None, max_cycles=2,
+                background_slow=False)
+    polls = [r.getMessage() for r in caplog.records if r.getMessage().startswith("cycle:")]
+    assert len(polls) == 2
+    assert "fetched rss 2, yahoo 0" in polls[0]
+    assert "fetched rss 2, yahoo 0" in polls[1]  # fetched counts repeats, not only new ones
+    assert any("slow poll" in r.getMessage() and "fetched guardian 1" in r.getMessage()
+               for r in caplog.records)
+
+
 def test_watch_survives_a_failing_cycle_and_a_failing_hook(tmp_path, war_centroids, caplog):
     db = tmp_path / "news.db"
     seed_store(db, with_history=False)
