@@ -88,6 +88,18 @@ def build_sources(holdings: Iterable[str] = ()) -> list:
     ]
 
 
+def _linker():
+    """The linker for new stories, or None when the names file cannot be read (stories are then
+    stored unlinked and a later history run links them)."""
+    try:
+        from stock_advisor.news.link import build_linker
+
+        return build_linker()
+    except Exception as exc:  # a broken names file must not stop news collection
+        logger.warning("Could not build the linker (%s)", type(exc).__name__)
+        return None
+
+
 def attach_budget(source, store: NewsStore, budgets: Dict[str, int]) -> None:
     """Give a capped source a hook that counts each API call in the store."""
     cap = budgets.get(source.name)
@@ -110,13 +122,14 @@ def collect_recent(
     """Store `fetch_recent()` of every source. One failing source does not stop the rest."""
     budgets = DAILY_CALL_BUDGETS if budgets is None else budgets
     results: List[SourceResult] = []
+    linker = _linker()
     for source in sources:
         result = SourceResult(source.name)
         attach_budget(source, store, budgets)
         try:
             items = source.fetch_recent()
             result.fetched = len(items)
-            result.new = store.add_items(items)
+            result.new = store.add_items(items, linker)
         except SourceLimitReached as exc:
             result.status, result.error = "limit", str(exc)
             logger.warning("%s stopped: %s", source.name, exc)
@@ -159,11 +172,12 @@ def backfill_source(
     end = ensure_utc(end) if end else datetime.now(timezone.utc)
     first = resume_start(store, source.name, start)
     pending: List[NewsItem] = []
+    linker = _linker()
 
     def flush() -> None:
         if pending:
             result.fetched += len(pending)
-            result.new += store.add_items(pending)
+            result.new += store.add_items(pending, linker)
             store.advance_backfill_cursor(source.name, min(max(i.published_at for i in pending), end))
             pending.clear()
 

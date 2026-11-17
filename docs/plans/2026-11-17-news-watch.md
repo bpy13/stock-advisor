@@ -99,7 +99,7 @@ through Task 5.2's migration and the task that names its own new table.
   - Notes: holdings join at run time as in `watchlist.py`; nothing about the holdings is
     written to a tracked file.
 
-- [ ] **Task 5.2: links stored for every story** — needs: Task 5.1 (taken: slot 2, 2026-11-17 14:00)
+- [ ] **Task 5.2: links stored for every story** (waiting: history run and watcher restart, main folder only) — needs: Task 5.1
   - Files: modify `stock_advisor/news/store.py` (migration: `items.drivers` JSON,
     `items.link_state` = linked / dropped, `items.linked_at`), `news/collect.py` (new stories
     are linked on insert; the Yahoo and EDGAR symbols are kept and merged),
@@ -111,6 +111,7 @@ through Task 5.2's migration and the task that names its own new table.
     30 random linked and 30 random dropped headlines for a reading check. The watcher is
     restarted through its scheduled task and `watcher_log.txt` shows a poll without an error.
   - Notes: a dropped story stays in `items`; nothing is deleted.
+  - Status (slot 2, 2026-11-17): code and 5 tests done (store migration and `add_items(items, linker)`, `collect.py` and `scripts/backfill_news.py` link on insert, `scripts/link_history.py` with report). Left for slot 1 in the main folder (real news.db and the scheduled tasks): pull main, then `jobq.ps1 add -Lane cpu -Script <job.ps1>` running `python scripts/link_history.py` (resumable; log ends with counts; report `data/reports/news-links-<date>.md`); restart the watcher through its scheduled task and check `watcher_log.txt` shows a poll without an error; then tick.
 
 - [x] **Task 5.3: the labeller, with cost recording and a ceiling** (opus) `[parallel-ok]`
   - Files: create `stock_advisor/news/label.py`, `tests/test_news_label.py`; modify

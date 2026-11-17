@@ -5,7 +5,7 @@ analyzer). Plan: `docs/plans/2026-11-10-price-data-and-analyzer.md` (waits for B
 not yet in the orchestrator's registry). Questions for Brian go to `docs/inbox.md`, never here.
 
 ## Workers
-- none (slot 4 finished the code of Task 6.2, 2026-11-17; its history load waits for slot 1)
+- none (slot 2 finished the code of Task 5.2, 2026-11-17; its history run waits for slot 1). (slot 4 finished the code of Task 6.2, 2026-11-17; its history load waits for slot 1)
 
 ## Ready to build (once the plan is approved and registered)
 - Task 1.1 (two new dependencies), Task 1.2 (watchlist file), Task 1.4 (accounts, cash, limits).
@@ -24,6 +24,7 @@ not yet in the orchestrator's registry). Questions for Brian go to `docs/inbox.m
   moves to milestone 4.
 
 ## Results
+- Task 5.2 (links stored for every story) code done by slot 2, 2026-11-17: 5 new tests pass; the history run and the watcher restart wait for slot 1. No paid calls, cost US$0.
 - Task 5.1 (names file and news linker) done by slot 1, 2026-11-17: 1,109 aliases for 205 symbols and 6 drivers; 96 linker tests pass (64 headlines, 21 traps); 614 tests pass in all, ruff clean; about 3.5 ms a story. Task 5.2 can start.
 - Task 5.3 (Haiku labeller, cost per label, monthly ceiling) done by slot 2, 2026-11-17: 18 tests pass with a fake client; no real API call, cost US$0; 534 tests pass after merging main, ruff clean.
 - Task 1.2 (watchlist file) done by slot 1, 2026-11-10: 215 rows, 85 HK and 101 US stocks.

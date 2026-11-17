@@ -36,6 +36,7 @@ if str(_REPO_ROOT) not in sys.path:
 from stock_advisor.news.collect import (  # noqa: E402
     BATCH_SIZE,
     DAILY_CALL_BUDGETS,
+    _linker,
     backfill_source,
     build_sources,
     holdings_symbols,
@@ -287,15 +288,16 @@ def run_edgar(store, source, spec: SourceSpec, progress: Progress, stop_at: floa
             return "paused"
         logger.info("edgar: reading quarter starting %s", quarter.date())
         batch, stored = [], 0
+        linker = _linker()
         try:
             for item in source.fetch_range(quarter, upcoming - timedelta(seconds=1)):
                 batch.append(item)
                 if len(batch) >= BATCH_SIZE:
-                    stored += store.add_items(batch)
+                    stored += store.add_items(batch, linker)
                     batch.clear()
-            stored += store.add_items(batch)
+            stored += store.add_items(batch, linker)
         except Exception as exc:
-            store.add_items(batch)  # keep what was read; the quarter is read again next time
+            store.add_items(batch, linker)  # keep what was read; the quarter is read again next time
             progress.source(spec.name, error=f"{type(exc).__name__}: {exc}")
             return "failed"
         if stored == 0 and quarter.year >= 2003 and not _quarter_has_items(store, quarter, upcoming):

@@ -199,6 +199,13 @@ class NewsStore:
                     "UPDATE items SET time_precision = 'day' WHERE source = 'wikipedia_events' "
                     "OR (source = 'edgar' AND published_at LIKE '%T00:00:00.000000+00:00')"
                 )
+        # Links (Task 5.2): drivers (JSON), link_state 'linked' / 'dropped' (NULL = not linked
+        # yet), linked_at. Adding a column is instant, even on the 6 GB table.
+        for name, ddl in (("drivers", "TEXT NOT NULL DEFAULT '[]'"), ("link_state", "TEXT"),
+                          ("linked_at", "TEXT")):
+            if name not in columns:
+                with self._conn:
+                    self._conn.execute(f"ALTER TABLE items ADD COLUMN {name} {ddl}")
         # GDELT stamps seendate per crawl batch, so its times are not story times. Cheap and
         # idempotent: once no 'exact' GDELT rows remain the UPDATE matches nothing.
         with self._conn:
@@ -358,32 +365,84 @@ class NewsStore:
 
     # ---- items -------------------------------------------------------------------------
 
-    def add_items(self, items: Iterable[NewsItem]) -> int:
-        """Insert items, skipping ids already stored. Returns how many were new."""
+    def add_items(self, items: Iterable[NewsItem], linker=None) -> int:
+        """Insert items, skipping ids already stored. Returns how many were new.
+
+        With a `linker` (news.link.Linker) each new story is linked on insert: the symbols it
+        arrived with (Yahoo, EDGAR) and the ones the linker finds are merged, the drivers are
+        stored, and link_state is 'linked' or 'dropped'. A dropped story stays in the table."""
+        now = _to_text(datetime.now(timezone.utc))
+        rows = []
+        for i in items:
+            symbols, drivers, state, linked_at = list(i.symbols), [], None, None
+            if linker is not None:
+                found = linker.link(i.title, i.summary, i.body)
+                symbols = list(dict.fromkeys([*symbols, *found.symbols]))
+                drivers = list(found.drivers)
+                state = "linked" if symbols or drivers else "dropped"
+                linked_at = now
+            rows.append((
+                i.id, i.source, _to_text(i.published_at), i.title, i.url, i.summary,
+                json.dumps(symbols), i.language, i.body, i.time_precision,
+                json.dumps(list(i.event_items)), json.dumps(drivers), state, linked_at,
+            ))
         before = self._conn.total_changes
         with self._conn:
             self._conn.executemany(
                 "INSERT OR IGNORE INTO items "
                 "(id, source, published_at, title, url, summary, symbols, language, body, "
-                "time_precision, event_items) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                [
-                    (
-                        i.id,
-                        i.source,
-                        _to_text(i.published_at),
-                        i.title,
-                        i.url,
-                        i.summary,
-                        json.dumps(list(i.symbols)),
-                        i.language,
-                        i.body,
-                        i.time_precision,
-                        json.dumps(list(i.event_items)),
-                    )
-                    for i in items
-                ],
+                "time_precision, event_items, drivers, link_state, linked_at) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                rows,
             )
         return self._conn.total_changes - before
+
+    def items_to_link(self, after_id: str = "", limit: int = 2000) -> List[NewsItem]:
+        """Stories with no link_state yet, in id order after `after_id` (keyset paging, so a
+        history run can resume from the last id it finished)."""
+        rows = self._conn.execute(
+            "SELECT * FROM items WHERE link_state IS NULL AND id > ? ORDER BY id LIMIT ?",
+            (after_id, limit),
+        )
+        return [_row_to_item(r) for r in rows]
+
+    def set_links(self, links: Iterable[Tuple[str, List[str], List[str]]]) -> None:
+        """Store (item id, merged symbols, drivers) for stories linked after the fact. The
+        state is 'linked' when either list is not empty, else 'dropped'."""
+        now = _to_text(datetime.now(timezone.utc))
+        with self._conn:
+            self._conn.executemany(
+                "UPDATE items SET symbols = ?, drivers = ?, link_state = ?, linked_at = ? "
+                "WHERE id = ?",
+                [
+                    (json.dumps(syms), json.dumps(drv), "linked" if syms or drv else "dropped",
+                     now, item_id)
+                    for item_id, syms, drv in links
+                ],
+            )
+
+    def link_counts(self) -> dict:
+        """Stories per link_state ('linked', 'dropped', None = not linked yet)."""
+        rows = self._conn.execute("SELECT link_state, COUNT(*) FROM items GROUP BY link_state")
+        return {r[0]: r[1] for r in rows}
+
+    def linked_per_symbol(self, top: int = 20) -> List[Tuple[str, int]]:
+        """The `top` symbols with the most linked stories, as (symbol, stories)."""
+        rows = self._conn.execute(
+            "SELECT j.value, COUNT(*) AS n FROM items, json_each(items.symbols) j "
+            "WHERE items.link_state = 'linked' GROUP BY j.value ORDER BY n DESC, j.value LIMIT ?",
+            (top,),
+        )
+        return [(r[0], r[1]) for r in rows]
+
+    def sample_by_state(self, state: str, count: int) -> List[Tuple[str, str, str]]:
+        """`count` random (source, published_at, title) rows with this link_state."""
+        rows = self._conn.execute(
+            "SELECT source, published_at, title FROM items WHERE link_state = ? "
+            "ORDER BY random() LIMIT ?",
+            (state, count),
+        )
+        return [(r[0], r[1], r[2]) for r in rows]
 
     def get_item(self, item_id: str) -> Optional[NewsItem]:
         row = self._conn.execute("SELECT * FROM items WHERE id = ?", (item_id,)).fetchone()
