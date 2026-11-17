@@ -26,6 +26,7 @@ not yet in the orchestrator's registry). Questions for Brian go to `docs/inbox.m
 ## Results
 - Task 5.2 (links stored for every story) code done by slot 2, 2026-11-17: 5 new tests pass; the history run and the watcher restart wait for slot 1. No paid calls, cost US$0.
 - Task 5.1 (names file and news linker) done by slot 1, 2026-11-17: 1,109 aliases for 205 symbols and 6 drivers; 96 linker tests pass (64 headlines, 21 traps); 614 tests pass in all, ruff clean; about 3.5 ms a story. Task 5.2 can start.
+- Task 5.4 (API key check) done by slot 1, 2026-11-17: `ANTHROPIC_API_KEY` is non-empty in `.env`; value not read or printed; cost US$0.
 - Task 5.3 (Haiku labeller, cost per label, monthly ceiling) done by slot 2, 2026-11-17: 18 tests pass with a fake client; no real API call, cost US$0; 534 tests pass after merging main, ruff clean.
 - Task 1.2 (watchlist file) done by slot 1, 2026-11-10: 215 rows, 85 HK and 101 US stocks.
 - Task 2.1 (price store and quality flags) done by slot 2, 2026-11-10.
@@ -52,5 +53,5 @@ not yet in the orchestrator's registry). Questions for Brian go to `docs/inbox.m
 - Task 4.1 (four scheduled tasks) done by slot 1, 2026-11-16: dashboard Running, others Ready; recorder 22:00 run result 0 with a log line per source.
 - Task 4.4 (docs and wrap-up) done by slot 1, 2026-11-16: README, architecture, known-issues, CLAUDE.md updated; every milestone 1 criterion checked; milestone-reached card in the inbox.
 - Task 6.3 (short-selling files) done by slot 5, 2026-11-17: SFC weekly short positions load into `short_selling` (live check: 528 rows for 89 HK symbols from 1 Oct 2026; full history loads at the next 02:00 backfill); FINRA not built (its terms forbid scraping), recorded in known-issues; 6 new tests pass.
-- Task 6.1 (EDGAR filings by event type) code done by slot 3, 2026-11-17: `event_items` column, US watchlist allowlist; live one-day check left for slot 1 (`scripts/check_edgar_day.py`).
+- Task 6.1 (EDGAR filings by event type) done by slot 3 (code) and slot 1 (live check), 2026-11-17: 13 Nov fetch gave 101 tickers, 100 CIKs, 5 filings with item numbers, 3.7 s; cost US$0.
 - Task 6.4 (Hong Kong and China feeds) done by slot 4, 2026-11-17: added news.gov.hk Finance, SFC Press Releases and Circulars, CNA Finance and Cross-Strait (live poll stored 72 stories); removed SCMP and Investing.com on their terms; Census and Statistics has no RSS feed; tests pass.
