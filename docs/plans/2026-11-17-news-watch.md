@@ -84,7 +84,8 @@ through Task 5.2's migration and the task that names its own new table.
 
 ## Phase 5 – Linking and the sample (sonnet)
 
-- [ ] **Task 5.1: the names file and the linker** (opus) `[parallel-ok]` (taken: slot 1, 2026-11-17 13:08)
+- [x] **Task 5.1: the names file and the linker** (opus) `[parallel-ok]`
+  - Result (slot 1, 2026-11-17): 1,109 alias rows for 205 symbols and the six drivers; 96 tests pass (64 linked headlines, 21 traps); 614 tests pass in all, ruff clean. Linking takes about 3.5 ms a story on the busy PC (a prefix-tree regex; the flat one took 10 ms). No `hans` rows were written: the working agreement forbids writing Simplified Chinese; the linker accepts them if Brian adds some. Weak names ("Apple", "Meta", "小米") need a cue word or another alias; numeric HK codes link only after "HKEX:" or as "(00700)".
   - Files: create `config/aliases.csv` (`symbol,alias,kind`: full name, short name, ticker
     forms such as "0700.HK", "700 HK", "Tencent", "騰訊"; driver keywords for the six drivers),
     `stock_advisor/news/link.py`, `tests/test_news_link.py`; a script
