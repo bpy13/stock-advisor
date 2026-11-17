@@ -139,7 +139,8 @@ through Task 5.2's migration and the task that names its own new table.
     (`output_config.format` json_schema) with thinking off; the request shape is checked only
     against the installed SDK (anthropic 2.9.0), so Task 5.5's first real call is its first live test.
 
-- [ ] **Task 5.4: Brian's API key is in `.env`** (checkpoint) (slot 1 only) — needs: Task 5.3 (taken: slot 1, 2026-11-17 15:00)
+- [x] **Task 5.4: Brian's API key is in `.env`** (checkpoint) (slot 1 only) — needs: Task 5.3
+  - Result (slot 1, 2026-11-17): checked `ANTHROPIC_API_KEY` in the main folder's `.env`: non-empty (True). Value not printed.
   - Done when: `ANTHROPIC_API_KEY` is set in
     `C:\Users\brian\OneDrive\Documents\workspace\repo\stock_advisor\.env` by Brian. The worker
     checks only that the name has a non-empty value (`python -c` printing True/False), never
