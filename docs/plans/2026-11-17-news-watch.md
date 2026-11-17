@@ -186,7 +186,7 @@ network in tests).
     use allowed). Tests pass on saved files, including a week the SFC published late. A
     scheduled fetch is added to the existing backfill task, not a new scheduled task.
 
-- [ ] **Task 6.4: Hong Kong and China feeds whose terms allow it** `[parallel-ok]`
+- [ ] **Task 6.4: Hong Kong and China feeds whose terms allow it** `[parallel-ok]` (taken: slot 4, 2026-11-17 12:00)
   - Files: modify `stock_advisor/news/sources/rss_feeds.py`, its tests, `docs/known-issues.md`.
   - Done when: the terms of news.gov.hk, the SFC's RSS, the Census and Statistics Department
     and CNA are read; the allowed ones are added and one live poll stores stories from each.
