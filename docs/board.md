@@ -24,6 +24,7 @@ not yet in the orchestrator's registry). Questions for Brian go to `docs/inbox.m
   moves to milestone 4.
 
 ## Results
+- Task 6.2 (insider trades) part done by slot 1, 2026-11-17: live day 13 Nov stored 43 rows, rerun 0; history load queued as job 199 (cpu lane), plan marked waiting; cost US$0.
 - Task 5.2 (links stored for every story) code done by slot 2, 2026-11-17: 5 new tests pass; the history run and the watcher restart wait for slot 1. No paid calls, cost US$0.
 - Task 5.1 (names file and news linker) done by slot 1, 2026-11-17: 1,109 aliases for 205 symbols and 6 drivers; 96 linker tests pass (64 headlines, 21 traps); 614 tests pass in all, ruff clean; about 3.5 ms a story. Task 5.2 can start.
 - Task 5.4 (API key check) done by slot 1, 2026-11-17: `ANTHROPIC_API_KEY` is non-empty in `.env`; value not read or printed; cost US$0.
