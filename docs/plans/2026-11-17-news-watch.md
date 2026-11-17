@@ -111,7 +111,7 @@ through Task 5.2's migration and the task that names its own new table.
     restarted through its scheduled task and `watcher_log.txt` shows a poll without an error.
   - Notes: a dropped story stays in `items`; nothing is deleted.
 
-- [ ] **Task 5.3: the labeller, with cost recording and a ceiling** (opus) `[parallel-ok]` (taken: slot 2, 2026-11-17 12:10)
+- [x] **Task 5.3: the labeller, with cost recording and a ceiling** (opus) `[parallel-ok]`
   - Files: create `stock_advisor/news/label.py`, `tests/test_news_label.py`; modify
     `news/store.py` (new table `labels`: item id, relevant, event_type, novelty, severity,
     model, prompt version, tokens in and out, cost in US$, labelled_at; new table `llm_calls`
@@ -128,6 +128,15 @@ through Task 5.2's migration and the task that names its own new table.
   - Notes: read the current Claude API price page and the SDK's structured-output docs first;
     record the price read and its date in the module and in `docs/decisions.md`'s research
     notes via the hand-back (do not edit `docs/decisions.md`). No real API call in this task.
+  - Hand-back (slot 2, 2026-11-17): price page read 2026-11-17 (platform.claude.com/docs/en/about-claude/pricing):
+    Haiku 5.5 US$0.10 in, US$0.50 out per million tokens up to 100,000-token prompts (batch
+    US$0.05 and US$0.25); recorded in `label.py`. For `docs/decisions.md` research notes.
+    Chosen: no `llm_calls` table and `api_calls` unchanged; each `labels` row holds its own
+    tokens and cost (a retry included), and the month's spend is their sum. Ceiling setting:
+    `LABEL_MONTHLY_CEILING_USD` in `.env` (default 10). A story with an `error` row is not
+    sent again under the same prompt version. Requests use structured output
+    (`output_config.format` json_schema) with thinking off; the request shape is checked only
+    against the installed SDK (anthropic 2.9.0), so Task 5.5's first real call is its first live test.
 
 - [ ] **Task 5.4: Brian's API key is in `.env`** (checkpoint) (slot 1 only) — needs: Task 5.3
   - Done when: `ANTHROPIC_API_KEY` is set in

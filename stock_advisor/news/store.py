@@ -76,6 +76,27 @@ CREATE TABLE IF NOT EXISTS sent_alerts (
     sent_at TEXT NOT NULL,
     kind TEXT NOT NULL DEFAULT 'alert'
 );
+
+-- Claude labels per story and prompt version (news/label.py). Each row also holds the tokens
+-- and US$ cost of the requests behind it (a retry included), so the month's spend is a SUM
+-- here; api_calls stays a per-day call counter. status: 'ok', or 'error' when the answer
+-- still did not fit the schema after one retry (the label columns are then NULL).
+CREATE TABLE IF NOT EXISTS labels (
+    item_id TEXT NOT NULL REFERENCES items (id),
+    prompt_version TEXT NOT NULL,
+    status TEXT NOT NULL,
+    relevant INTEGER,
+    event_type TEXT,
+    novelty TEXT,
+    severity INTEGER,
+    model TEXT NOT NULL,
+    tokens_in INTEGER NOT NULL,
+    tokens_out INTEGER NOT NULL,
+    cost_usd REAL NOT NULL,
+    labelled_at TEXT NOT NULL,
+    PRIMARY KEY (item_id, prompt_version)
+);
+CREATE INDEX IF NOT EXISTS idx_labels_time ON labels (labelled_at);
 """
 
 
@@ -226,6 +247,56 @@ class NewsStore:
             "SELECT calls FROM api_calls WHERE source = ? AND day = ?", (source, day)
         ).fetchone()
         return row[0] if row else 0
+
+    # ---- Claude labels (news/label.py) -----------------------------------------------------
+
+    def has_label(self, item_id: str, prompt_version: str) -> bool:
+        """True when the item has a row (label or error) under this prompt version."""
+        return self._conn.execute(
+            "SELECT 1 FROM labels WHERE item_id = ? AND prompt_version = ?",
+            (item_id, prompt_version),
+        ).fetchone() is not None
+
+    def add_label(
+        self,
+        item_id: str,
+        prompt_version: str,
+        model: str,
+        label: Optional[dict],
+        tokens_in: int,
+        tokens_out: int,
+        cost_usd: float,
+        when: datetime,
+    ) -> None:
+        """Store one label; `label` None stores an 'error' row that still records the cost."""
+        label = label or {}
+        relevant = label.get("relevant")
+        with self._conn:
+            self._conn.execute(
+                "INSERT OR REPLACE INTO labels (item_id, prompt_version, status, relevant, "
+                "event_type, novelty, severity, model, tokens_in, tokens_out, cost_usd, "
+                "labelled_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                (
+                    item_id, prompt_version, "ok" if label else "error",
+                    None if relevant is None else int(relevant),
+                    label.get("event_type"), label.get("novelty"), label.get("severity"),
+                    model, tokens_in, tokens_out, cost_usd, _to_text(when),
+                ),
+            )
+
+    def get_label(self, item_id: str, prompt_version: str) -> Optional[dict]:
+        row = self._conn.execute(
+            "SELECT * FROM labels WHERE item_id = ? AND prompt_version = ?",
+            (item_id, prompt_version),
+        ).fetchone()
+        return dict(row) if row else None
+
+    def label_cost_in_month(self, month: str) -> float:
+        """US$ spent on labels in one UTC month, given as 'YYYY-MM'."""
+        return self._conn.execute(
+            "SELECT COALESCE(SUM(cost_usd), 0) FROM labels WHERE labelled_at LIKE ?",
+            (month + "-%",),
+        ).fetchone()[0]
 
     def close(self) -> None:
         self._conn.close()

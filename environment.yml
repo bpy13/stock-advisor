@@ -28,3 +28,4 @@ dependencies:
       - plotly==7.1.0
       - exchange_calendars==4.13.2
       - futu-api==10.12.7208
+      - anthropic==2.9.0

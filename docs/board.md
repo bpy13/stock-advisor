@@ -24,6 +24,7 @@ not yet in the orchestrator's registry). Questions for Brian go to `docs/inbox.m
   moves to milestone 4.
 
 ## Results
+- Task 5.3 (Haiku labeller, cost per label, monthly ceiling) done by slot 2, 2026-11-17: 20 tests pass with a fake client; no real API call, cost US$0; 516 tests pass, ruff clean.
 - Task 1.2 (watchlist file) done by slot 1, 2026-11-10: 215 rows, 85 HK and 101 US stocks.
 - Task 2.1 (price store and quality flags) done by slot 2, 2026-11-10.
 - Task 3.1 (value, return and concentration) done by slot 5, 2026-11-10: analyzer.py with 6 hand-checked tests.
