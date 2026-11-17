@@ -111,7 +111,7 @@ through Task 5.2's migration and the task that names its own new table.
     restarted through its scheduled task and `watcher_log.txt` shows a poll without an error.
   - Notes: a dropped story stays in `items`; nothing is deleted.
 
-- [ ] **Task 5.3: the labeller, with cost recording and a ceiling** (opus) `[parallel-ok]`
+- [ ] **Task 5.3: the labeller, with cost recording and a ceiling** (opus) `[parallel-ok]` (taken: slot 2, 2026-11-17 12:10)
   - Files: create `stock_advisor/news/label.py`, `tests/test_news_label.py`; modify
     `news/store.py` (new table `labels`: item id, relevant, event_type, novelty, severity,
     model, prompt version, tokens in and out, cost in US$, labelled_at; new table `llm_calls`
@@ -175,7 +175,7 @@ network in tests).
     history for the US watchlist through `jobq.ps1` (cpu lane) and the log ends with rows per
     year; the live feed adds one day's filings without a duplicate.
 
-- [ ] **Task 6.3: short-selling files, US and Hong Kong** `[parallel-ok]`
+- [ ] **Task 6.3: short-selling files, US and Hong Kong** `[parallel-ok]` (taken: slot 5, 2026-11-17 12:00)
   - Files: create `stock_advisor/news/sources/short_selling.py`, `tests/test_short_selling.py`;
     new table `short_selling` (symbol, date, source, short volume or position, total volume
     where given).
