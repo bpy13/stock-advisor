@@ -76,6 +76,19 @@ CREATE TABLE IF NOT EXISTS sent_alerts (
     sent_at TEXT NOT NULL,
     kind TEXT NOT NULL DEFAULT 'alert'
 );
+
+-- Short-selling files (Task 6.3). `position` is the shares sold short (a reported position
+-- or a day's short volume, by source); `value` is its money value where the file gives one;
+-- `total_volume` is the day's traded volume where the file gives one.
+CREATE TABLE IF NOT EXISTS short_selling (
+    symbol TEXT NOT NULL,
+    date TEXT NOT NULL,
+    source TEXT NOT NULL,
+    position REAL NOT NULL,
+    value REAL,
+    total_volume REAL,
+    PRIMARY KEY (symbol, date, source)
+);
 """
 
 
@@ -226,6 +239,35 @@ class NewsStore:
             "SELECT calls FROM api_calls WHERE source = ? AND day = ?", (source, day)
         ).fetchone()
         return row[0] if row else 0
+
+    # ---- short selling ---------------------------------------------------------------------
+
+    def add_short_selling(self, rows: Iterable[Tuple]) -> int:
+        """Insert (symbol, date 'YYYY-MM-DD', source, position, value, total_volume) rows,
+        skipping keys already stored. Returns how many were new."""
+        before = self._conn.total_changes
+        with self._conn:
+            self._conn.executemany(
+                "INSERT OR IGNORE INTO short_selling "
+                "(symbol, date, source, position, value, total_volume) VALUES (?, ?, ?, ?, ?, ?)",
+                list(rows),
+            )
+        return self._conn.total_changes - before
+
+    def short_selling_dates(self, source: str) -> set:
+        return {
+            r[0]
+            for r in self._conn.execute(
+                "SELECT DISTINCT date FROM short_selling WHERE source = ?", (source,)
+            )
+        }
+
+    def query_short_selling(self, symbol: str, source: Optional[str] = None) -> List[sqlite3.Row]:
+        sql, args = "SELECT * FROM short_selling WHERE symbol = ?", [symbol]
+        if source:
+            sql += " AND source = ?"
+            args.append(source)
+        return self._conn.execute(sql + " ORDER BY date", args).fetchall()
 
     def close(self) -> None:
         self._conn.close()

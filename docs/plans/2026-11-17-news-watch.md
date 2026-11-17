@@ -175,7 +175,7 @@ network in tests).
     history for the US watchlist through `jobq.ps1` (cpu lane) and the log ends with rows per
     year; the live feed adds one day's filings without a duplicate.
 
-- [ ] **Task 6.3: short-selling files, US and Hong Kong** `[parallel-ok]` (taken: slot 5, 2026-11-17 12:00)
+- [x] **Task 6.3: short-selling files, US and Hong Kong** `[parallel-ok]`
   - Files: create `stock_advisor/news/sources/short_selling.py`, `tests/test_short_selling.py`;
     new table `short_selling` (symbol, date, source, short volume or position, total volume
     where given).
