@@ -84,7 +84,7 @@ through Task 5.2's migration and the task that names its own new table.
 
 ## Phase 5 – Linking and the sample (sonnet)
 
-- [ ] **Task 5.1: the names file and the linker** (opus) `[parallel-ok]`
+- [ ] **Task 5.1: the names file and the linker** (opus) `[parallel-ok]` (taken: slot 1, 2026-11-17 13:08)
   - Files: create `config/aliases.csv` (`symbol,alias,kind`: full name, short name, ticker
     forms such as "0700.HK", "700 HK", "Tencent", "騰訊"; driver keywords for the six drivers),
     `stock_advisor/news/link.py`, `tests/test_news_link.py`; a script
