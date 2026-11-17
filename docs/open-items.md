@@ -62,9 +62,8 @@ here; a limit or trap we live with goes in `known-issues.md`. Each item in one p
   uses the `yf.Search` fallback. Re-check after a yfinance upgrade. Search finds no headlines
   for 2800.HK and 3033.HK; Task 2.2 decides whether they stay as price targets (they still
   have prices; only headlines are missing).
-- RSS feeds (Task 1.10): 12 feeds kept on robots.txt grounds. Still to do: read the
-  Investing.com and SCMP terms for bans on automated feed access; check whether Dow Jones
-  terms allow MarketWatch feeds; find working Yahoo, Nasdaq and US Treasury feed URLs. Poll
+- RSS feeds (Task 1.10; terms read in Task 6.4, 2026-11-17: SCMP and Investing.com removed, see rss_feeds.py). Still to do: check whether Dow Jones terms allow MarketWatch feeds;
+  find working Yahoo, Nasdaq and US Treasury feed URLs. Poll
   CISA (5.7 MB per fetch) at most every 15 minutes.
 
 - Plan: `docs/plans/2026-11-10-price-data-and-analyzer.md` (milestone 1 built; the news plan
