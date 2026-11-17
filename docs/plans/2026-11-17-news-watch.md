@@ -99,7 +99,7 @@ through Task 5.2's migration and the task that names its own new table.
   - Notes: holdings join at run time as in `watchlist.py`; nothing about the holdings is
     written to a tracked file.
 
-- [ ] **Task 5.2: links stored for every story** (slot 1 only) (code done by slot 2 on 2026-11-17; left: the history run through jobq and the watcher restart, both in the main folder) (taken: slot 1, 2026-11-17 15:20) — needs: Task 5.1
+- [ ] **Task 5.2: links stored for every story** (slot 1 only) (code done by slot 2 on 2026-11-17; left: the history run through jobq and the watcher restart, both in the main folder) (waiting: link history job 200 in the cpu queue; watcher poll not yet confirmed) — needs: Task 5.1
   - Files: modify `stock_advisor/news/store.py` (migration: `items.drivers` JSON,
     `items.link_state` = linked / dropped, `items.linked_at`), `news/collect.py` (new stories
     are linked on insert; the Yahoo and EDGAR symbols are kept and merged),
@@ -111,6 +111,7 @@ through Task 5.2's migration and the task that names its own new table.
     30 random linked and 30 random dropped headlines for a reading check. The watcher is
     restarted through its scheduled task and `watcher_log.txt` shows a poll without an error.
   - Notes: a dropped story stays in `items`; nothing is deleted.
+  - Status (slot 1, 2026-11-17 15:15): history run queued as job 200 (cpu lane, script `data/cache/news/link_history_job.ps1`, runs `scripts/link_history.py`; resumable). Check: `jobq.ps1 status`, `jobq.ps1 log 200`; the log must end with counts, and `data/reports/news-links-<date>.md` must exist. Watcher: started through task `stock_advisor_news_watcher` at 15:09 (new code, python pid 7792); after 4 minutes `watcher_log.txt` had no new line (python at 1 s CPU, log still ends 2026-11-11 00:46). Left: read `watcher_log.txt` for a poll without an error (restart the task if still silent), then tick. Jobs 199 and 200 sat queued behind other cpu jobs.
   - Status (slot 2, 2026-11-17): code and 5 tests done (store migration and `add_items(items, linker)`, `collect.py` and `scripts/backfill_news.py` link on insert, `scripts/link_history.py` with report). Left for slot 1 in the main folder (real news.db and the scheduled tasks): pull main, then `jobq.ps1 add -Lane cpu -Script <job.ps1>` running `python scripts/link_history.py` (resumable; log ends with counts; report `data/reports/news-links-<date>.md`); restart the watcher through its scheduled task and check `watcher_log.txt` shows a poll without an error; then tick.
 
 - [x] **Task 5.3: the labeller, with cost recording and a ceiling** (opus) `[parallel-ok]`
