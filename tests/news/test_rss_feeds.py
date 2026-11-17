@@ -65,3 +65,16 @@ def test_default_feeds_are_valid():
     assert len({f.url for f in FEEDS}) == len(FEEDS)
     assert RssFeedsSource(session=MagicMock()).name == "rss"
     assert not hasattr(RssFeedsSource, "fetch_range")
+
+
+def test_feeds_whose_terms_forbid_automated_access_are_gone():
+    hosts = " ".join(f.url for f in FEEDS)
+    assert "scmp.com" not in hosts and "investing.com" not in hosts
+    assert "hkex" not in hosts.lower()
+
+
+def test_chinese_title_is_stored_as_published():
+    xml = ("<rss version='2.0'><channel><item><title>美中領袖峰會</title>"
+           "<link>http://x/1</link></item></channel></rss>").encode("utf-8")
+    items = parse_feed(xml, Feed("CNA Finance", "http://x", "market"))
+    assert items[0].title == "美中領袖峰會"

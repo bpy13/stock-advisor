@@ -8,6 +8,16 @@ Feeds were probed on 2026-10-27: each URL was fetched, robots.txt was read for
 syndication, so only an explicit ban counts. Site terms were not read line by line; see
 docs/open-items.md.
 
+Terms read 2026-11-17 (Task 6.4), for the feeds added:
+- news.gov.hk Finance: robots.txt allows it; copyright note allows personal use and media use with
+  credit, and forbids commercial use without permission. This tool is a personal research tool.
+- SFC Press Releases and Circulars: robots.txt disallows only /dod/ and similar paths; the page
+  carries no terms against reuse beyond "all rights reserved". Personal use.
+- CNA Finance and Cross-Strait (via feedburner): RSS terms allow personal, non-profit,
+  non-commercial use; titles, leads and links only, credit the source, may be withdrawn at any
+  time. Its robots.txt has "ai-train=no": stories must never train a model.
+Feeds in Chinese are stored as published; Simplified sources are not converted.
+
 Rejected candidates (reason in one line each):
 - Yahoo Finance rssindex / topstories: HTTP 404, the public feed no longer exists.
 - Nasdaq rssoutbound: request times out (ReadTimeout after 40 s, three tries).
@@ -18,6 +28,14 @@ Rejected candidates (reason in one line each):
 - AP (apnews.com hub RSS): HTTP 403.
 - The Standard HK: RSS URL returns an HTML page, not a feed.
 - US Treasury press releases: old feed URL times out, the replacement path is 404.
+- SCMP (Business, China Economy; removed 2026-11-17, stored stories kept): terms clause 3.2.1 bars
+  "any automated system (including web crawlers, spiders, or scrapers)" and clause 3.2.6 limits
+  use to personal non-commercial use.
+- Investing.com (removed 2026-11-17, stored stories kept): its terms page and robots.txt answer
+  HTTP 403 to a script, and its page footer bans storing its data without written permission.
+- Census and Statistics Department: no RSS feed exists (every guessed feed URL is 404). It offers
+  a JSON data API for statistics tables, not news; that belongs to a data task, not this adapter.
+- HKEX: stays out (its terms forbid scripted access).
 - PBoC English press releases: robots.txt has `User-agent: *` / `Disallow: /`, and no feed exists.
 """
 
@@ -49,11 +67,13 @@ class Feed(NamedTuple):
 FEEDS: List[Feed] = [
     Feed("RTHK Finance", "https://rthk.hk/rthk/news/rss/e_expressnews_efinance.xml", "market"),
     Feed("RTHK International", "https://rthk.hk/rthk/news/rss/e_expressnews_einternational.xml", "macro"),
-    Feed("SCMP Business", "https://www.scmp.com/rss/92/feed", "market"),
-    Feed("SCMP China Economy", "https://www.scmp.com/rss/318421/feed", "macro"),
     Feed("BBC Business", "https://feeds.bbci.co.uk/news/business/rss.xml", "market"),
     Feed("BBC World", "https://feeds.bbci.co.uk/news/world/rss.xml", "macro"),
-    Feed("Investing.com", "https://www.investing.com/rss/news.rss", "market"),
+    Feed("news.gov.hk Finance", "https://www.news.gov.hk/en/categories/finance/html/articlelist.rss.xml", "market"),
+    Feed("SFC Press Releases", "https://www.sfc.hk/en/RSS-Feeds/Press-releases", "policy"),
+    Feed("SFC Circulars", "https://www.sfc.hk/en/RSS-Feeds/Circulars", "policy"),
+    Feed("CNA Finance", "https://feeds.feedburner.com/rsscna/finance", "market"),
+    Feed("CNA Cross-Strait", "https://feeds.feedburner.com/rsscna/mainland", "macro"),
     Feed("HKFP", "https://hongkongfp.com/feed/", "policy"),
     Feed("Federal Reserve", "https://www.federalreserve.gov/feeds/press_all.xml", "policy"),
     Feed("HKMA Press Releases", "https://www.hkma.gov.hk/eng/other-information/rss/rss_press-release.xml", "policy"),
