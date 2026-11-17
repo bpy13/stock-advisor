@@ -99,7 +99,7 @@ through Task 5.2's migration and the task that names its own new table.
   - Notes: holdings join at run time as in `watchlist.py`; nothing about the holdings is
     written to a tracked file.
 
-- [ ] **Task 5.2: links stored for every story** — needs: Task 5.1
+- [ ] **Task 5.2: links stored for every story** — needs: Task 5.1 (taken: slot 2, 2026-11-17 14:00)
   - Files: modify `stock_advisor/news/store.py` (migration: `items.drivers` JSON,
     `items.link_state` = linked / dropped, `items.linked_at`), `news/collect.py` (new stories
     are linked on insert; the Yahoo and EDGAR symbols are kept and merged),
