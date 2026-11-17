@@ -25,6 +25,7 @@ not yet in the orchestrator's registry). Questions for Brian go to `docs/inbox.m
   moves to milestone 4.
 
 ## Results
+- Task 5.2c (Yahoo news) waiting on Brian, slot 1, 2026-11-17: slot 2's fix is on main, but the watcher still runs the old code (log shows YFDataException at 15:56). Slot 1's watcher restart was refused; the orchestrator asked Brian to restart it (commands under the task). 9 Yahoo tests pass, ruff clean; cost US$0.
 - Task 5.2b (news watcher polls again) done by slot 1, 2026-11-17: the watcher and its wrapper died on 11 Nov and nothing restarted them; the restart at 15:06 was starved at low priority. Now: task priority 4, a 15-minute repeat restarts a dead wrapper, the wrapper restarts a watcher quiet for 30 minutes, and each poll logs stories per source. Polls at 15:37 and 15:40 without a cycle error; Yahoo news fails since 3 Nov (open-items). 640 tests pass, ruff clean; cost US$0.
 - Task 5.2 (links stored) part done by slot 1, 2026-11-17: history run queued as job 200 (cpu lane), watcher restarted through its task (first poll not yet seen); plan marked waiting; cost US$0.
 - Task 6.2 (insider trades) part done by slot 1, 2026-11-17: live day 13 Nov stored 43 rows, rerun 0; history load queued as job 199 (cpu lane), plan marked waiting; cost US$0.
