@@ -25,7 +25,8 @@ CREATE TABLE IF NOT EXISTS items (
     symbols TEXT NOT NULL DEFAULT '[]',
     language TEXT NOT NULL DEFAULT 'en',
     body TEXT,
-    time_precision TEXT NOT NULL DEFAULT 'exact'
+    time_precision TEXT NOT NULL DEFAULT 'exact',
+    event_items TEXT NOT NULL DEFAULT '[]'
 );
 CREATE INDEX IF NOT EXISTS idx_items_time ON items (published_at);
 CREATE INDEX IF NOT EXISTS idx_items_source_time ON items (source, published_at);
@@ -133,6 +134,7 @@ def _row_to_item(row: sqlite3.Row) -> NewsItem:
         language=row["language"],
         body=row["body"],
         time_precision=row["time_precision"],
+        event_items=json.loads(row["event_items"]),
     )
 
 
@@ -181,6 +183,11 @@ class NewsStore:
     def _migrate(self) -> None:
         """Bring a database created by an older version up to the current schema."""
         columns = {r["name"] for r in self._conn.execute("PRAGMA table_info(items)")}
+        if "event_items" not in columns:
+            with self._conn:
+                self._conn.execute(
+                    "ALTER TABLE items ADD COLUMN event_items TEXT NOT NULL DEFAULT '[]'"
+                )
         if "time_precision" not in columns:
             with self._conn:
                 self._conn.execute(
@@ -358,7 +365,7 @@ class NewsStore:
             self._conn.executemany(
                 "INSERT OR IGNORE INTO items "
                 "(id, source, published_at, title, url, summary, symbols, language, body, "
-                "time_precision) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                "time_precision, event_items) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 [
                     (
                         i.id,
@@ -371,6 +378,7 @@ class NewsStore:
                         i.language,
                         i.body,
                         i.time_precision,
+                        json.dumps(list(i.event_items)),
                     )
                     for i in items
                 ],

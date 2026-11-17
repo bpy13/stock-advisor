@@ -48,6 +48,8 @@ class NewsItem:
     # crawl-batch stamp (GDELT); no horizons under 1 hour. "day": the source only knows the
     # date (published_at is 00:00 UTC); use such items for the 1-day horizon only.
     time_precision: str = "exact"
+    # 8-K item numbers ("2.02", "5.02"); empty for other sources.
+    event_items: List[str] = field(default_factory=list)
 
     def __post_init__(self) -> None:
         self.published_at = ensure_utc(self.published_at)

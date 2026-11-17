@@ -69,6 +69,7 @@ def test_parse_feed_extracts_items_and_utc_time():
         "PERPETUA RESOURCES CORP.: 8-K Unregistered Sales of Equity Securities; Other Events"
     )
     assert first.summary == "Items: 3.02, 8.01"
+    assert first.event_items == ["3.02", "8.01"]
     assert first.published_at == datetime(2026, 10, 26, 21, 30, 28, tzinfo=UTC)  # 17:30 -04:00
     assert first.url.endswith("0001104659-26-118875-index.htm")
     assert first.symbols == ["PPTA"]
@@ -134,6 +135,7 @@ def test_fetch_range_quarterly_filters_by_cik_and_reads_headers():
     assert results.title == ("Apple Inc.: 8-K Results of Operations and Financial Condition; "
                              "Financial Statements and Exhibits")
     assert results.summary == "Items: 2.02, 9.01"
+    assert results.event_items == ["2.02", "9.01"]
     assert results.symbols == ["AAPL"]
     assert results.published_at == datetime(2024, 8, 1, 20, 30, 26, tzinfo=UTC)
     assert results.url == ("https://www.sec.gov/Archives/edgar/data/320193/"

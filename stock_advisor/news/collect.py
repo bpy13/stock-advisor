@@ -68,13 +68,22 @@ def build_sources(holdings: Iterable[str] = ()) -> list:
     holdings = list(holdings)
     # EDGAR lists US companies only: skip index symbols and exchange-suffixed tickers (0700.HK).
     us_holdings = [s for s in holdings if "." not in s and not s.startswith("^")]
+    # Every US stock on the watchlist gets its 8-Ks followed (funds and indexes file none).
+    from stock_advisor.watchlist import load_watchlist
+
+    try:
+        watch_us = [i.symbol for i in load_watchlist(include_holdings=False)
+                    if i.market == "US" and i.kind == "stock"]
+    except Exception as exc:  # a broken watchlist must not stop news collection
+        logger.warning("Could not read the watchlist for EDGAR (%s)", type(exc).__name__)
+        watch_us = []
     return [
         WikipediaEventsSource(),
         GdeltSource(),
         GuardianSource(),
         NytSource(),
         YahooNewsSource(symbols=list(dict.fromkeys(DEFAULT_SYMBOLS + holdings))),
-        EdgarSource(tickers=list(dict.fromkeys([*DEFAULT_TICKERS, *us_holdings]))),
+        EdgarSource(tickers=list(dict.fromkeys([*DEFAULT_TICKERS, *us_holdings, *watch_us]))),
         RssFeedsSource(),
     ]
 
