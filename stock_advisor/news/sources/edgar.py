@@ -141,6 +141,7 @@ def parse_feed(xml: bytes, ciks: Optional[Dict[int, List[str]]] = None) -> List[
             url=entry["link"],
             summary=_summary([number for number, _ in listed]),
             symbols=list((ciks or {}).get(int(title["cik"]), [])),
+            event_items=[number for number, _ in listed],
         ))
     return items
 
@@ -221,11 +222,16 @@ class EdgarSource:
             if http is not None and self._tickers:
                 rows = http.get(TICKERS_URL).json().values()
                 by_ticker = {row["ticker"].upper(): int(row["cik_str"]) for row in rows}
+                missing = []
                 for ticker in self._tickers:
                     if ticker in by_ticker:
                         allow.setdefault(by_ticker[ticker], []).append(ticker)
                     else:
-                        logger.warning("EDGAR: ticker %s not found in company_tickers.json", ticker)
+                        missing.append(ticker)
+                logger.info("EDGAR allowlist: %d of %d tickers have a CIK", len(self._tickers) - len(missing),
+                            len(self._tickers))
+                if missing:
+                    logger.warning("EDGAR: no CIK in company_tickers.json for %s", ", ".join(missing))
             self._allow = allow
         return self._allow
 
@@ -298,6 +304,7 @@ class EdgarSource:
             summary=_summary(numbers),
             symbols=list(tickers),
             time_precision="exact" if accepted else "day",
+            event_items=numbers,
         )
 
     def _read_header(self, http, cik: int, accession: str) -> Tuple[Optional[datetime], List[str]]:

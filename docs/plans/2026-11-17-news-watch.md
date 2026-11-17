@@ -158,7 +158,8 @@ adapter uses `PoliteSession`, stores through `news/store.py` or its own table na
 linked by Task 5.1's linker where it carries a company, and has tests on saved fixtures (no
 network in tests).
 
-- [ ] **Task 6.1: US filings by event type for every US watchlist stock** `[parallel-ok]` (taken: slot 3, 2026-11-17 13:30)
+- [ ] **Task 6.1: US filings by event type for every US watchlist stock** `[parallel-ok]` (slot 1 only)
+  - Status (slot 3, 2026-11-17): code and tests done (new column `items.event_items` JSON, added by one idempotent ALTER in `NewsStore._migrate`, orchestrator-approved; Task 5.2 must keep it when it adds its own columns; `NewsItem.event_items`; allowlist = US watchlist stocks + holdings + old 10). Left for slot 1 (needs `.env` SEC_CONTACT_EMAIL): `python scripts/check_edgar_day.py <past weekday>`, read that tickers without a CIK are logged and filings exceed the old 10-ticker count; then tick.
   - Files: modify `stock_advisor/news/sources/edgar.py`, `news/collect.py` (the allowlist
     becomes every US watchlist symbol with a CIK), tests.
   - Done when: tests pass: an 8-K is stored with its item numbers (for example 2.02 results,

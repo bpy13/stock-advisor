@@ -210,3 +210,29 @@ def test_spend_call_enforces_cap_per_day(store):
     assert store.calls_today("nyt", day="2026-10-27") == 2
     assert store.spend_call("nyt", 2, day="2026-10-28") is True  # new day, fresh counter
     assert store.spend_call("guardian", 2, day="2026-10-27") is True  # separate per source
+
+
+def test_event_items_round_trip_and_old_database_gets_the_column(tmp_path):
+    path = tmp_path / "ei.db"
+    conn = sqlite3.connect(str(path))
+    conn.execute(
+        "CREATE TABLE items (id TEXT PRIMARY KEY, source TEXT NOT NULL, published_at TEXT NOT NULL,"
+        " title TEXT NOT NULL, url TEXT NOT NULL DEFAULT '', summary TEXT NOT NULL DEFAULT '',"
+        " symbols TEXT NOT NULL DEFAULT '[]', language TEXT NOT NULL DEFAULT 'en', body TEXT)"
+    )
+    conn.commit()
+    conn.close()
+    with NewsStore(path) as s:
+        s.add_items([_item("edgar", 0, event_items=["2.02", "9.01"]), _item("nyt", 0)])
+    with NewsStore(path) as s:  # reopening is harmless
+        found = {i.source: i.event_items for i in s.query_items()}
+    assert found == {"edgar": ["2.02", "9.01"], "nyt": []}
+
+
+def test_build_sources_follows_every_us_watchlist_stock(monkeypatch):
+    from stock_advisor import watchlist
+    rows = [watchlist.WatchItem("ZZA", "US", "stock", "A"), watchlist.WatchItem("0700.HK", "HK", "stock", "T"),
+            watchlist.WatchItem("SPY", "US", "index_fund", "S")]
+    monkeypatch.setattr(watchlist, "load_watchlist", lambda include_holdings=True, path=None: rows)
+    tickers = {s.name: s for s in collect.build_sources([])}["edgar"]._tickers
+    assert "ZZA" in tickers and "SPY" not in tickers and "0700.HK" not in tickers
