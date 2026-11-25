@@ -384,7 +384,7 @@ Shared resources: `news.db` (one writer: the watcher; the adapter writes only th
   - Notes: Task 8.2 later removes `high_impact`; whether Brian's shares become a signal is a
     milestone 3 ledger question, not decided here.
 
-- [ ] **Task 9.3: a real share reaches the store** (checkpoint) (slot 1 only) needs: Task 9.1,
+- [ ] **Task 9.3: a real share reaches the store** (checkpoint) (slot 1 only) (waiting: research-inbox Task 3, Brian shares three posts) needs: Task 9.1,
   Task 9.2, research-inbox Plan A Task 3
   - Files: create `scripts/restart_watcher.ps1` (stops the task `stock_advisor_news_watcher`,
     stops the `news_cli --watch` and `run_watcher.ps1` processes, starts the task: the commands
