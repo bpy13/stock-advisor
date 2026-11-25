@@ -506,6 +506,7 @@ def _recent_unscored(store, since: datetime, limit: int) -> List[NewsItem]:
     rows = store._conn.execute(
         "SELECT i.* FROM items i LEFT JOIN scores s ON s.item_id = i.id "
         "WHERE i.published_at >= ? AND (s.item_id IS NULL OR s.tone IS NULL) "
+        "AND i.source <> 'research_inbox' "  # Brian's shares are never scored or clustered
         "ORDER BY i.published_at, i.id LIMIT ?",
         (_to_text(since), limit),
     ).fetchall()

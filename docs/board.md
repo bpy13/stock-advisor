@@ -25,6 +25,7 @@ not yet in the orchestrator's registry). Questions for Brian go to `docs/inbox.m
   moves to milestone 4.
 
 ## Results
+- Task 9.2 (Brian's shares off the alert path) done by slot 2, 2026-11-26: `_recent_unscored` skips source `research_inbox`, so no score, event or Telegram; 2 new tests fail without the fix and pass with it; 641 tests pass, ruff clean; cost US$0.
 - Task 6.2 (insider trades) done by slot 1, 2026-11-25: history job 199 loaded 2006 to 2026q1 (log ends with rows per year); 12 tests pass; live day 13 Nov added 43 rows, rerun 0 (17 Nov); a repeat today timed out; cost US$0.
 - Task 5.2c (Yahoo news) waiting on Brian, slot 1, 2026-11-17: slot 2's fix is on main, but the watcher still runs the old code (log shows YFDataException at 15:56). Slot 1's watcher restart was refused; the orchestrator asked Brian to restart it (commands under the task). 9 Yahoo tests pass, ruff clean; cost US$0.
 - Task 5.2b (news watcher polls again) done by slot 1, 2026-11-17: the watcher and its wrapper died on 11 Nov and nothing restarted them; the restart at 15:06 was starved at low priority. Now: task priority 4, a 15-minute repeat restarts a dead wrapper, the wrapper restarts a watcher quiet for 30 minutes, and each poll logs stories per source. Polls at 15:37 and 15:40 without a cycle error; Yahoo news fails since 3 Nov (open-items). 640 tests pass, ruff clean; cost US$0.

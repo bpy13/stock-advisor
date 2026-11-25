@@ -281,6 +281,16 @@ def test_process_new_scores_categorizes_and_clusters_recent_items_only(store, mo
     assert store.get_event(ids.pop()).n_items == 2
 
 
+def test_process_new_skips_research_inbox_items(store):
+    shared = NewsItem("research_inbox", NOW - timedelta(minutes=5), "Brian's share",
+                      url="https://x/share")
+    store.add_items([shared])
+    done = A.process_new(store, since=NOW - timedelta(days=3), finbert=FakeFinBert(),
+                         embedder=FakeEmbedder())
+    assert (done.scored, done.categorized, done.clustered) == (0, 0, 0)
+    assert store.get_score(shared.id) is None
+
+
 def test_process_new_leaves_the_backfills_scored_backlog_alone(store, monkeypatch):
     # The backfill scores old items, then categorizes and clusters them itself. A live run that
     # also took them on loaded the whole backlog every cycle (the watcher grew to 11.9 GB).

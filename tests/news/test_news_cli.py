@@ -184,6 +184,34 @@ def test_watch_prints_only_new_high_impact_events_and_calls_the_hook(tmp_path, w
     assert sleeps and all(s >= 1 for s in sleeps)
 
 
+def test_watch_cycle_with_a_research_inbox_item_sends_no_telegram(tmp_path, war_centroids):
+    # Brian's shares are not market news: never scored, never an event, never an alert.
+    from stock_advisor.news import notify
+
+    class Api:
+        calls = 0
+
+        def __call__(self, url, **kwargs):
+            Api.calls += 1
+            raise AssertionError("no Telegram call expected")
+
+    db = tmp_path / "news.db"
+    seed_store(db, with_history=False)
+    shared = [NewsItem("research_inbox", datetime.now(timezone.utc) - timedelta(minutes=n),
+                       f"Border clash escalates {n}", url=f"https://share.test/{n}")
+              for n in (1, 2, 3)]
+    sources = A.WatchSources(fast=[FakeSource("research_inbox", shared)])
+    with NewsStore(db) as store:
+        notifier = notify.TelegramNotifier(store, notify.TelegramClient("1:T", post=Api(),
+                                                                       get=Api()), "42", 10)
+    code, _ = run_cli(db, ["--watch"], None, sources=sources, finbert=FakeFinBert(),
+                      embedder=FakeEmbedder(), sleep=lambda s: None, max_cycles=2,
+                      background_slow=False, on_new_events=notifier)
+    assert code == 0 and Api.calls == 0
+    with NewsStore(db) as store:
+        assert all(store.get_score(i.id) is None for i in shared)
+
+
 def test_watch_slow_group_runs_on_its_own_schedule(tmp_path):
     db = tmp_path / "news.db"
     fast, slow = FakeSource("fast"), FakeSource("slow")
