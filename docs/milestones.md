@@ -51,6 +51,7 @@ Done when:
   and Hong Kong short-selling files, and Hong Kong and China news feeds whose terms allow it.
 - The dashboard News tab shows the labelled stories per holding. The old "high impact" flag
   is gone.
+- D2. Items Brian shares to research-inbox with the word `stock` feed the watch as one more source (`research_inbox`), each stored once, linked or dropped, never sent to Telegram. (Brian, 2026-11-26: "default for all")
 
 ## 3. Signals, their honest test, and the regression
 Revised on 2026-11-10 after the research in `docs/research/2026-11-10-strategy-verification.md`;

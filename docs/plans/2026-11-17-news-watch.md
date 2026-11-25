@@ -288,6 +288,116 @@ network in tests).
     fixed and verified; judgment calls are in `docs/open-items.md`; the milestone's five lines
     are checked one by one and the milestone card question is in `docs/inbox.md`.
 
+## Phase 9 – Brian's shared items (sonnet)
+
+Approved by Brian 2026-11-26 ("default for all"): Brian's research-inbox shares tagged `stock` feed the watch as one more source. Needs research-inbox's milestone 2 plan (docs/plans/2026-11-26-milestone-2-stock-word.md there) for Task 9.3. Task 8.4's end-of-run review range includes Phase 9.
+
+#### Goal
+The news watch reads the lines of research-inbox's `data\shared\items.jsonl` whose `projects`
+include `stock`, as one more source named `research_inbox`. Each is stored once, linked by the
+existing linker, labelled by the existing labeller once Task 7.1 runs, and never sent to
+Telegram.
+
+#### Approach
+- A read-only adapter `stock_advisor/news/sources/research_inbox.py` (`ResearchInboxSource`,
+  name `research_inbox`) with `fetch_recent()` that reads the file and returns `NewsItem`s for
+  lines with `"stock"` in `projects` and `status` `done` or `caption_only`. It contacts no
+  website. Path: env `RESEARCH_INBOX_ITEMS`, default
+  `<stock_advisor folder>/../research-inbox/data/shared/items.jsonl` (no personal path in a
+  tracked file).
+- Mapping: `title` → title; the summary lines and `Topics: ...` → summary (what the labeller
+  sees); Brian's `note` → body (the linker reads it, so "stock 0700" or "Tencent" links; the
+  labeller's prompt holds title and summary only, so nothing Brian typed about his holdings
+  goes to Claude); `url` → url; `received_at` → `published_at` with `time_precision` `exact`
+  (the time Brian saw it, which is the first moment he could have traded on it);
+  `language` `en` (the summaries are written in English).
+- Dedupe by research-inbox's item id: `id = make_item_id("research_inbox",
+  "research-inbox:item/<id>", title, published_at)`. The store's `INSERT OR IGNORE` keeps a
+  re-read line from being stored twice. A line rewritten later with `stock` added (Plan A,
+  Task 2) is new to this store and is taken on the next poll.
+- In the watcher's fast group (every 60 s; reading a local file is cheap) and in
+  `collect --recent`.
+- A line with no linkable stock or driver is stored with `link_state` `dropped`, as for every
+  source: kept, never labelled, not shown. The poll log counts it.
+- Brian's shares never enter the old FinBERT event clustering, `high_impact` or Telegram: they
+  are not market news with a publication time, and Telegram is for proven signals only.
+
+How this fits "official feeds only": that rule governs what this tool fetches from other
+sites. This source fetches nothing from any site: it reads a local file that Brian's own tool
+writes from posts Brian chose to send himself. The unofficial download is research-inbox's,
+accepted by Brian there on 2026-11-25. This repo keeps only Claude's summary, the topics, the
+link and Brian's note; never the video, the caption or the page. It is recorded as Brian's own
+research notes, under its own source name, so any report can count or leave it out.
+
+#### Constraints (verbatim from `docs/decisions.md`)
+- "2026-10-27 (Brian): include as many free news sources as possible."
+- "2026-10-27 (Brian, accepted default): use only official feeds, APIs and filings; skip sites
+  whose terms forbid scraping, and skip paywalled articles."
+- "2026-11-10 (Brian, accepted default): Claude Haiku classifies news stories (relevant or not,
+  event type, new or repeat, severity), replacing FinBERT's tone as the filter, after a
+  200-story sample and Brian's go on the measured cost. The API key stays Brian's."
+- "2026-11-10 (Brian): "the Telegram alert should only be sent when a clear signal for selling
+  or buying certain stock is found, and the recommendation should be given based on the current
+  portfolio (considering opportunity costs, risks, available cash, etc.)". News items, unusual
+  moves and risk warnings go to the dashboard, not to Telegram (Claude's reading)."
+- "2026-11-10 (Claude's default, builder check): every backtest measures the return from the
+  first price Brian could have traded at after the news (the next bar, or the next market open),
+  never from before the news."
+- "2026-11-10 (Brian): "git ignore any private info". Anything that says where Brian's money or
+  shares are, which accounts he holds, his cash, his holdings or his personal circumstances
+  goes under `docs/private/` or `data/`; git ignores both. Tracked docs keep the tool's design
+  only. The repo on GitHub is public."
+
+#### Acceptance criteria
+- D2 (proposed addition to criterion D). An item Brian shares with the word `stock` appears in
+  `news.db` as source `research_inbox`, once, linked to the stock it names or dropped.
+  (Tasks 9.1, 9.3)
+- No item from `research_inbox` reaches Telegram. (Task 9.2)
+- Labelling and the News tab: covered by Tasks 7.1 and 8.1 unchanged.
+
+Shared resources: `news.db` (one writer: the watcher; the adapter writes only through
+`NewsStore.add_items`), the scheduled task `stock_advisor_news_watcher`, research-inbox's
+`items.jsonl` (read only, never written).
+
+- [ ] **Task 9.1: the research-inbox source** (sonnet) `[parallel-ok]`
+  - Files: create `stock_advisor/news/sources/research_inbox.py`,
+    `tests/news/test_research_inbox.py`, `tests/fixtures/news/research_inbox/items.jsonl`
+    (hand-written lines, nothing copied from research-inbox's `data/`); modify
+    `stock_advisor/news/collect.py` (`build_sources`), `stock_advisor/news/analysis.py`
+    (`build_watch_sources`: fast group), `.env.example` (`RESEARCH_INBOX_ITEMS=`, name only).
+  - Done when: `conda run -n stock_advisor python -m pytest tests/news/test_research_inbox.py -q`
+    passes: only lines with `stock` in `projects` and status `done` or `caption_only` become
+    items; fields map as in the Approach; `add_items` twice stores one row (second call returns
+    0); a line naming Tencent in its note links `0700.HK` through the real `build_linker()`;
+    a line naming no company is stored `dropped`; an unreadable line is skipped with one
+    warning; a missing file returns `[]` and logs once, not a failure; no network call (the
+    test fails on any `PoliteSession` use). Then the full tests and
+    `conda run -n stock_advisor ruff check .` pass (CI: Python 3.12, `-m "not slow"`, no torch).
+  - Notes: the module docstring states the "official feeds" reasoning above in three lines.
+
+- [ ] **Task 9.2: Brian's shares stay off the old alert path** (sonnet) `[parallel-ok]`
+  - Files: modify `stock_advisor/news/analysis.py` (`process_new` / `_recent_unscored`: skip
+    source `research_inbox`), test `tests/news/test_analysis.py`, `tests/news/test_notify.py`.
+  - Done when: failing-first tests prove an unscored `research_inbox` item is not scored,
+    categorized or clustered into an event, and a watch cycle with one such item sends no
+    Telegram message (fake client: 0 sends); the full tests and ruff pass.
+  - Notes: Task 8.2 later removes `high_impact`; whether Brian's shares become a signal is a
+    milestone 3 ledger question, not decided here.
+
+- [ ] **Task 9.3: a real share reaches the store** (checkpoint) (slot 1 only) needs: Task 9.1,
+  Task 9.2, research-inbox Plan A Task 3
+  - Files: create `scripts/restart_watcher.ps1` (stops the task `stock_advisor_news_watcher`,
+    stops the `news_cli --watch` and `run_watcher.ps1` processes, starts the task: the commands
+    under Task 5.2c).
+  - Done when: `powershell -NoProfile -File scripts\restart_watcher.ps1` runs (if the
+    permission check refuses it, the task waits on Brian's restart in the usual form);
+    `data/cache/news/watcher_log.txt` shows two polls with `research_inbox N` and no error;
+    the items Brian tagged `stock` in Plan A Task 3 are in `news.db` with source
+    `research_inbox`, one row each (checked with `NewsStore.query_items(source=
+    "research_inbox")`), the one about a listed company `linked` to it; a third poll adds 0.
+    The report names counts only, never a holding.
+  - Notes: labels for these rows appear once Task 7.1 runs; nothing paid runs here.
+
 ## Self-review
 Criteria A to E each map to tasks above. Every task has a "done when". `news.db` has one
 writer: Tasks 5.2, 6.2, 6.3 and 7.3 write through the store and queue their long runs in the
