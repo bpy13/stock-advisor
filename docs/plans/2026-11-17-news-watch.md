@@ -359,7 +359,7 @@ Shared resources: `news.db` (one writer: the watcher; the adapter writes only th
 `NewsStore.add_items`), the scheduled task `stock_advisor_news_watcher`, research-inbox's
 `items.jsonl` (read only, never written).
 
-- [ ] **Task 9.1: the research-inbox source** (sonnet) `[parallel-ok]` (taken: slot 1, 2026-11-26 12:10)
+- [x] **Task 9.1: the research-inbox source** (sonnet) `[parallel-ok]`
   - Files: create `stock_advisor/news/sources/research_inbox.py`,
     `tests/news/test_research_inbox.py`, `tests/fixtures/news/research_inbox/items.jsonl`
     (hand-written lines, nothing copied from research-inbox's `data/`); modify
