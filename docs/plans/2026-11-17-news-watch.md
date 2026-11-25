@@ -375,7 +375,7 @@ Shared resources: `news.db` (one writer: the watcher; the adapter writes only th
     `conda run -n stock_advisor ruff check .` pass (CI: Python 3.12, `-m "not slow"`, no torch).
   - Notes: the module docstring states the "official feeds" reasoning above in three lines.
 
-- [ ] **Task 9.2: Brian's shares stay off the old alert path** (sonnet) `[parallel-ok]`
+- [ ] **Task 9.2: Brian's shares stay off the old alert path** (sonnet) `[parallel-ok]` (taken: slot 2, 2026-11-26 12:00)
   - Files: modify `stock_advisor/news/analysis.py` (`process_new` / `_recent_unscored`: skip
     source `research_inbox`), test `tests/news/test_analysis.py`, `tests/news/test_notify.py`.
   - Done when: failing-first tests prove an unscored `research_inbox` item is not scored,
