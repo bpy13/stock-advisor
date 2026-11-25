@@ -61,6 +61,7 @@ def build_sources(holdings: Iterable[str] = ()) -> list:
     from stock_advisor.news.sources.gdelt import GdeltSource
     from stock_advisor.news.sources.guardian import GuardianSource
     from stock_advisor.news.sources.nyt import NytSource
+    from stock_advisor.news.sources.research_inbox import ResearchInboxSource
     from stock_advisor.news.sources.rss_feeds import RssFeedsSource
     from stock_advisor.news.sources.wikipedia_events import WikipediaEventsSource
     from stock_advisor.news.sources.yahoo import DEFAULT_SYMBOLS, YahooNewsSource
@@ -85,6 +86,7 @@ def build_sources(holdings: Iterable[str] = ()) -> list:
         YahooNewsSource(symbols=list(dict.fromkeys(DEFAULT_SYMBOLS + holdings))),
         EdgarSource(tickers=list(dict.fromkeys([*DEFAULT_TICKERS, *us_holdings, *watch_us]))),
         RssFeedsSource(),
+        ResearchInboxSource(),
     ]
 
 

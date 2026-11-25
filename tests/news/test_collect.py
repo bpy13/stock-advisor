@@ -158,7 +158,7 @@ def test_main_backfill_runs_one_source(tmp_path, capsys):
 
 def test_build_sources_covers_the_working_adapters_and_holdings():
     sources = {s.name: s for s in collect.build_sources(["AAPL", "0700.HK", "ZZZZ"])}
-    assert set(sources) == {"wikipedia_events", "gdelt", "guardian", "nyt", "yahoo", "edgar", "rss"}
+    assert set(sources) == {"wikipedia_events", "gdelt", "guardian", "nyt", "yahoo", "edgar", "rss", "research_inbox"}
     assert "0700.HK" in sources["yahoo"].symbols
     assert "ZZZZ" in sources["edgar"]._tickers and "0700.HK" not in sources["edgar"]._tickers
 

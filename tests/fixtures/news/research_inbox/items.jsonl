@@ -1,0 +1,5 @@
+{"id": 1, "source": "instagram", "url": "https://example.com/a", "received_at": "2026-11-26T08:00:00+00:00", "title": "Chip makers face new export rule", "summary": ["Export limits widen.", "Suppliers react."], "topics": ["chips", "regulation"], "projects": ["stock"], "folder": "x", "status": "done", "note": "stock Tencent"}
+{"id": 2, "source": "instagram", "url": "https://example.com/b", "received_at": "2026-11-26T08:05:00+00:00", "title": "A cooking video", "summary": ["Pasta."], "topics": ["food"], "projects": ["reading"], "folder": "x", "status": "done"}
+{"id": 3, "source": "instagram", "url": "https://example.com/c", "received_at": "2026-11-26T08:10:00+00:00", "title": "Caption only post", "summary": ["Gardening tips."], "topics": [], "projects": ["stock", "reading"], "folder": "x", "status": "caption_only"}
+{"id": 4, "source": "instagram", "url": "https://example.com/d", "received_at": "2026-11-26T08:15:00+00:00", "title": "Still processing", "summary": [], "topics": [], "projects": ["stock"], "folder": "x", "status": "pending"}
+this line is not json
