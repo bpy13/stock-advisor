@@ -201,7 +201,8 @@ network in tests).
     US watchlist stock or lists the ones without a CIK in the log. A live fetch of one day
     stores filings for more than the old 10-ticker list, inside the SEC's request limit.
 
-- [ ] **Task 6.2: US insider trades (Form 4)** `[parallel-ok]` (slot 1 only) (taken: slot 1, 2026-11-25 20:10)
+- [x] **Task 6.2: US insider trades (Form 4)** `[parallel-ok]` (slot 1 only)
+  - Result (slot 1, 2026-11-25): history job 199 finished; its log ends with rows per trade year (2006: 66,204 ... 2025: 22,037, 2026: 7,225; 2026q2 to q4 not published yet, 404). 12 tests pass. Live day: 2026-11-13 loaded 43 rows and the rerun added 0 (2026-11-17). Today's repeat of `--day 2026-11-24` twice hit the time limit (10 and 30 minutes, no output; the PC was busy), so the duplicate check rests on the 11-17 run and the unique (accession, line) key. The live day is not yet wired into the watcher or backfill task.
   - Status (slot 1, 2026-11-17 15:05): live day 2026-11-13 loaded 43 rows; the rerun added 0 (no duplicates). History load queued as job 199 (cpu lane, script `data/cache/news/insider_history_job.ps1`, runs `scripts/load_insider.py --history`). Check: `jobq.ps1 status`, `jobq.ps1 log 199`; the log must end with `rows per trade year`. Then tick. The live day is not yet wired into the watcher or backfill task. Run the script with PYTHONPATH set to the repo.
   - Status (slot 4, 2026-11-17): code and 12 tests done in 5719ddd (`insider.py`, `scripts/load_insider.py`, table `insider_trades` created by `InsiderTrades`; 508 tests pass, ruff clean). Left to do in the main folder (needs .env and the real news.db): `python scripts/load_insider.py --history` through jobq (cpu lane), then `--day <date>`; check the log ends with rows per year and a rerun adds no duplicate; then tick. The live day is not yet wired into the watcher or backfill task.
   - Files: create `stock_advisor/news/sources/insider.py`, `tests/test_insider.py`; new table
