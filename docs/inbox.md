@@ -11,6 +11,7 @@ Brian's answers are copied here word for word, then into `docs/decisions.md`.
 - Why it matters: if the tool ignores the terms, HKEX could block this PC or object. The rule of 2026-10-27 is to skip sources whose terms forbid scripted access (as with FINRA). The CFTC half of the task is built and stored, so only the Hong Kong half waits.
 - Options: **Default:** (a) skip HKEX; Hong Kong per-stock crowding comes from the SFC short positions already stored. Or (b) you download the daily zip by hand into a folder and the tool reads it (no scripted access to HKEX; about one minute a day). Or (c) write to HKEX for permission, then build the job.
 - Checked: HKEX terms page read in full on 2026-11-26. Inferred: that a plain file link counts as "Information" under those terms.
+- Card sent 2026-11-26 (orchestrator).
 
 ## Answered
 
