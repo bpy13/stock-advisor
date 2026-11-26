@@ -475,6 +475,7 @@ def main(argv: Optional[List[str]] = None) -> int:
                 gdelt.strict = True  # stop instead of skipping a window the server refused
                 gdelt.rate_limit_wait, gdelt.rate_limit_tries = 75.0, 4  # lockouts last 1+ minutes
                 fetch_short_selling(store)
+                fetch_cftc_cot(store)
                 run(store, sources, progress, args.max_minutes, args.slice_minutes)
             if not args.process_only:
                 rebuild_library_snapshot(store)  # the daily 02:00 run keeps the News tab fresh
@@ -508,6 +509,17 @@ def fetch_short_selling(store) -> None:
         fetch_sfc(store, [w.symbol for w in load_watchlist() if w.market == "HK"])
     except Exception:
         logger.exception("short-selling fetch failed")
+
+
+def fetch_cftc_cot(store) -> None:
+    """Load the CFTC weekly positions not stored yet (Task R4). A failure is logged and does
+    not fail the backfill."""
+    try:
+        from stock_advisor.news.sources.cftc_cot import fetch_cot
+
+        fetch_cot(store)
+    except Exception:
+        logger.exception("CFTC Commitments of Traders fetch failed")
 
 
 def rebuild_library_snapshot(store) -> None:

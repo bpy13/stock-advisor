@@ -133,6 +133,10 @@ Limits and traps we live with. A bug that will be fixed goes in `open-items.md` 
   start of the 02:00 backfill; the first run takes the whole history (about 12 minutes at one
   request a second).
 
+## Market-position data (Task R4, 2026-11-26)
+- **HKEX stock-option open interest is not collected.** HKEX's website terms of use (read 2026-11-26) forbid "programmatic, scripted or other mechanical means" and robots, scrapers and databases built from the site. The inbox holds the question (skip, manual download, or ask HKEX).
+- **CFTC Commitments of Traders loads into `cot_positions`** (source `stock_advisor/news/sources/cftc_cot.py`, run at the start of the 02:00 backfill). First live run on 2026-11-26: 6,835 rows; the weekly reports start 1986-01-15 (`CL=F`, `^TNX`), 1997-09-16 (`^GSPC`) and 1999-06-22 (`^NDX`); latest week 2026-11-17. The report date is a Tuesday; the CFTC publishes on Friday. The run asks only for weeks newer than the newest stored.
+
 ## Learned in the pinned session (carried over 2026-11-26, Task R1)
 - **Restarting a live service.** A worker's command to stop a process is refused by Claude Code's safety check, so Brian types it. The watcher and the dashboard each restart themselves about 60 s after the stop (wrapper script, then scheduled task). Each reads `.env` only at start, so a new key or token needs a restart. (2026-10-28, 2026-11-11)
 - **Check a service with the real client, not `netstat`.** Futu OpenD at 127.0.0.1:11111 shows as owned by its process with a blank state, not "Listen". The proof is `futu.OpenQuoteContext("127.0.0.1", 11111).get_global_state()` returning ret 0 and `qot_logined` true. (2026-11-12)

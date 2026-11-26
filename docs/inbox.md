@@ -5,6 +5,13 @@ Brian's answers are copied here word for word, then into `docs/decisions.md`.
 
 ## Open
 
+**May the tool download HKEX's daily stock-option file by script, against HKEX's terms of use?** (requests Task R4, 2026-11-26)
+- What it is: you chose to build HKEX stock-option open interest (how many option contracts per stock are still open). HKEX's website terms of use (read 2026-11-26) say you may not "use any programmatic, scripted or other mechanical means to access this Website", nor use any "robot, bot, spider, scraper" or compile its data into a database. The daily file is a plain download link, but a script fetching it is covered by that wording.
+- Example: the file `dqe251125.zip` (5.3 MB) held Tencent at 2,391,744 open contracts. A browser download by you is allowed. A 02:00 scheduled job fetching the same file is what the terms forbid.
+- Why it matters: if the tool ignores the terms, HKEX could block this PC or object. The rule of 2026-10-27 is to skip sources whose terms forbid scripted access (as with FINRA). The CFTC half of the task is built and stored, so only the Hong Kong half waits.
+- Options: **Default:** (a) skip HKEX; Hong Kong per-stock crowding comes from the SFC short positions already stored. Or (b) you download the daily zip by hand into a folder and the tool reads it (no scripted access to HKEX; about one minute a day). Or (c) write to HKEX for permission, then build the job.
+- Checked: HKEX terms page read in full on 2026-11-26. Inferred: that a plain file link counts as "Information" under those terms.
+
 ## Answered
 
 **Which market-position data should we build first?** (requests Task R2, 2026-11-26)

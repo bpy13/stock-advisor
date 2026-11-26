@@ -25,6 +25,7 @@ registered with the orchestrator). Questions for Brian go to `docs/inbox.md`, ne
   moves to milestone 4.
 
 ## Results
+- Task R4 (HKEX option OI + CFTC) part done by slot 1, 2026-11-26: CFTC collector built (3 tests, 651 pass, ruff clean; live 6,835 rows in `cot_positions`, latest week 2026-11-17, second run 0 new); HKEX stopped because its terms forbid scripted access, inbox question added; cost US$0.
 - Task R2 (market-position sources) done by slot 1, 2026-11-26: HKEX stock-option open interest, CFTC and Yahoo option samples fetched; Futu order book not sampled (OpenD down); recommendation and inbox question written; docs only; cost US$0.
 - Task R1 (carry over the pinned session) done by slot 1, 2026-11-26: 6 rulings added to decisions.md, 6 facts to known-issues.md, 7 lines to CLAUDE.md, 3 items to open-items.md, 1 question to the inbox; stale board header fixed; docs only; cost US$0.
 - Task 9.2 (Brian's shares off the alert path) done by slot 2, 2026-11-26: `_recent_unscored` skips source `research_inbox`, so no score, event or Telegram; 2 new tests fail without the fix and pass with it; 641 tests pass, ruff clean; cost US$0.

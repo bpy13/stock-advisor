@@ -111,6 +111,20 @@ CREATE TABLE IF NOT EXISTS short_selling (
     total_volume REAL,
     PRIMARY KEY (symbol, date, source)
 );
+
+-- CFTC Commitments of Traders (Task R4): one row per futures market and report date (a Tuesday).
+-- `symbol` is the watchlist symbol the market stands for. Non-commercial = speculators.
+CREATE TABLE IF NOT EXISTS cot_positions (
+    contract_code TEXT NOT NULL,
+    date TEXT NOT NULL,
+    symbol TEXT NOT NULL,
+    open_interest REAL NOT NULL,
+    noncomm_long REAL NOT NULL,
+    noncomm_short REAL NOT NULL,
+    comm_long REAL NOT NULL,
+    comm_short REAL NOT NULL,
+    PRIMARY KEY (contract_code, date)
+);
 """
 
 
@@ -353,6 +367,29 @@ class NewsStore:
             sql += " AND source = ?"
             args.append(source)
         return self._conn.execute(sql + " ORDER BY date", args).fetchall()
+
+    # ---- CFTC Commitments of Traders ---------------------------------------------------------
+
+    def add_cot(self, rows: Iterable[Tuple]) -> int:
+        """Insert (contract_code, date, symbol, open_interest, noncomm_long, noncomm_short,
+        comm_long, comm_short) rows, skipping keys already stored. Returns how many were new."""
+        before = self._conn.total_changes
+        with self._conn:
+            self._conn.executemany(
+                "INSERT OR IGNORE INTO cot_positions VALUES (?, ?, ?, ?, ?, ?, ?, ?)", list(rows)
+            )
+        return self._conn.total_changes - before
+
+    def cot_latest_date(self) -> Optional[str]:
+        return self._conn.execute("SELECT MAX(date) FROM cot_positions").fetchone()[0]
+
+    def query_cot(self, symbol: str) -> List[sqlite3.Row]:
+        """Weekly rows for a watchlist symbol, oldest first, with net_noncomm (long - short)."""
+        return self._conn.execute(
+            "SELECT *, noncomm_long - noncomm_short AS net_noncomm FROM cot_positions "
+            "WHERE symbol = ? ORDER BY date",
+            (symbol,),
+        ).fetchall()
 
     def close(self) -> None:
         self._conn.close()

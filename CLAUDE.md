@@ -33,6 +33,7 @@ Read these before substantial changes:
 - Tests use synthetic data only; no live network calls in tests.
 
 ## Conventions
+- Market-position data: SFC short positions (`short_selling`) and CFTC weekly positions (`cot_positions`: S&P 500, Nasdaq-100, WTI crude, 10-year note) sit in the news store `data/cache/news/news.db`, loaded by the 02:00 backfill. HKEX option data is not fetched (terms forbid scripts).
 - Remote data is cached on disk under `data/cache/` (see `market_data.py` for the pattern).
 
 ## Live services and workers (carried over 2026-11-26)
