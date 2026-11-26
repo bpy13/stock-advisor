@@ -5,6 +5,8 @@ Brian's answers are copied here word for word, then into `docs/decisions.md`.
 
 ## Open
 
+## Answered
+
 **Which market-position data should we build first?** (requests Task R2, 2026-11-26)
 - What it is: you asked about order book depth (the waiting buy and sell orders), open interest (how many option or futures contracts are still open) and crowded positioning (how lopsided the bets are). Task R2 checked where each comes from. The table is in `docs/research/market-position-sources.md`.
 - Example: HKEX publishes a free daily file. On 25 Nov it showed Tencent options with 2,391,744 open contracts, 1,423,318 calls against 968,426 puts. A rising put share could lower the buy score.
@@ -12,8 +14,8 @@ Brian's answers are copied here word for word, then into `docs/decisions.md`.
 - Options: **Default:** (a) build HKEX stock-option open interest (per stock, daily) and CFTC Commitments of Traders (whole market, weekly). Or (b) HKEX options only. Or (c) CFTC only. Or (d) also record Futu order book depth from now on.
 - Checked: the HKEX file, CFTC feed and Yahoo option chains were fetched for real. Task R3 (2026-11-26) read Futu's documentation: Hong Kong 10-level depth needs a paid HK LV2 card for a Global account (price not shown in the docs); US 60-level depth is free during a promotion; 300 subscriptions fit the 89 HK stocks. OpenD is installed but was not running, so no sample was fetched. Option (d) is weak for Hong Kong unless Brian holds the LV2 card. Not checked: terms of use of HKEX and Yahoo.
 - Card sent 2026-11-26 (orchestrator).
+- Brian (2026-11-26): "go with the recommended route and discard Futu" (option (a): HKEX stock-option open interest + CFTC Commitments of Traders; no Futu order book)
 
-## Answered
 
 **Which "market position" data should the strategies use?** (Brian's chat, 2026-11-17; carried over by Task R1)
 - What it is: "position" can mean who holds or bets against a stock (short positions, insider trades), or where the whole market stands (for example the Hang Seng against its 200-day average).
