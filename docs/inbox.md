@@ -5,6 +5,8 @@ Brian's answers are copied here word for word, then into `docs/decisions.md`.
 
 ## Open
 
+## Answered
+
 **Which "market position" data should the strategies use?** (Brian's chat, 2026-11-17; carried over by Task R1)
 - What it is: "position" can mean who holds or bets against a stock (short positions, insider trades), or where the whole market stands (for example the Hang Seng against its 200-day average).
 - Example: option A: Tencent's short positions rose 20% this week, so the tool lowers its score. Option B: the Hang Seng sits below its 200-day average, so every buy turns more cautious.
@@ -12,8 +14,8 @@ Brian's answers are copied here word for word, then into `docs/decisions.md`.
 - Options: **Default:** (a) both, holdings data per stock plus whole-market trend. Or (b) holdings data per stock only. Or (c) whole-market trend only.
 - Checked: the 2026-11-17 session asked this; Brian never answered it in chat. Not yet a plan task.
   - Card sent 2026-11-26 (orchestrator; merged with the open 17 Nov Futu market-position question)
+- Brian (2026-11-26): "I'm thinking of order book depth, open interest, or crowded positioning" (none of options a-c: a source check is added as requests Task R2)
 
-## Answered
 
 **Approve the plan for milestone 2, the news watch (`docs/plans/2026-11-17-news-watch.md`), and put your Anthropic API key into `.env`?** (orchestrator, 2026-11-17)
 - Brian (2026-11-17): "approve" (the plan) and "done" (the key). Plan registered; Task 5.4 only checks the key is present.
