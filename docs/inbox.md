@@ -11,6 +11,7 @@ Brian's answers are copied here word for word, then into `docs/decisions.md`.
 - Why it matters: the data sources and the code differ between the two. The tool already stores SFC short positions and insider trades; whole-market trend needs only prices (and perhaps FRED data).
 - Options: **Default:** (a) both, holdings data per stock plus whole-market trend. Or (b) holdings data per stock only. Or (c) whole-market trend only.
 - Checked: the 2026-11-17 session asked this; Brian never answered it in chat. Not yet a plan task.
+  - Card sent 2026-11-26 (orchestrator; merged with the open 17 Nov Futu market-position question)
 
 ## Answered
 
