@@ -11,6 +11,7 @@ Brian's answers are copied here word for word, then into `docs/decisions.md`.
 - Why it matters: order book depth has no history and needs Futu OpenD running all day, so a backtest would wait months. The two recommended sources can be built within days and one has 30 years of history.
 - Options: **Default:** (a) build HKEX stock-option open interest (per stock, daily) and CFTC Commitments of Traders (whole market, weekly). Or (b) HKEX options only. Or (c) CFTC only. Or (d) also record Futu order book depth from now on.
 - Checked: the HKEX file, CFTC feed and Yahoo option chains were fetched for real. Not checked: Futu order book (OpenD was not running) and the terms of use of HKEX and Yahoo.
+- Card sent 2026-11-26 (orchestrator).
 
 ## Answered
 
