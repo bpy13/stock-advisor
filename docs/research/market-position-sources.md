@@ -34,3 +34,62 @@ subscription per stock. Recording it would take months before any backtest. US o
 interest from Yahoo is a cheap later add on the same daily job.
 
 Terms for HKEX and Yahoo are unverified; a build task would read them first.
+
+## Futu order book depth (Task R3, 2026-11-26)
+
+Sources, all read on 2026-11-26 (Futu API Doc v10.12):
+[Authorities and Quota](https://openapi.futunn.com/futu-api-doc/en/intro/authority.html),
+[Get Real-time Order Book](https://openapi.futunn.com/futu-api-doc/en/quote/get-order-book.html),
+[Q&A: quote, Q11 levels per market](https://openapi.futunn.com/futu-api-doc/en/qa/quote.html).
+"Reading" marks my interpretation of a table; the docs give no literal "maximum" line.
+
+**Levels per quote right** (Q&A Q11; "/" means none)
+
+| Market | LV1 | LV2 | LV3 | SF |
+|---|---|---|---|---|
+| HK stocks | / | 10 | / | full order details (up to 1000 orders) |
+| US stocks and ETFs | 1 | 60 | 60 Nasdaq + 60 Arca | / |
+
+**What an account gets without paying**
+- **HK:** a Global user (decided by the login IP of OpenD) gets LV1 free. LV1 has no order book levels
+  (reading of the "/" cell). Ten levels need the paid "HK stocks LV2 advanced market" card. Mainland China
+  verified users get LV2 free. The full order details need the paid "HK Stocks Advanced Full Market Quotes" (SF).
+- **US:** LV3 is free during a promotion period. Depth of book (60 levels each from Nasdaq TotalView and NYSE
+  ArcaBook) was made free "starting from April 16" (no year given). NYSE ArcaBook needs a non-professional
+  user evaluation. Futu can end the promotion at any time.
+- **Delay:** neither page states a delay in seconds for any level.
+- **Price:** the docs pages give no price. The card prices sit on the qtcard.futunn.com pages, not read here.
+  So the HK LV2 price is **not checked**.
+
+**Subscription quota** (stocks held in subscription at once; one stock with one data type uses 1)
+
+| Account | Subscriptions | Historical candlestick stocks per 7 days |
+|---|---|---|
+| Total assets under HK$10,000 | 100 | 100 |
+| HK$10,000 or more | 300 | 300 |
+| Over HK$500,000, or over 200 filled orders a month, or over HK$2 million traded a month | 1,000 | 1,000 |
+| Over HK$5 million, or over 2,000 orders, or over HK$20 million traded | 2,000 | 2,000 |
+
+- Recording the order book of one stock uses 1 subscription. The 300-tier fits the 89 HK watchlist stocks.
+- `get_order_book(code, num=10)` needs `subscribe([code], [SubType.ORDER_BOOK])` first. A subscription can be
+  cancelled only after 1 minute. The first read waits up to 3 seconds for a push, then returns empty.
+- The order book has no history. Recording it means a daily job that holds the subscriptions open.
+
+**This PC, read-only**
+- OpenD is installed: `C:\FutuOpenD\Futu_OpenD_10.12.7208_Windows\` (`FutuOpenD.exe`, and a GUI build
+  `Futu_OpenD-GUI_10.12.7208_Windows.exe`). Its settings sit in `%APPDATA%\Futu_OpenD`.
+- The repo already has Futu code: `stock_advisor/price_sources/futu.py` (daily and hourly bars through
+  `OpenQuoteContext` at 127.0.0.1:11111; no credential in the repo), `scripts/record_minutes.py`,
+  `tests/test_price_source_futu.py`, `tests/test_record_minutes.py`, and notes in `docs/known-issues.md`.
+  No order book code and no `.env` Futu setting exist.
+- OpenD was **not running** at 17:58 on 2026-11-26: no Futu process, and a connection to 127.0.0.1:11111
+  was refused. I did not start it or log in.
+- **Sample:** none. So how many HK levels Brian's account returns is **not measured**. It depends on whether
+  he holds the HK LV2 card.
+
+**What it means for option (d) (record the order book from now on)**
+- Without the HK LV2 card, HK depth is probably empty or one level, so (d) would have little to record
+  for Hong Kong (reading, not measured).
+- US depth is free for now, but Futu serves it only through OpenD, and OpenD must stay logged in all day.
+- To settle it: Brian starts OpenD and logs in, then a later run fetches 00700 and AAPL with `get_order_book`
+  and records the level counts.
