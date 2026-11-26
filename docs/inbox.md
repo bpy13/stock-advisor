@@ -5,6 +5,13 @@ Brian's answers are copied here word for word, then into `docs/decisions.md`.
 
 ## Open
 
+**Which market-position data should we build first?** (requests Task R2, 2026-11-26)
+- What it is: you asked about order book depth (the waiting buy and sell orders), open interest (how many option or futures contracts are still open) and crowded positioning (how lopsided the bets are). Task R2 checked where each comes from. The table is in `docs/research/market-position-sources.md`.
+- Example: HKEX publishes a free daily file. On 25 Nov it showed Tencent options with 2,391,744 open contracts, 1,423,318 calls against 968,426 puts. A rising put share could lower the buy score.
+- Why it matters: order book depth has no history and needs Futu OpenD running all day, so a backtest would wait months. The two recommended sources can be built within days and one has 30 years of history.
+- Options: **Default:** (a) build HKEX stock-option open interest (per stock, daily) and CFTC Commitments of Traders (whole market, weekly). Or (b) HKEX options only. Or (c) CFTC only. Or (d) also record Futu order book depth from now on.
+- Checked: the HKEX file, CFTC feed and Yahoo option chains were fetched for real. Not checked: Futu order book (OpenD was not running) and the terms of use of HKEX and Yahoo.
+
 ## Answered
 
 **Which "market position" data should the strategies use?** (Brian's chat, 2026-11-17; carried over by Task R1)
