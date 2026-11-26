@@ -1,5 +1,7 @@
 # Milestones
 
+Standing: tasks in docs/plans/requests.md are Brian's own requests within the project's scope and need no milestone (Brian, 2026-11-26: retiring the pinned sessions; new requests go to the orchestrator's workers).
+
 Approved by Brian on 2026-11-10 (replanning session). Plan for milestone 1:
 `docs/plans/2026-11-10-price-data-and-analyzer.md`. Milestone 3 and the alert line of milestone 4
 were revised the same day, on his answers about how signals are verified.
