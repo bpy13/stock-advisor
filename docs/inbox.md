@@ -5,6 +5,13 @@ Brian's answers are copied here word for word, then into `docs/decisions.md`.
 
 ## Open
 
+**Which "market position" data should the strategies use?** (Brian's chat, 2026-11-17; carried over by Task R1)
+- What it is: "position" can mean who holds or bets against a stock (short positions, insider trades), or where the whole market stands (for example the Hang Seng against its 200-day average).
+- Example: option A: Tencent's short positions rose 20% this week, so the tool lowers its score. Option B: the Hang Seng sits below its 200-day average, so every buy turns more cautious.
+- Why it matters: the data sources and the code differ between the two. The tool already stores SFC short positions and insider trades; whole-market trend needs only prices (and perhaps FRED data).
+- Options: **Default:** (a) both, holdings data per stock plus whole-market trend. Or (b) holdings data per stock only. Or (c) whole-market trend only.
+- Checked: the 2026-11-17 session asked this; Brian never answered it in chat. Not yet a plan task.
+
 ## Answered
 
 **Approve the plan for milestone 2, the news watch (`docs/plans/2026-11-17-news-watch.md`), and put your Anthropic API key into `.env`?** (orchestrator, 2026-11-17)

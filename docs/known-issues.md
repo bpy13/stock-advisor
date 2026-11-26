@@ -132,3 +132,11 @@ Limits and traps we live with. A bug that will be fixed goes in `open-items.md` 
   row's own Date column. Only watchlist and holding stocks are stored. The fetch runs at the
   start of the 02:00 backfill; the first run takes the whole history (about 12 minutes at one
   request a second).
+
+## Learned in the pinned session (carried over 2026-11-26, Task R1)
+- **Restarting a live service.** A worker's command to stop a process is refused by Claude Code's safety check, so Brian types it. The watcher and the dashboard each restart themselves about 60 s after the stop (wrapper script, then scheduled task). Each reads `.env` only at start, so a new key or token needs a restart. (2026-10-28, 2026-11-11)
+- **Check a service with the real client, not `netstat`.** Futu OpenD at 127.0.0.1:11111 shows as owned by its process with a blank state, not "Listen". The proof is `futu.OpenQuoteContext("127.0.0.1", 11111).get_global_state()` returning ret 0 and `qot_logined` true. (2026-11-12)
+- **Memory shown by Windows is mostly reserved, not used.** On 2026-10-28 the backtest (8.9 GB), watcher (4.7 GB) and backfill (2.5 GB) had only 12 to 18% of that in RAM. Compare `PrivateMemorySize64` with the working set before calling something a leak. A stuck Game Bar recording service had added to the memory load; Brian turned recording off and restarted the PC.
+- **Dukascopy** (free datafeed) holds hourly Hang Seng bars from about 2011 to 2014, an index CFD that follows the real index closely. It answered 503 after about 20 requests. Not built: Futu and Alpaca cover hourly history. (2026-10-29)
+- **Telegram setup.** The bot token never goes in chat. Telegram passes only messages sent to the bot itself and keeps them for 24 hours; `--setup` reads them without clearing them. A "hi" sent to another bot does not count. The bot works and alerts are on since 2026-10-28; the first real alert waits on a proven model.
+- **Instagram cannot be read by script.** Meta's terms forbid it; the hashtag search needs a Business account, a Facebook Page and App Review, and allows 30 hashtags a week. Composio's Instagram tools act on one's own account only. Saved reels are not available to any app; a reel shared by DM arrives as an `ig_reel` attachment (per Meta docs, untested). Not built: research-inbox is the route (decisions, 2026-11-26).

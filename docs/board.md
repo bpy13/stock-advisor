@@ -1,8 +1,8 @@
 # Board: stock_advisor
 
 Milestone: `docs/milestones.md` (approved 2026-11-10; now: 1, clean price data and the portfolio
-analyzer). Plan: `docs/plans/2026-11-10-price-data-and-analyzer.md` (waits for Brian's approval;
-not yet in the orchestrator's registry). Questions for Brian go to `docs/inbox.md`, never here.
+analyzer; milestone 1 reached 2026-11-17, milestone 2 news watch approved). Plan: `docs/plans/2026-11-10-price-data-and-analyzer.md` (approved 2026-11-10;
+registered with the orchestrator). Questions for Brian go to `docs/inbox.md`, never here.
 
 ## Workers
 - none (slot 2 finished the code of Task 5.2, 2026-11-17; its history run waits for slot 1). (slot 4 finished the code of Task 6.2, 2026-11-17; its history load waits for slot 1)
@@ -25,6 +25,7 @@ not yet in the orchestrator's registry). Questions for Brian go to `docs/inbox.m
   moves to milestone 4.
 
 ## Results
+- Task R1 (carry over the pinned session) done by slot 1, 2026-11-26: 6 rulings added to decisions.md, 6 facts to known-issues.md, 7 lines to CLAUDE.md, 3 items to open-items.md, 1 question to the inbox; stale board header fixed; docs only; cost US$0.
 - Task 9.2 (Brian's shares off the alert path) done by slot 2, 2026-11-26: `_recent_unscored` skips source `research_inbox`, so no score, event or Telegram; 2 new tests fail without the fix and pass with it; 641 tests pass, ruff clean; cost US$0.
 - Task 9.1 (research-inbox source) done by slot 1, 2026-11-26: reads local items.jsonl, `stock` tag only; 5 new tests pass, 644 tests pass, ruff clean; no network; cost US$0. Tasks 9.2 and 9.3 follow.
 - Task 6.2 (insider trades) done by slot 1, 2026-11-25: history job 199 loaded 2006 to 2026q1 (log ends with rows per year); 12 tests pass; live day 13 Nov added 43 rows, rerun 0 (17 Nov); a repeat today timed out; cost US$0.

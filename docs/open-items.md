@@ -154,3 +154,9 @@ here; a limit or trap we live with goes in `known-issues.md`. Each item in one p
 - "Public attention" signal from the NYT Most Popular API: when a market story reaches
   most-viewed, ordinary investors have caught on. No history in the API, so it must be
   recorded for months before it can be backtested.
+
+## Carried over from the pinned session (2026-11-26, Task R1)
+- Brian's 2026-11-17 request "strategies should include market position data" has no plan task yet. Data in hand: SFC short positions and insider trades. Question for Brian is in `docs/inbox.md` (which kind of position data).
+- Tauric Research (Brian, 2026-11-17: "look up tauric research and see if there is anything we can adopt"). The session found TradingAgents (Apache-2.0) and proposed four items, none approved or built: (1) a Reddit source (its terms for the free API not yet checked; StockTwits terms unchecked); (2) a bull-versus-bear LLM explainer beside our number signal, which keeps the number signal as the decision; (3) its backtest scoring, grouping calls by type against the index; (4) FRED economic data, which would suit a whole-market trend input. Not adopted on purpose: using its LLM output as the signal (answers differ run to run) and backtesting an LLM on past dates (it may know the outcome).
+- Social-media idea testing (Brian, 2026-11-17): the research-inbox route covers shared posts as news. Still unbuilt: turning a post into a testable rule (the session proposed the Claude API drafting it, about US$0.01 to 0.05 an idea, with Brian approving each rule before the backtest) and running it through the existing validation code. Needs Brian's go before any build.
+- The 2026-10-29 design questions (which factors, severity grading, Claude for severity) were answered on 2026-10-29 and 2026-10-30; nothing else was left open in that session.
