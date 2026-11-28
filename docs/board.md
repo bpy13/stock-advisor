@@ -25,6 +25,7 @@ registered with the orchestrator). Questions for Brian go to `docs/inbox.md`, ne
   moves to milestone 4.
 
 ## Results
+- Task R5 (backtest Brian's two shared ideas) done by slot 1, 2026-11-28: item 14, the 200-day rule, does not beat holding (S&P 500 1928-2026: 6.1% a year each; SPY 1993-2026 with dividends: 8.2% against 10.6%) but has a smaller deepest fall; item 16 names no rule, so it is not testable. 3 tests, 654 pass, ruff clean; cost US$0.
 - Task R4 (HKEX option OI + CFTC) part done by slot 1, 2026-11-26: CFTC collector built (3 tests, 651 pass, ruff clean; live 6,835 rows in `cot_positions`, latest week 2026-11-17, second run 0 new); HKEX stopped because its terms forbid scripted access, inbox question added; cost US$0.
 - Task R2 (market-position sources) done by slot 1, 2026-11-26: HKEX stock-option open interest, CFTC and Yahoo option samples fetched; Futu order book not sampled (OpenD down); recommendation and inbox question written; docs only; cost US$0.
 - Task R1 (carry over the pinned session) done by slot 1, 2026-11-26: 6 rulings added to decisions.md, 6 facts to known-issues.md, 7 lines to CLAUDE.md, 3 items to open-items.md, 1 question to the inbox; stale board header fixed; docs only; cost US$0.
